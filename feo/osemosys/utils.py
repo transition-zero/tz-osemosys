@@ -7,7 +7,8 @@ from typing import List, Optional
 
 import orjson
 import pandas as pd
-from osemosys.simpleeval import EvalWithCompoundTypes
+
+from feo.osemosys.simpleeval import EvalWithCompoundTypes
 
 from datetime import datetime, timedelta  # noqa
 
