@@ -1,5 +1,6 @@
 import yaml
-from osemosys import utils
+
+from feo.osemosys import utils
 
 
 def load_model(*spec_files):
