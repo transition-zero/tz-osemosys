@@ -1,0 +1,92 @@
+# My Example Yaml-Loading Model
+
+# alias data
+# custom defined cross-references
+ELEC-DAILY-PROFILE: &ELEC-DAILY-PROFILE
+  - 0.05 # 0 - 4
+  - 0.10 # 4 - 8
+  - 0.20 # 8 - 12
+  - 0.20 # 12 - 16
+  - 0.30 # 16 - 20
+  - 0.15 # 20 - 24
+
+# Model Nameplate
+id: my-model
+long_name: "Example Model - California+Texas interconnection"
+description: >
+  California+Texas interconnection.
+  An example model to show how we can create an OSeMOSYS model from json/yaml.
+  In this model, California and Texas have comparative advantages in solar and wind respectively,
+  and start with very little interconnection.
+  Both states can import gas and coal from pacific and atlantic markets respectively.
+  Texas can also extract gas and coal, but their ability to do so diminishes with time.
+  The electricity system is constrained to acheive net zero by the end of the model period.
+
+
+# REGIONS
+regions:
+  - id: US-CA
+    long_name: California
+    description: "The US state of California"
+    neighbours:
+      - US-TX
+      - PACIFIC-MARKET
+  - id: UX-TX
+    long_name: Texas
+    description: "The US state of Texas"
+    neighbours:
+      - US-CA
+      - ATLANTIC-MARKET
+  - id: ATLANTIC-MARKET
+    long_name: atlantic market
+    description: a node representing atlantic import markets
+    neighbours:
+      - US-TX
+  - id: PACIFIC-MARKET
+    long_name: pacific market
+    description: a node representing pacific import markets
+    neighbours:
+      - US-CA
+
+# TIME DEFINTIONS
+time_definition:
+  years: "range(2022,2041)"
+  dayparts: 6
+  yearparts: 12
+
+# FINANCIALS
+depreciation_method: "straight-line"
+discount_rate: 0.05
+
+# COMMODITIES
+commodities:
+  - id: ELEC
+    long_name: Electricity
+    description: Electricity
+    demand_annual: # EJ/yr
+      US-CA: "{y:(0.7*1.1**(y-2022)) for y in {{$time_definition.years}}}"
+      US-TX: "{y:(1.73*1.1**(y-2022)) for y in {{$time_definition.years}}}"
+    demand_profile:
+      "*":                           # region
+        "*":                         # year
+          "*": *ELEC-DAILY-PROFILE   # season -> use YAML cross-referencing
+
+# IMPACTS
+impacts:
+  - id: CO2
+    long_name: equivalent carbon dioxide emissions
+    description: equivalent carbon dioxide emissions
+    penalty: # mn$/mntonne
+      US-CA: 20.
+      US-TX: 10.
+    exogenous: 0.
+    constraint: "{y:225*((2041-y)/(2041-2022)) for y in {{$time_definition.years}}}"
+
+# RENEWABLE TARGETS
+renewable_targets:
+  US-CA: "{y:0.1*((2041-y)/(2041-2022))+0.4 for y in {{$time_definition.years}}}"
+  US-TX: "{y:0.1*((2041-y)/(2041-2022))+0.2 for y in {{$time_definition.years}}}"
+
+# RESERVE MARGINS
+reserve_margins_commodity: null
+reserve_margins_technology: 0.1
