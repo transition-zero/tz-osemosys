@@ -30,6 +30,19 @@ class OSeMOSYSBase(BaseModel):
     description: str | None
 
 
+DataVar = float | int
+IdxVar = str | int
+
+
+class OSeMOSYSData(BaseModel):
+    data: Union[
+        DataVar,  # {data: 4.}
+        Dict[IdxVar, DataVar],
+        Dict[IdxVar, Dict[IdxVar, DataVar]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]],
+    ]
+
+
 class RegionTechnologyYearData(BaseModel):
     # can be expressed as:
     #  - one value
@@ -75,6 +88,21 @@ class StringYearData(BaseModel):
         Union[float, int],
         Dict[Union[str, int], Union[float, int]],
         Dict[str, Dict[int, Union[float, int]]],
+    ]
+
+    def keys(self):
+        return self.data.keys()
+
+
+class StringStringData(BaseModel):
+    # can be expressed as:
+    #  - one value
+    #  - a dict of year:value OR region:value
+    #  - a dict of region:{year:value}
+    data: Union[
+        float,
+        Dict[str, float],
+        Dict[str, Dict[str, float]],
     ]
 
 
