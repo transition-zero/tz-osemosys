@@ -3,6 +3,7 @@ import importlib
 import os
 import re
 from collections import defaultdict
+from itertools import chain
 from typing import List, Optional
 
 import orjson
@@ -11,6 +12,10 @@ import pandas as pd
 from feo.osemosys.simpleeval import EvalWithCompoundTypes
 
 from datetime import datetime, timedelta  # noqa
+
+
+def flatten(list_of_lists):
+    return list(chain.from_iterable(list_of_lists))
 
 
 def _indirect_cls(path):
