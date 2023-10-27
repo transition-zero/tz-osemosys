@@ -29,9 +29,10 @@ class RunSpec(OSeMOSYSBase):
     impacts: List[Impact]
 
     # technologies
+    technologies: List[Technology]
+    storage_technologies: List[TechnologyStorage]
     # TODO
     # production_technologies: List[TechnologyProduction]
-    # storage_technologies: List[TechnologyStorage]
     # transmission_technologies: List[TechnologyTransmission]
 
     # reserve margins if any
@@ -72,12 +73,29 @@ class RunSpec(OSeMOSYSBase):
         Dict[str,str]
             A dictionary with keys the otool filenames and paths the otool paths
         """
+
         self.time_definition.to_otoole_csv(comparison_directory)
+
         for commodity in self.commodities:
             commodity.to_otoole_csv(comparison_directory)
+            
+        for impact in self.impacts:
+            impact.to_otoole_csv(comparison_directory)
+
+        for technology in self.technologies:
+            technology.to_otoole_csv(comparison_directory)
+
+        for storage_technology in self.storage_technologies:
+            storage_technology.to_otoole_csv(comparison_directory)
+
 
     @classmethod
-    def from_otoole_csv(cls, root_dir) -> "cls":
+    def from_otoole_csv(cls, root_dir, comparison_directory) -> "cls":
+        
+        # Clear comparison directory
+        for file in os.listdir(comparison_directory):
+            os.remove(os.path.join(comparison_directory, file))
+        
         def get_depreciation_method(root_dir):
             df = pd.read_csv(os.path.join(root_dir, "DepreciationMethod.csv"))
             return df if not df.empty else None
@@ -118,7 +136,7 @@ class RunSpec(OSeMOSYSBase):
             impacts=Impact.from_otoole_csv(root_dir=root_dir),
             regions=Region.from_otoole_csv(root_dir=root_dir),
             technologies=Technology.from_otoole_csv(root_dir=root_dir),
-            storage_technologies=TechnologyStorage.from_otoole_csv(root_dir=root_dir),
+            storage_technologies=TechnologyStorage.from_otoole_csv(root_dir=root_dir, comparison_directory=comparison_directory),
             # TODO
             # production_technologies=TechnologyProduction.from_otoole_csv(root_dir=root_dir),
             # transmission_technologies=TechnologyTransmission.from_otoole_csv(root_dir=root_dir),
