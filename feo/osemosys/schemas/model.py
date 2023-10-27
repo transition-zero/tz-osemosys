@@ -73,6 +73,9 @@ class RunSpec(OSeMOSYSBase):
         Dict[str,str]
             A dictionary with keys the otool filenames and paths the otool paths
         """
+        # Clear comparison directory
+        for file in os.listdir(comparison_directory):
+            os.remove(os.path.join(comparison_directory, file))
 
         self.time_definition.to_otoole_csv(comparison_directory)
 
@@ -90,11 +93,7 @@ class RunSpec(OSeMOSYSBase):
 
 
     @classmethod
-    def from_otoole_csv(cls, root_dir, comparison_directory) -> "cls":
-        
-        # Clear comparison directory
-        for file in os.listdir(comparison_directory):
-            os.remove(os.path.join(comparison_directory, file))
+    def from_otoole_csv(cls, root_dir) -> "cls":
         
         def get_depreciation_method(root_dir):
             df = pd.read_csv(os.path.join(root_dir, "DepreciationMethod.csv"))
@@ -136,7 +135,7 @@ class RunSpec(OSeMOSYSBase):
             impacts=Impact.from_otoole_csv(root_dir=root_dir),
             regions=Region.from_otoole_csv(root_dir=root_dir),
             technologies=Technology.from_otoole_csv(root_dir=root_dir),
-            storage_technologies=TechnologyStorage.from_otoole_csv(root_dir=root_dir, comparison_directory=comparison_directory),
+            storage_technologies=TechnologyStorage.from_otoole_csv(root_dir=root_dir),
             # TODO
             # production_technologies=TechnologyProduction.from_otoole_csv(root_dir=root_dir),
             # transmission_technologies=TechnologyTransmission.from_otoole_csv(root_dir=root_dir),

@@ -11,7 +11,7 @@ comparison_directory = "otoole_compare/model_three/"
 (Path.cwd() / comparison_directory).mkdir(parents=True, exist_ok=True)
 
 # uses the class method on the base class to instantiate itself
-run_spec_object = RunSpec.from_otoole_csv(root_dir=root_dir, comparison_directory=comparison_directory)
+run_spec_object = RunSpec.from_otoole_csv(root_dir=root_dir)
 
 # type(run_spec_object) == <class RunSpec>
 run_spec_object.to_otoole_csv(comparison_directory=comparison_directory)

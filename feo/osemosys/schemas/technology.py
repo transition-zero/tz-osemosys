@@ -494,7 +494,7 @@ class TechnologyStorage(OSeMOSYSBase):
     max_charge_rate: RegionData | None  # Maximum charging rate for the storage, in units of activity per year
 
     @classmethod
-    def from_otoole_csv(cls, root_dir, comparison_directory) -> List["cls"]:
+    def from_otoole_csv(cls, root_dir) -> List["cls"]:
         df_storage_technologies = pd.read_csv(os.path.join(root_dir, "STORAGE.csv"))
 
         df_capex = pd.read_csv(os.path.join(root_dir, "CapitalCostStorage.csv"))
@@ -504,16 +504,6 @@ class TechnologyStorage(OSeMOSYSBase):
         df_residual_capacity = pd.read_csv(os.path.join(root_dir, "ResidualStorageCapacity.csv"))
         df_max_discharge_rate = pd.read_csv(os.path.join(root_dir, "StorageMaxDischargeRate.csv"))
         df_max_charge_rate = pd.read_csv(os.path.join(root_dir, "StorageMaxChargeRate.csv"))
-
-        # If there are no storage technologies, copy files to comparison directory
-        if not df_storage_technologies["VALUE"].values.tolist():
-            df_capex.to_csv(os.path.join(comparison_directory, "CapitalCostStorage.csv"))
-            df_operating_life.to_csv(os.path.join(comparison_directory, "OperationalLifeStorage.csv"))
-            df_minimum_charge.to_csv(os.path.join(comparison_directory, "MinStorageCharge.csv"))
-            df_initial_level.to_csv(os.path.join(comparison_directory, "StorageLevelStart.csv"))
-            df_residual_capacity.to_csv(os.path.join(comparison_directory, "ResidualStorageCapacity.csv"))
-            df_max_discharge_rate.to_csv(os.path.join(comparison_directory, "StorageMaxDischargeRate.csv"))
-            df_max_charge_rate.to_csv(os.path.join(comparison_directory, "StorageMaxChargeRate.csv"))
 
         storage_instances = []
         for storage in df_storage_technologies["VALUE"].values.tolist():
