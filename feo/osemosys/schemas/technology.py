@@ -157,13 +157,13 @@ class Technology(OSeMOSYSBase):
                 "name": "activity_annual_min",
                 "filepath": "TotalTechnologyAnnualActivityLowerLimit.csv",
                 "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
+                "data_columns": ["REGION"],
             },
             {
                 "name": "activity_total_max",
                 "filepath": "TotalTechnologyModelPeriodActivityUpperLimit.csv",
                 "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
+                "data_columns": ["REGION"],
             },
             {
                 "name": "activity_total_min",
@@ -315,7 +315,170 @@ class Technology(OSeMOSYSBase):
             )
 
         return technology_instances
+    
 
+    def to_otoole_csv(self, comparison_directory) -> "cls":
+
+        # capacity_activity_unit_ratio
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_activity_unit_ratio, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="CapacityToActivityUnit.csv")
+        # capacity_one_tech_unit
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_one_tech_unit, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="CapacityOfOneTechnologyUnit.csv")
+        # availability_factor
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.availability_factor, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="AvailabilityFactor.csv")
+        # capacity_factor
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_factor, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "TIMESLICE", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="CapacityFactor.csv")
+        # operating_life
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.operating_life, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="OperationalLife.csv")
+        # capex
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capex, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="CapitalCost.csv")
+        # opex_fixed
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.opex_fixed, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="FixedCost.csv")
+        # opex_variable
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.opex_variable, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="VariableCost.csv")
+        # residual_capacity
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.residual_capacity, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="ResidualCapacity.csv")
+        # capacity_gross_max
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_gross_max, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalAnnualMaxCapacity.csv")
+        # capacity_gross_min
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_gross_min, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalAnnualMinCapacity.csv")
+        # capacity_additional_max
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_additional_max, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalAnnualMaxCapacityInvestment.csv")
+        # capacity_additional_min
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.capacity_additional_min, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalAnnualMinCapacityInvestment.csv")
+        # activity_annual_max
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.activity_annual_max, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalTechnologyAnnualActivityUpperLimit.csv")
+        # activity_annual_min
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.activity_annual_min, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalTechnologyAnnualActivityLowerLimit.csv")
+        # activity_total_max
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.activity_total_max, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalTechnologyModelPeriodActivityUpperLimit.csv")
+        # activity_total_min
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.activity_total_min, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TotalTechnologyModelPeriodActivityLowerLimit.csv")
+        # emission_activity_ratio
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.emission_activity_ratio, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "EMISSION", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="EmissionActivityRatio.csv")
+        # input_activity_ratio
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.input_activity_ratio, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="InputActivityRatio.csv")
+        # output_activity_ratio
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.output_activity_ratio, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="OutputActivityRatio.csv")
+        # to_storage
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.to_storage, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TechnologyToStorage.csv")
+        # from_storage
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.from_storage, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="TechnologyFromStorage.csv")
+        
+                         
+        
+        
+        
+        
 
 class TechnologyStorage(OSeMOSYSBase):
     """
