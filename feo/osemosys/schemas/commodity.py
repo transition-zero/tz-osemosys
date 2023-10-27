@@ -93,81 +93,36 @@ class Commodity(OSeMOSYSBase):
 
         return commodity_instances
 
+
     def to_otoole_csv(self, comparison_directory) -> "cls":
+        
         commodity = self.id
 
         # demand_annual
-        # Create output dataframe if not already existing
-        if not os.path.isfile(os.path.join(comparison_directory, "SpecifiedAnnualDemand.csv")):
-            pd.DataFrame(columns=["REGION", "FUEL", "YEAR", "VALUE"]).to_csv(
-                os.path.join(comparison_directory, "SpecifiedAnnualDemand.csv"), index=False
-            )
-        if self.demand_annual is not None:
-            # Read existing dataframe
-            df_demand_annual = pd.read_csv(
-                os.path.join(comparison_directory, "SpecifiedAnnualDemand.csv")
-            )
-            # Convert JSON data object to df
-            df_demand_annual_to_add = json_dict_to_dataframe(self.demand_annual.data)
-            df_demand_annual_to_add.columns = ["REGION", "YEAR", "VALUE"]
-            df_demand_annual_to_add["FUEL"] = commodity
-            df_demand_annual_to_add = df_demand_annual_to_add[["REGION", "FUEL", "YEAR", "VALUE"]]
-            # Add to dataframe
-            df_demand_annual = pd.concat([df_demand_annual, df_demand_annual_to_add])
-            # Write dataframe
-            df_demand_annual.to_csv(
-                os.path.join(comparison_directory, "SpecifiedAnnualDemand.csv"), index=False
-            )
-
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.demand_annual, 
+                         id=commodity, 
+                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
+                         id_column="FUEL", 
+                         output_csv_name="SpecifiedAnnualDemand.csv")
         # demand_profile
-        # Create output dataframe if not already existing
-        if not os.path.isfile(os.path.join(comparison_directory, "SpecifiedDemandProfile.csv")):
-            pd.DataFrame(columns=["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"]).to_csv(
-                os.path.join(comparison_directory, "SpecifiedDemandProfile.csv"), index=False
-            )
-        if self.demand_profile is not None:
-            # Read existing dataframe
-            df_demand_profile = pd.read_csv(
-                os.path.join(comparison_directory, "SpecifiedDemandProfile.csv")
-            )
-            # Convert JSON data object to df
-            df_demand_profile_to_add = json_dict_to_dataframe(self.demand_profile.data)
-            df_demand_profile_to_add.columns = ["REGION", "TIMESLICE", "YEAR", "VALUE"]
-            df_demand_profile_to_add["FUEL"] = commodity
-            df_demand_profile_to_add = df_demand_profile_to_add[
-                ["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"]
-            ]
-            # Add to dataframe
-            df_demand_profile = pd.concat([df_demand_profile, df_demand_profile_to_add])
-            # Write dataframe
-            df_demand_profile.to_csv(
-                os.path.join(comparison_directory, "SpecifiedDemandProfile.csv"), index=False
-            )
-
-        # accumulated_demand
-        # Create output dataframe if not already existing
-        if not os.path.isfile(os.path.join(comparison_directory, "AccumulatedAnnualDemand.csv")):
-            pd.DataFrame(columns=["REGION", "FUEL", "YEAR", "VALUE"]).to_csv(
-                os.path.join(comparison_directory, "AccumulatedAnnualDemand.csv"), index=False
-            )
-        if self.accumulated_demand is not None:
-            # Read existing dataframe
-            df_accumulated_demand = pd.read_csv(
-                os.path.join(comparison_directory, "AccumulatedAnnualDemand.csv")
-            )
-            # Convert JSON data object to df
-            df_accumulated_demand_to_add = json_dict_to_dataframe(self.accumulated_demand.data)
-            df_accumulated_demand_to_add.columns = ["REGION", "TIMESLICE", "YEAR", "VALUE"]
-            df_accumulated_demand_to_add["FUEL"] = commodity
-            df_accumulated_demand_to_add = df_accumulated_demand_to_add[
-                ["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"]
-            ]
-            # Add to dataframe
-            df_accumulated_demand = pd.concat([df_accumulated_demand, df_accumulated_demand_to_add])
-            # Write dataframe
-            df_accumulated_demand.to_csv(
-                os.path.join(comparison_directory, "AccumulatedAnnualDemand.csv"), index=False
-            )
-
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.demand_profile, 
+                         id=commodity, 
+                         column_structure=["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"], 
+                         id_column="FUEL", 
+                         output_csv_name="SpecifiedDemandProfile.csv")
+        # accumulated_demand        
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.accumulated_demand, 
+                         id=commodity, 
+                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
+                         id_column="FUEL", 
+                         output_csv_name="AccumulatedAnnualDemand.csv")
         # is_renewable
-        # TODO
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.is_renewable, 
+                         id=commodity, 
+                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
+                         id_column="FUEL", 
+                         output_csv_name="RETagFuel.csv")
