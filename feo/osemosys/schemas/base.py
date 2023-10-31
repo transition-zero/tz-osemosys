@@ -57,6 +57,11 @@ class RegionData(BaseModel):
     #  - a dict of region:value
     data: Union[float, Dict[str, float]]
 
+class StringInt(BaseModel):
+    # can be expressed as:
+    #  - one integer
+    #  - a dict of string:integer
+    data: Union[int, Dict[str, int]]
 
 class RegionYearData(BaseModel):
     # can be expressed as:
