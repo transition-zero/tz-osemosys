@@ -63,10 +63,12 @@ class Technology(OSeMOSYSBase):
     to_storage: StringStringIntIntData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
     from_storage: StringStringIntIntData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
 
+    # Renewable technology tag
+    RETagTechnology: RegionTechnologyYearData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
+
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
         df_technologies = pd.read_csv(os.path.join(root_dir, "TECHNOLOGY.csv"))
-        pd.read_csv(os.path.join(root_dir, "MODE_OF_OPERATION.csv"))
 
         parser_data = [
             {
@@ -201,6 +203,12 @@ class Technology(OSeMOSYSBase):
                 "root_column": "TECHNOLOGY",
                 "data_columns": ["REGION", "STORAGE", "MODE_OF_OPERATION"],
             },
+            {
+                "name": "RETagTechnology",
+                "filepath": "RETagTechnology.csv",
+                "root_column": "TECHNOLOGY",
+                "data_columns": ["REGION", "YEAR", "VALUE"],
+            },
         ]
 
         # Read in dataframes - Creates dict of "name":dataframe
@@ -310,6 +318,9 @@ class Technology(OSeMOSYSBase):
                     else None,
                     from_storage=StringStringIntIntData(data=data_json_format["from_storage"])
                     if data_json_format["from_storage"] is not None
+                    else None,
+                    RETagTechnology=RegionTechnologyYearData(data=data_json_format["RETagTechnology"])
+                    if data_json_format["RETagTechnology"] is not None
                     else None,
                 )
             )
@@ -473,8 +484,13 @@ class Technology(OSeMOSYSBase):
                          column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TechnologyFromStorage.csv")
-        
-                         
+        # RETagTechnology
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.RETagTechnology, 
+                         id=self.id, 
+                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
+                         id_column="TECHNOLOGY", 
+                         output_csv_name="RETagTechnology.csv")
         
         
         
@@ -662,6 +678,7 @@ class TechnologyStorage(OSeMOSYSBase):
         """
         If no storage technologies present, write empty CSVs in the otoole format
         """
+        pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"))
         pd.DataFrame(columns=["REGION", "STORAGE", "YEAR", "VALUE"]).to_csv(os.path.join(comparison_directory, "CapitalCostStorage.csv"))
         pd.DataFrame(columns=["REGION", "STORAGE", "VALUE"]).to_csv(os.path.join(comparison_directory, "OperationalLifeStorage.csv"))
         pd.DataFrame(columns=["REGION", "STORAGE", "YEAR", "VALUE"]).to_csv(os.path.join(comparison_directory, "MinStorageCharge.csv"))
