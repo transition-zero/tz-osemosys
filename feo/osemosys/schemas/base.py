@@ -150,3 +150,7 @@ class StringStringIntIntData(BaseModel):
         Dict[str, Dict[str, Dict[int, Dict[int, Union[int, float]]]]],
         Dict[str, Dict[str, Dict[int, Union[int, float]]]],
     ]
+
+# TODO temporary class for TradeRoute
+class TradeRoute(BaseModel):
+    data:Dict[str, Dict[str, Dict[str, Union[int, float]]]]
