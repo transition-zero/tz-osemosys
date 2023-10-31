@@ -51,7 +51,25 @@ class RunSpec(OSeMOSYSBase):
           xr.Dataset: An XArray dataset
         """
 
-        coords = {}
+        coords = {
+            "REGION": [region.id for region in self.regions],
+            "_REGION": [region.id for region in self.regions],
+            "TIMESLICE": [timeslice for timeslice in self.time_definition.timeslice],
+            "DAYTYPE": [daytype for daytype in self.time_definition.day_type],
+            "DAILYTIMEBRACKET": [
+                timebracket for timebracket in self.time_definition.daily_time_bracket
+            ],
+            "SEASON": [season for season in self.time_definition.season],
+            "YEAR": [year for year in self.time_definition.years],
+            "STORAGE": [],
+            "MODE_OF_OPERATION": [],
+            "EMISSION": [],
+            "FUEL": [],
+            "TECHNOLOGY": [],
+        }
+
+        print("coords")
+        print(coords)
 
     def to_otoole_csv(self, comparison_directory):
         """
