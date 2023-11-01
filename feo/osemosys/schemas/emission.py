@@ -13,15 +13,15 @@ class Emission(OSeMOSYSBase):
     """
 
     # Annual emissions constraint per region, year, and emission type
-    constraint_annual: RegionTechnologyYearData | None
+    AnnualEmissionLimit: RegionTechnologyYearData | None
     # Total modelled period emissions constraint per region and emission type
-    constraint_total: RegionTechnologyYearData | None
+    ModelPeriodEmissionLimit: RegionTechnologyYearData | None
     # Annual exogenous emission per region, year, and emission type. I.e. emissions from non-modelled sources.
-    exogenous_annual: RegionTechnologyYearData | None
+    AnnualExogenousEmission: RegionTechnologyYearData | None
     # Total modelled period exogenous emission per region and emission type. I.e. emissions from non-modelled sources.
-    exogenous_total: RegionTechnologyYearData | None
-    # Financial penalty for each unit of eimssion per region, year, and emission type. E.g. used to model carbon prices.
-    penalty: RegionTechnologyYearData | None
+    ModelPeriodExogenousEmission: RegionTechnologyYearData | None
+    # Financial EmissionsPenalty for each unit of eimssion per region, year, and emission type. E.g. used to model carbon prices.
+    EmissionsPenalty: RegionTechnologyYearData | None
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
@@ -40,11 +40,11 @@ class Emission(OSeMOSYSBase):
         """
 
         df_emissions = pd.read_csv(os.path.join(root_dir, "EMISSION.csv"))
-        df_constraint_annual = pd.read_csv(os.path.join(root_dir, "AnnualEmissionLimit.csv"))
-        df_constraint_total = pd.read_csv(os.path.join(root_dir, "ModelPeriodEmissionLimit.csv"))
-        df_exogenous_annual = pd.read_csv(os.path.join(root_dir, "AnnualExogenousEmission.csv"))
-        df_exogenous_total = pd.read_csv(os.path.join(root_dir, "ModelPeriodExogenousEmission.csv"))
-        df_penalty = pd.read_csv(os.path.join(root_dir, "EmissionsPenalty.csv"))
+        df_AnnualEmissionLimit = pd.read_csv(os.path.join(root_dir, "AnnualEmissionLimit.csv"))
+        df_ModelPeriodEmissionLimit = pd.read_csv(os.path.join(root_dir, "ModelPeriodEmissionLimit.csv"))
+        df_AnnualExogenousEmission = pd.read_csv(os.path.join(root_dir, "AnnualExogenousEmission.csv"))
+        df_ModelPeriodExogenousEmission = pd.read_csv(os.path.join(root_dir, "ModelPeriodExogenousEmission.csv"))
+        df_EmissionsPenalty = pd.read_csv(os.path.join(root_dir, "EmissionsPenalty.csv"))
 
         emission_instances = []
         for emission in df_emissions["VALUE"].values.tolist():
@@ -53,72 +53,72 @@ class Emission(OSeMOSYSBase):
                     id=emission,
                     long_name=None,
                     description=None,
-                    constraint_annual=(
+                    AnnualEmissionLimit=(
                         RegionTechnologyYearData(
                             data=group_to_json(
-                                g=df_constraint_annual.loc[
-                                    df_constraint_annual["EMISSION"] == emission
+                                g=df_AnnualEmissionLimit.loc[
+                                    df_AnnualEmissionLimit["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_constraint_annual["EMISSION"].values
+                        if emission in df_AnnualEmissionLimit["EMISSION"].values
                         else None
                     ),
-                    constraint_total=(
+                    ModelPeriodEmissionLimit=(
                         RegionTechnologyYearData(
                             data=group_to_json(
-                                g=df_constraint_total.loc[
-                                    df_constraint_total["EMISSION"] == emission
+                                g=df_ModelPeriodEmissionLimit.loc[
+                                    df_ModelPeriodEmissionLimit["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_constraint_total["EMISSION"].values
+                        if emission in df_ModelPeriodEmissionLimit["EMISSION"].values
                         else None
                     ),
-                    exogenous_annual=(
+                    AnnualExogenousEmission=(
                         RegionTechnologyYearData(
                             data=group_to_json(
-                                g=df_exogenous_annual.loc[
-                                    df_exogenous_annual["EMISSION"] == emission
+                                g=df_AnnualExogenousEmission.loc[
+                                    df_AnnualExogenousEmission["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_exogenous_annual["EMISSION"].values
+                        if emission in df_AnnualExogenousEmission["EMISSION"].values
                         else None
                     ),
-                    exogenous_total=(
+                    ModelPeriodExogenousEmission=(
                         RegionTechnologyYearData(
                             data=group_to_json(
-                                g=df_exogenous_total.loc[
-                                    df_exogenous_total["EMISSION"] == emission
+                                g=df_ModelPeriodExogenousEmission.loc[
+                                    df_ModelPeriodExogenousEmission["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_exogenous_total["EMISSION"].values
+                        if emission in df_ModelPeriodExogenousEmission["EMISSION"].values
                         else None
                     ),
-                    penalty=(
+                    EmissionsPenalty=(
                         RegionTechnologyYearData(
                             data=group_to_json(
-                                g=df_penalty.loc[df_penalty["EMISSION"] == emission],
+                                g=df_EmissionsPenalty.loc[df_EmissionsPenalty["EMISSION"] == emission],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_penalty["EMISSION"].values
+                        if emission in df_EmissionsPenalty["EMISSION"].values
                         else None
                     ),
                 )
@@ -131,37 +131,37 @@ class Emission(OSeMOSYSBase):
         
         emission = self.id
 
-        # constraint_annual
+        # AnnualEmissionLimit
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.constraint_annual, 
+                         data=self.AnnualEmissionLimit, 
                          id=emission, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="AnnualEmissionLimit.csv")
-        # constraint_total
+        # ModelPeriodEmissionLimit
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.constraint_total, 
+                         data=self.ModelPeriodEmissionLimit, 
                          id=emission, 
                          column_structure=["REGION", "EMISSION", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="ModelPeriodEmissionLimit.csv")
-        # exogenous_annual
+        # AnnualExogenousEmission
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.exogenous_annual, 
+                         data=self.AnnualExogenousEmission, 
                          id=emission, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="AnnualExogenousEmission.csv")
-        # exogenous_total
+        # ModelPeriodExogenousEmission
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.exogenous_total, 
+                         data=self.ModelPeriodExogenousEmission, 
                          id=emission, 
                          column_structure=["REGION", "EMISSION", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="ModelPeriodExogenousEmission.csv")
-        # penalty
+        # EmissionsPenalty
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.penalty, 
+                         data=self.EmissionsPenalty, 
                          id=emission, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
