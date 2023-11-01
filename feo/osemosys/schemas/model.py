@@ -9,6 +9,7 @@ from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.schemas.other_parameters import OtherParameters
+from feo.osemosys.schemas.default_values import DefaultValues
 from feo.osemosys.utils import *
 
 
@@ -36,9 +37,9 @@ class RunSpec(OSeMOSYSBase):
     # production_technologies: List[TechnologyProduction]
     # transmission_technologies: List[TechnologyTransmission]
 
-
     # Default values
-    # TODO
+    default_values: DefaultValues
+
 
     def to_xr_ds(self):
         """
@@ -128,7 +129,7 @@ class RunSpec(OSeMOSYSBase):
 
 
     @classmethod
-    def from_otoole_csv(cls, root_dir) -> "cls":
+    def from_otoole(cls, root_dir) -> "cls":
 
         return cls(
             id="id",
@@ -144,4 +145,5 @@ class RunSpec(OSeMOSYSBase):
             commodities=Commodity.from_otoole_csv(root_dir=root_dir),
             time_definition=TimeDefinition.from_otoole_csv(root_dir=root_dir),
             other_parameters=OtherParameters.from_otoole_csv(root_dir=root_dir),
+            default_values=DefaultValues.from_otoole_yaml(root_dir=root_dir),
         )
