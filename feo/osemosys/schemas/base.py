@@ -70,6 +70,11 @@ class RegionData(BaseModel):
     #  - a dict of region:value
     data: Union[float, Dict[str, float]]
 
+class StringInt(BaseModel):
+    # can be expressed as:
+    #  - one integer
+    #  - a dict of string:integer
+    data: Union[int, Dict[str, int]]
 
 class RegionYearData(BaseModel):
     # can be expressed as:
@@ -178,3 +183,7 @@ class StringStringIntIntData(BaseModel):
         Dict[str, Dict[str, Dict[int, Dict[int, Union[int, float]]]]],
         Dict[str, Dict[str, Dict[int, Union[int, float]]]],
     ]
+
+# TODO temporary class for TradeRoute
+class TradeRoute(BaseModel):
+    data:Dict[str, Dict[str, Dict[str, Union[int, float]]]]

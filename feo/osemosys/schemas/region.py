@@ -14,6 +14,7 @@ from .base import *
 
 class Region(OSeMOSYSBase):
     neighbours: Optional[List[str]]
+    TradeRoute: TradeRoute | None
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
@@ -51,6 +52,13 @@ class Region(OSeMOSYSBase):
                     neighbours=routes.loc[
                         routes["REGION"] == region["VALUE"], "_REGION"
                     ].values.tolist(),
+                    TradeRoute = (TradeRoute(data=group_to_json(
+                        g=routes.loc[routes["REGION"] ==  region["VALUE"]],
+                        data_columns=["REGION", "_REGION","FUEL", "YEAR"],
+                        target_column="VALUE",
+                    ))
+                    if region["VALUE"] in routes["REGION"].values
+                    else None),
                     # TODO
                     long_name=None,
                     description=None,
@@ -58,3 +66,14 @@ class Region(OSeMOSYSBase):
             )
 
         return region_instances
+
+
+    def to_otoole_csv(self, comparison_directory) -> "CSVs":
+
+        # TradeRoute
+        to_csv_iterative(comparison_directory=comparison_directory, 
+                         data=self.TradeRoute, 
+                         id=self.id, 
+                         column_structure=["REGION", "_REGION","FUEL", "YEAR", "VALUE"], 
+                         id_column="REGION", 
+                         output_csv_name="TradeRoute.csv")
