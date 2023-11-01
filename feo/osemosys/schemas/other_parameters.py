@@ -13,7 +13,6 @@ class OtherParameters(OSeMOSYSBase):
     """
 
     MODE_OF_OPERATION: list[int]
-    REGION: list[str]
     DepreciationMethod: RegionData | None
     DiscountRate: RegionData | None
     DiscountRateIdv: RegionTechnologyYearData | None
@@ -40,7 +39,6 @@ class OtherParameters(OSeMOSYSBase):
         """
 
         df_MODE_OF_OPERATION = pd.read_csv(os.path.join(root_dir, "MODE_OF_OPERATION.csv"))
-        df_REGION = pd.read_csv(os.path.join(root_dir, "REGION.csv"))
         df_DepreciationMethod = pd.read_csv(os.path.join(root_dir, "DepreciationMethod.csv"))
         df_DiscountRate = pd.read_csv(os.path.join(root_dir, "DiscountRate.csv"))
         df_DiscountRateIdv = pd.read_csv(os.path.join(root_dir, "DiscountRateIdv.csv"))
@@ -56,7 +54,6 @@ class OtherParameters(OSeMOSYSBase):
             long_name=None,
             description=None,
             MODE_OF_OPERATION=df_MODE_OF_OPERATION["VALUE"].values.tolist(),
-            REGION=df_REGION["VALUE"].values.tolist(),
             DepreciationMethod=(
                 RegionData(
                     data=group_to_json(
@@ -152,11 +149,6 @@ class OtherParameters(OSeMOSYSBase):
         # MODE_OF_OPERATION
         pd.DataFrame({"VALUE": self.MODE_OF_OPERATION}).to_csv(
             os.path.join(comparison_directory, "MODE_OF_OPERATION.csv"), index=False
-        )
-
-        # REGION
-        pd.DataFrame({"VALUE": self.REGION}).to_csv(
-            os.path.join(comparison_directory, "REGION.csv"), index=False
         )
 
         # Depreciation Method
