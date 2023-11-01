@@ -4,7 +4,7 @@ import pandas as pd
 
 from feo.osemosys.schemas.base import *
 from feo.osemosys.schemas.commodity import Commodity
-from feo.osemosys.schemas.impact import Emission
+from feo.osemosys.schemas.emission import Emission
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
