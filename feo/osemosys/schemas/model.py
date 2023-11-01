@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from feo.osemosys.schemas.base import *
-from feo.osemosys.schemas.commodity import Commodity
+from feo.osemosys.schemas.fuel import Fuel
 from feo.osemosys.schemas.emission import Emission
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
@@ -24,8 +24,8 @@ class RunSpec(OSeMOSYSBase):
     # nodes
     regions: List[Region]
 
-    # commodities
-    commodities: List[Commodity]
+    # fuels
+    fuels: List[Fuel]
 
     # Emission constraints (e.g. CO2)
     emissions: List[Emission]
@@ -98,11 +98,11 @@ class RunSpec(OSeMOSYSBase):
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "REGION.csv"), index=False)
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
         
-        commodity_list = []
-        for commodity in self.commodities:
-            commodity_list.append(commodity.id)
-            commodity.to_otoole_csv(comparison_directory)
-        pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
+        fuel_list = []
+        for fuel in self.fuels:
+            fuel_list.append(fuel.id)
+            fuel.to_otoole_csv(comparison_directory)
+        pd.DataFrame(fuel_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
         
         emission_list = []
         for emission in self.emissions:
@@ -142,7 +142,7 @@ class RunSpec(OSeMOSYSBase):
             # TODO
             # production_technologies=TechnologyProduction.from_otoole_csv(root_dir=root_dir),
             # transmission_technologies=TechnologyTransmission.from_otoole_csv(root_dir=root_dir),
-            commodities=Commodity.from_otoole_csv(root_dir=root_dir),
+            fuels=Fuel.from_otoole_csv(root_dir=root_dir),
             time_definition=TimeDefinition.from_otoole_csv(root_dir=root_dir),
             other_parameters=OtherParameters.from_otoole_csv(root_dir=root_dir),
             default_values=DefaultValues.from_otoole_yaml(root_dir=root_dir),
