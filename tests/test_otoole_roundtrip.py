@@ -1,5 +1,6 @@
 import glob
 from pathlib import Path
+import sys
 
 import pandas as pd
 import numpy as np
@@ -32,14 +33,24 @@ for stem in original_files.keys():
 # now let's check that all data is equal
 for stem in original_files.keys():
     
-    # Read in and sort CSVs
-    original_df_sorted = (pd.read_csv(original_files[stem])
-                          .sort_values(by=pd.read_csv(original_files[stem]).columns.tolist()).reset_index(drop=True))
-    comparison_df_sorted = (pd.read_csv(comparison_files[stem])
-                            .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist()).reset_index(drop=True))
-    
-    #TODO temporary casting to float for input data (from model_three) which defaults to int once read
-    if stem in ["EmissionsPenalty","TotalAnnualMaxCapacityInvestment"]:
-        original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
-    
-    assert (original_df_sorted.equals(comparison_df_sorted)), f"unequal files: {stem}"
+    try:
+
+        # Read in and sort CSVs
+        original_df_sorted = (pd.read_csv(original_files[stem])
+                            .sort_values(by=pd.read_csv(original_files[stem]).columns.tolist()).reset_index(drop=True))
+        comparison_df_sorted = (pd.read_csv(comparison_files[stem])
+                                .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist()).reset_index(drop=True))
+        
+        #TODO temporary casting to float for input data (from model_three) which defaults to int once read
+        if stem in ["EmissionsPenalty","TotalAnnualMaxCapacityInvestment"]:
+            original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
+        
+        assert (original_df_sorted.equals(comparison_df_sorted)), f"unequal files: {stem}"
+
+    except AssertionError as e:
+        print(f"Assertion Error: {e}")
+        print(f"---------- original_df_sorted ----------")
+        print(original_df_sorted.head(10))
+        print(f"---------- comparison_df_sorted ----------")
+        print(comparison_df_sorted.head(10))
+        input("Press Enter to continue...")
