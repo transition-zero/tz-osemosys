@@ -37,9 +37,11 @@ for stem in original_files.keys():
 
         # Read in and sort CSVs
         original_df_sorted = (pd.read_csv(original_files[stem])
-                            .sort_values(by=pd.read_csv(original_files[stem]).columns.tolist()).reset_index(drop=True))
+                            .sort_values(by=pd.read_csv(original_files[stem]).columns.tolist())
+                            .reset_index(drop=True))
         comparison_df_sorted = (pd.read_csv(comparison_files[stem])
-                                .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist()).reset_index(drop=True))
+                                .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist())
+                                .reset_index(drop=True))
         
         #TODO temporary casting to float for input data (from model_three) which defaults to int once read
         if stem in ["EmissionsPenalty","TotalAnnualMaxCapacityInvestment"]:
@@ -54,3 +56,11 @@ for stem in original_files.keys():
         print(f"---------- comparison_df_sorted ----------")
         print(comparison_df_sorted.head(10))
         input("Press Enter to continue...")
+
+# Flag any additional files created in the comparison directory
+for stem in comparison_files.keys():
+    if stem not in original_files.keys():
+        print("New file: ", stem)
+        print((pd.read_csv(comparison_files[stem])
+                                .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist())
+                                .reset_index(drop=True)).head(10))
