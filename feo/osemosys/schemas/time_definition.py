@@ -1,4 +1,5 @@
 import os
+import re
 from itertools import product
 from pathlib import Path
 from typing import ClassVar
@@ -328,9 +329,17 @@ class TimeDefinition(OSeMOSYSBase):
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
         for key in cls.otoole_stems:
-            dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
-            if dfs[key].empty:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+                #TODO: Keep Capitalise all string entries here?
+                else:
+                    dfs[key] = dfs[key].applymap(lambda x: x.upper() if isinstance(x, str) else x)
+            except FileNotFoundError:
+                dfs[key] = None
                 otoole_cfg.empty_dfs.append(key)
+
 
         # ###################
         # Basic Data Checks #
@@ -342,15 +351,15 @@ class TimeDefinition(OSeMOSYSBase):
         ), "Days in day type can only take values from 1-7"
 
         YEAR = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
-        SEASON = dfs["SEASON"]["VALUE"].values.tolist() if not dfs["SEASON"].empty else None
-        DAYTYPE = dfs["DAYTYPE"]["VALUE"].values.tolist() if not dfs["DAYTYPE"].empty else None
+        SEASON = dfs["SEASON"]["VALUE"].values.tolist() if not "SEASON" in otoole_cfg.empty_dfs else None
+        DAYTYPE = dfs["DAYTYPE"]["VALUE"].values.tolist() if not "DAYTYPE" in otoole_cfg.empty_dfs else None
         DAILYTIMEBRACKET = (
             dfs["DAILYTIMEBRACKET"]["VALUE"].values.tolist()
-            if not dfs["DAILYTIMEBRACKET"].empty
+            if not "DAILYTIMEBRACKET" in otoole_cfg.empty_dfs
             else None
         )
         TIMESLICE = (
-            dfs["TIMESLICE"]["VALUE"].values.tolist() if not dfs["TIMESLICE"].empty else None
+            dfs["TIMESLICE"]["VALUE"].values.tolist() if not "TIMESLICE" in otoole_cfg.empty_dfs else None
         )
 
         return cls(
