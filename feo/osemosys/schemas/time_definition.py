@@ -117,9 +117,14 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single timebracket
                     DAILYTIMEBRACKET = [1]
-                    #TODO: Add correct conversion default
-                    Conversionlh = 1
-
+                    Conversionlh = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionlh["DAILYTIMEBRACKET"] = 1
+                    Conversionlh["VALUE"] = 1
+                    Conversionlh = group_to_json(
+                                    g=Conversionlh,
+                                    data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
+                                    target_column="VALUE")
+                    
             # daytype
             if Conversionld is not None:
                 if set(TIMESLICE) != set(Conversionld.keys()):
@@ -147,8 +152,13 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single daytype
                     DAYTYPE = [1]
-                    #TODO: Add correct conversion default
-                    Conversionld = 1
+                    Conversionld = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionld["DAYTYPE"] = 1
+                    Conversionld["VALUE"] = 1
+                    Conversionld = group_to_json(
+                                    g=Conversionld,
+                                    data_columns=["TIMESLICE", "DAYTYPE"],
+                                    target_column="VALUE")
 
             # SEASON
             if Conversionls is not None:
@@ -177,8 +187,13 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single season
                     SEASON = [1]
-                    #TODO: Add correct conversion default
-                    Conversionls = 1
+                    Conversionls = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionls["SEASON"] = 1
+                    Conversionls["VALUE"] = 1
+                    Conversionls = group_to_json(
+                                    g=Conversionlh,
+                                    data_columns=["TIMESLICE", "SEASON"],
+                                    target_column="VALUE")
 
         else:
             # TIMESLICE not defined
@@ -534,8 +549,7 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # Conversionlh
-        #TODO: convert check to is not None once in correct format after being constructed
-        if "Conversionlh" not in self.otoole_cfg.empty_dfs:
+        if self.Conversionlh is not None:
             df_conversion_lh = json_dict_to_dataframe(self.Conversionlh.data)
             df_conversion_lh.columns = ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"]
             df_conversion_lh.to_csv(
