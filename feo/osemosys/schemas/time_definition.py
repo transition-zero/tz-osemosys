@@ -1,4 +1,5 @@
 import os
+import re
 from itertools import product
 from pathlib import Path
 from typing import ClassVar
@@ -20,10 +21,10 @@ class OtooleCfg(BaseModel):
 
 
 class TimeAdjacency(BaseModel):
-    YEAR: dict[str, str]
-    SEASON: dict[str, str]
-    DAYTYPE: dict[str, str]
-    time_brackets: dict[str, str]
+    YEAR: dict[int, int]
+    SEASON: dict[int, int]
+    DAYTYPE: dict[int, int]
+    time_brackets: dict[int, int]
 
 
 class TimeDefinition(OSeMOSYSBase):
@@ -107,11 +108,23 @@ class TimeDefinition(OSeMOSYSBase):
                     raise ValueError(
                         "if providing 'TIMESLICE' and 'time_brackets', the joining 'Conversionlh' must be provided"
                     )
+                # If TIMESLICE defined, but neither DAILYTIMEBRACKET nor Conversionlh is
                 else:
+                    for slice in TIMESLICE:
+                        if "H2" in slice:
+                            raise ValueError(
+                                "More than one daily time bracket specified in TIMESLICE, DAILYTIMEBRACKET and Conversionlh must be provided"
+                            )
                     # default to a single timebracket
                     DAILYTIMEBRACKET = [1]
-                    Conversionlh = 1
-
+                    Conversionlh = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionlh["DAILYTIMEBRACKET"] = 1
+                    Conversionlh["VALUE"] = 1
+                    Conversionlh = group_to_json(
+                                    g=Conversionlh,
+                                    data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
+                                    target_column="VALUE")
+                    
             # daytype
             if Conversionld is not None:
                 if set(TIMESLICE) != set(Conversionld.keys()):
@@ -130,10 +143,22 @@ class TimeDefinition(OSeMOSYSBase):
                     raise ValueError(
                         "if providing 'TIMESLICE' and 'DAYTYPE', the joining 'Conversionld' must be provided"
                     )
+                # If TIMESLICE defined, but neither DAYTYPE nor Conversionld is
                 else:
+                    for slice in TIMESLICE:
+                        if "D2" in slice:
+                            raise ValueError(
+                                "More than one day type specified in TIMESLICE, DAYTYPE and Conversionld must be provided"
+                            )
                     # default to a single daytype
                     DAYTYPE = [1]
-                    Conversionld = 1
+                    Conversionld = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionld["DAYTYPE"] = 1
+                    Conversionld["VALUE"] = 1
+                    Conversionld = group_to_json(
+                                    g=Conversionld,
+                                    data_columns=["TIMESLICE", "DAYTYPE"],
+                                    target_column="VALUE")
 
             # SEASON
             if Conversionls is not None:
@@ -153,10 +178,22 @@ class TimeDefinition(OSeMOSYSBase):
                     raise ValueError(
                         "if providing 'TIMESLICE' and 'SEASON', the joining 'Conversionls' must be provided"
                     )
+                # If TIMESLICE defined, but neither SEASON nor Conversionls is
                 else:
+                    for slice in TIMESLICE:
+                        if "S2" in slice:
+                            raise ValueError(
+                                "More than one season specified in TIMESLICE, SEASON and Conversionls must be provided"
+                            )
                     # default to a single season
                     SEASON = [1]
-                    Conversionls = 1
+                    Conversionls = pd.DataFrame({"TIMESLICE":TIMESLICE})
+                    Conversionls["SEASON"] = 1
+                    Conversionls["VALUE"] = 1
+                    Conversionls = group_to_json(
+                                    g=Conversionlh,
+                                    data_columns=["TIMESLICE", "SEASON"],
+                                    target_column="VALUE")
 
         else:
             # TIMESLICE not defined
@@ -332,6 +369,7 @@ class TimeDefinition(OSeMOSYSBase):
             if dfs[key].empty:
                 otoole_cfg.empty_dfs.append(key)
 
+
         # ###################
         # Basic Data Checks #
         #####################
@@ -435,21 +473,21 @@ class TimeDefinition(OSeMOSYSBase):
         ### Write sets to csv
 
         pd.DataFrame(
-            {"VALUE": self.YEAR if "YEAR" not in self.otoole_cfg.empty_dfs else []}
+            {"VALUE": self.YEAR if self.YEAR is not None else []}
         ).to_csv(os.path.join(comparison_directory, "YEAR.csv"), index=False)
         pd.DataFrame(
-            {"VALUE": self.SEASON if "SEASON" not in self.otoole_cfg.empty_dfs else []}
+            {"VALUE": self.SEASON if self.SEASON is not None else []}
         ).to_csv(os.path.join(comparison_directory, "SEASON.csv"), index=False)
         pd.DataFrame(
-            {"VALUE": self.TIMESLICE if "TIMESLICE" not in self.otoole_cfg.empty_dfs else []}
+            {"VALUE": self.TIMESLICE if self.TIMESLICE is not None else []}
         ).to_csv(os.path.join(comparison_directory, "TIMESLICE.csv"), index=False)
         pd.DataFrame(
-            {"VALUE": self.DAYTYPE if "DAYTYPE" not in self.otoole_cfg.empty_dfs else []}
+            {"VALUE": self.DAYTYPE if self.DAYTYPE is not None else []}
         ).to_csv(os.path.join(comparison_directory, "DAYTYPE.csv"), index=False)
         pd.DataFrame(
             {
                 "VALUE": self.DAILYTIMEBRACKET
-                if "DAILYTIMEBRACKET" not in self.otoole_cfg.empty_dfs
+                if self.DAILYTIMEBRACKET is not None
                 else []
             }
         ).to_csv(os.path.join(comparison_directory, "DAILYTIMEBRACKET.csv"), index=False)
@@ -457,15 +495,9 @@ class TimeDefinition(OSeMOSYSBase):
         ### Write parameters to csv
 
         # YearSplit
-        if "YearSplit" not in self.otoole_cfg.empty_dfs:
-            df_YearSplit = (
-                pd.DataFrame(self.YearSplit.data)
-                .reset_index()
-                .rename(columns={"index": "YEAR"})
-                .melt(id_vars="YEAR", var_name="TIMESLICE", value_name="VALUE")[
-                    ["TIMESLICE", "YEAR", "VALUE"]
-                ]
-            )
+        if self.YearSplit is not None:
+            df_YearSplit = json_dict_to_dataframe(self.YearSplit.data)
+            df_YearSplit.columns = ["TIMESLICE", "YEAR", "VALUE"]
             df_YearSplit.to_csv(os.path.join(comparison_directory, "YearSplit.csv"), index=False)
         else:
             pd.DataFrame(
@@ -475,6 +507,7 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # DaySplit
+        #TODO: use json_dict_to_dataframe() instead once constructed in correct format
         if "DaySplit" not in self.otoole_cfg.empty_dfs:
             df_DaySplit = (
                 pd.DataFrame(self.DaySplit.data)
@@ -491,6 +524,7 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # DaysinDayType
+        #TODO: convert check to is not None once in correct format after being constructed
         if "DaysInDayType" not in self.otoole_cfg.empty_dfs:
             df_DaysInDayType = json_dict_to_dataframe(self.DaysInDayType.data)
             df_DaysInDayType.columns = ["SEASON", "DAYTYPE", "YEAR", "VALUE"]
@@ -503,15 +537,9 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # Conversionld
-        if "Conversionld" not in self.otoole_cfg.empty_dfs:
-            df_conversion_ld = (
-                pd.DataFrame(self.Conversionld.data)
-                .reset_index()
-                .rename(columns={"index": "DAYTYPE"})
-                .melt(id_vars="DAYTYPE", var_name="TIMESLICE", value_name="VALUE")[
-                    ["TIMESLICE", "DAYTYPE", "VALUE"]
-                ]
-            )
+        if self.Conversionld is not None:
+            df_conversion_ld = json_dict_to_dataframe(self.Conversionld.data)
+            df_conversion_ld.columns = ["TIMESLICE", "DAYTYPE", "VALUE"]
             df_conversion_ld.to_csv(
                 os.path.join(comparison_directory, "Conversionld.csv"), index=False
             )
@@ -521,15 +549,9 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # Conversionlh
-        if "Conversionlh" not in self.otoole_cfg.empty_dfs:
-            df_conversion_lh = (
-                pd.DataFrame(self.Conversionlh.data)
-                .reset_index()
-                .rename(columns={"index": "DAILYTIMEBRACKET"})
-                .melt(id_vars="DAILYTIMEBRACKET", var_name="TIMESLICE", value_name="VALUE")[
-                    ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"]
-                ]
-            )
+        if self.Conversionlh is not None:
+            df_conversion_lh = json_dict_to_dataframe(self.Conversionlh.data)
+            df_conversion_lh.columns = ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"]
             df_conversion_lh.to_csv(
                 os.path.join(comparison_directory, "Conversionlh.csv"), index=False
             )
@@ -539,15 +561,9 @@ class TimeDefinition(OSeMOSYSBase):
             )
 
         # Conversionls
-        if "Conversionls" not in self.otoole_cfg.empty_dfs:
-            df_conversion_ls = (
-                pd.DataFrame(self.Conversionls.data)
-                .reset_index()
-                .rename(columns={"index": "SEASON"})
-                .melt(id_vars="SEASON", var_name="TIMESLICE", value_name="VALUE")[
-                    ["TIMESLICE", "SEASON", "VALUE"]
-                ]
-            )
+        if self.Conversionls is not None:
+            df_conversion_ls = json_dict_to_dataframe(self.Conversionls.data)
+            df_conversion_ls.columns = ["TIMESLICE", "SEASON", "VALUE"]
             df_conversion_ls.to_csv(
                 os.path.join(comparison_directory, "Conversionls.csv"), index=False
             )
