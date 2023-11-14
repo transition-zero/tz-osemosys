@@ -182,21 +182,23 @@ def to_csv_iterative(comparison_directory, data, id, column_structure, id_column
             os.path.join(comparison_directory, output_csv_name), index=False
         )
     if data is not None:
-        # Read existing dataframe
-        df = pd.read_csv(
-            os.path.join(comparison_directory, output_csv_name)
-        )
         # Convert JSON data object to df
         df_to_add = json_dict_to_dataframe(data.data)
-        # Rename columns
-        cols = column_structure[:]
-        cols.remove(id_column)
-        df_to_add.columns = cols
-        df_to_add[id_column] = id
-        df_to_add = df_to_add[column_structure]
-        # Add to dataframe
-        df = pd.concat([df, df_to_add])
-        # Write dataframe
-        df.to_csv(
-            os.path.join(comparison_directory, output_csv_name), index=False
-        )
+        if not df_to_add.empty:
+            # Read existing dataframe
+            df = pd.read_csv(
+                os.path.join(comparison_directory, output_csv_name)
+            )
+
+            # Rename columns
+            cols = column_structure[:]
+            cols.remove(id_column)
+            df_to_add.columns = cols
+            df_to_add[id_column] = id
+            df_to_add = df_to_add[column_structure]
+            # Add to dataframe
+            df = pd.concat([df, df_to_add])
+            # Write dataframe
+            df.to_csv(
+                os.path.join(comparison_directory, output_csv_name), index=False
+            )
