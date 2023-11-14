@@ -33,25 +33,32 @@ class Region(OSeMOSYSBase):
         """
 
         src_regions = pd.read_csv(os.path.join(root_dir, "REGION.csv"))
-        dst_regions = pd.read_csv(os.path.join(root_dir, "_REGION.csv"))
         routes = pd.read_csv(os.path.join(root_dir, "TradeRoute.csv"))
 
-        assert src_regions.equals(dst_regions), "Source and destination regions not equal."
+        try:
+            dst_regions = pd.read_csv(os.path.join(root_dir, "_REGION.csv"))
+        except:
+            dst_regions = None
+
         assert (
             routes["REGION"].isin(src_regions["VALUE"]).all()
         ), "REGION in TradeRoutes missing from REGION.csv"
-        assert (
-            routes["_REGION"].isin(dst_regions["VALUE"]).all()
-        ), "_REGION in TradeRoutes missing from _REGION.csv"
+        if dst_regions is not None:
+            assert src_regions.equals(dst_regions), "Source and destination regions not equal."
+            assert (
+                routes["_REGION"].isin(dst_regions["VALUE"]).all()
+            ), "_REGION in TradeRoutes missing from _REGION.csv"
 
         region_instances = []
         for index, region in src_regions.iterrows():
             region_instances.append(
                 cls(
                     id=region["VALUE"],
-                    neighbours=routes.loc[
+                    neighbours=((routes.loc[
                         routes["REGION"] == region["VALUE"], "_REGION"
-                    ].values.tolist(),
+                    ].values.tolist())
+                    if dst_regions is not None
+                    else None),
                     TradeRoute = (TradeRoute(data=group_to_json(
                         g=routes.loc[routes["REGION"] ==  region["VALUE"]],
                         data_columns=["REGION", "_REGION","FUEL", "YEAR"],
