@@ -3,10 +3,19 @@ import os
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 from typing import ClassVar
+from pathlib import Path
 
 from feo.osemosys.utils import *
 
 from .base import *
+
+
+class OtooleCfg(BaseModel):
+    """
+    Paramters needed to round-trip csvs from otoole
+    """
+
+    empty_dfs: List[str] | None
 
 
 class OtherParameters(OSeMOSYSBase):
@@ -24,6 +33,7 @@ class OtherParameters(OSeMOSYSBase):
     ReserveMarginTagTechnology: OSeMOSYSDataInt | None
     REMinProductionTarget: OSeMOSYSData | None
 
+    otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[list[str]] = [
         "MODE_OF_OPERATION",
         "DepreciationMethod",
@@ -52,111 +62,112 @@ class OtherParameters(OSeMOSYSBase):
             A single OtherParameters instance that can be used downstream or dumped to json/yaml
         """
 
-        df_MODE_OF_OPERATION = pd.read_csv(os.path.join(root_dir, "MODE_OF_OPERATION.csv"))
-        df_DepreciationMethod = pd.read_csv(os.path.join(root_dir, "DepreciationMethod.csv"))
-        df_DiscountRate = pd.read_csv(os.path.join(root_dir, "DiscountRate.csv"))
-        try:
-            df_DiscountRateIdv = pd.read_csv(os.path.join(root_dir, "DiscountRateIdv.csv"))
-        except:
-            df_DiscountRateIdv = pd.DataFrame(columns=["REGION","TECHNOLOGY","VALUE"])
-        df_DiscountRateStorage = pd.read_csv(os.path.join(root_dir, "DiscountRateStorage.csv"))
-        df_ReserveMargin = pd.read_csv(os.path.join(root_dir, "ReserveMargin.csv"))
-        df_ReserveMarginTagFuel = pd.read_csv(os.path.join(root_dir, "ReserveMarginTagFuel.csv"))
-        df_ReserveMarginTagTechnology = pd.read_csv(os.path.join(root_dir, "ReserveMarginTagTechnology.csv"))
-        df_REMinProductionTarget = pd.read_csv(os.path.join(root_dir, "REMinProductionTarget.csv"))
+        # ###########
+        # Load Data #
+        # ###########
+        dfs = {}
+        otoole_cfg = OtooleCfg(empty_dfs=[])
+        for key in cls.otoole_stems:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+            except FileNotFoundError:
+                otoole_cfg.empty_dfs.append(key)
 
         return cls(
             id="OtherParameters",
             # TODO
             long_name=None,
             description=None,
-            MODE_OF_OPERATION=df_MODE_OF_OPERATION["VALUE"].values.tolist(),
+            otoole_cfg=otoole_cfg,
+            MODE_OF_OPERATION=dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist(),
             DepreciationMethod=(
-                RegionData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_DepreciationMethod,
+                        g=dfs["DepreciationMethod"],
                         data_columns=["REGION"],
                         target_column="VALUE",
                     )
                 )
-                if not df_DepreciationMethod.empty
+                if "DepreciationMethod" not in otoole_cfg.empty_dfs
                 else None
             ),
             DiscountRate=(
-                RegionData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_DiscountRate,
+                        g=dfs["DiscountRate"],
                         data_columns=["REGION"],
                         target_column="VALUE",
                     )
                 )
-                if not df_DiscountRate.empty
+                if "DiscountRate" not in otoole_cfg.empty_dfs
                 else None
             ),
             DiscountRateIdv=(
-                RegionData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_DiscountRateIdv,
+                        g=dfs["DiscountRateIdv"],
                         data_columns=["REGION","TECHNOLOGY"],
                         target_column="VALUE",
                     )
                 )
-                if not df_DiscountRateIdv.empty
+                if "DiscountRateIdv" not in otoole_cfg.empty_dfs
                 else None
             ),
             DiscountRateStorage=(
-                RegionData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_DiscountRateStorage,
+                        g=dfs["DiscountRateStorage"],
                         data_columns=["REGION","STORAGE"],
                         target_column="VALUE",
                     )
                 )
-                if not df_DiscountRateStorage.empty
+                if "DiscountRateStorage" not in otoole_cfg.empty_dfs
                 else None
             ),
             ReserveMargin=(
-                RegionYearData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_ReserveMargin,
+                        g=dfs["ReserveMargin"],
                         data_columns=["REGION","YEAR"],
                         target_column="VALUE",
                     )
                 )
-                if not df_ReserveMargin.empty
+                if "ReserveMargin" not in otoole_cfg.empty_dfs
                 else None
             ),
             ReserveMarginTagFuel=(
                 OSeMOSYSDataInt(
                     data=group_to_json(
-                        g=df_ReserveMarginTagFuel,
+                        g=dfs["ReserveMarginTagFuel"],
                         data_columns=["REGION","FUEL","YEAR"],
                         target_column="VALUE",
                     )
                 )
-                if not df_ReserveMarginTagFuel.empty
+                if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
                 else None
             ),
             ReserveMarginTagTechnology=(
                 OSeMOSYSDataInt(
                     data=group_to_json(
-                        g=df_ReserveMarginTagTechnology,
+                        g=dfs["ReserveMarginTagTechnology"],
                         data_columns=["REGION","TECHNOLOGY","YEAR"],
                         target_column="VALUE",
                     )
                 )
-                if not df_ReserveMarginTagTechnology.empty
+                if "ReserveMarginTagTechnology" not in otoole_cfg.empty_dfs
                 else None
             ),
             REMinProductionTarget=(
-                RegionYearData(
+                OSeMOSYSData(
                     data=group_to_json(
-                        g=df_REMinProductionTarget,
+                        g=dfs["REMinProductionTarget"],
                         data_columns=["REGION","YEAR"],
                         target_column="VALUE",
                     )
                 )
-                if not df_REMinProductionTarget.empty
+                if "REMinProductionTarget" not in otoole_cfg.empty_dfs
                 else None
             )
             )
