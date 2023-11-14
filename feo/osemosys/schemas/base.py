@@ -42,6 +42,14 @@ class OSeMOSYSData(BaseModel):
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]],
     ]
 
+class OSeMOSYSDataInt(BaseModel):
+    data: Union[
+        int,  # {data: 4.}
+        Dict[IdxVar, int],
+        Dict[IdxVar, Dict[IdxVar, int]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
+    ]
+
 
 class RegionTechnologyYearData(BaseModel):
     # can be expressed as:
