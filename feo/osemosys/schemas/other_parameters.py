@@ -1,6 +1,8 @@
 import os
 
 import pandas as pd
+from pydantic import BaseModel, conlist, root_validator
+from typing import ClassVar
 
 from feo.osemosys.utils import *
 
@@ -12,15 +14,27 @@ class OtherParameters(OSeMOSYSBase):
     Class to contain all other parameters
     """
 
-    MODE_OF_OPERATION: list[int]
-    DepreciationMethod: RegionData | None
-    DiscountRate: RegionData | None
-    DiscountRateIdv: RegionTechnologyYearData | None
-    DiscountRateStorage: RegionCommodityYearData | None
-    ReserveMargin: RegionYearData | None
+    MODE_OF_OPERATION: conlist(int, min_length=1)
+    DepreciationMethod: OSeMOSYSData | None
+    DiscountRate: OSeMOSYSData | None
+    DiscountRateIdv: OSeMOSYSData | None
+    DiscountRateStorage: OSeMOSYSData | None
+    ReserveMargin: OSeMOSYSData | None
     ReserveMarginTagFuel: OSeMOSYSDataInt | None
     ReserveMarginTagTechnology: OSeMOSYSDataInt | None
-    REMinProductionTarget: RegionYearData | None
+    REMinProductionTarget: OSeMOSYSData | None
+
+    otoole_stems: ClassVar[list[str]] = [
+        "MODE_OF_OPERATION",
+        "DepreciationMethod",
+        "DiscountRate",
+        "DiscountRateIdv",
+        "DiscountRateStorage",
+        "ReserveMargin",
+        "ReserveMarginTagFuel",
+        "ReserveMarginTagTechnology",
+        "REMinProductionTarget",
+    ]
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> "cls":
