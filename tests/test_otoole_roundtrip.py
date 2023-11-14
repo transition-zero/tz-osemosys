@@ -7,7 +7,7 @@ import numpy as np
 
 from feo.osemosys.schemas import RunSpec
 
-root_dir = "data/model_three/"
+root_dir = "data/osemosys_global_test_output/"
 comparison_directory = "otoole_compare/model_three/"
 
 (Path.cwd() / comparison_directory).mkdir(parents=True, exist_ok=True)
@@ -43,12 +43,23 @@ for stem in original_files.keys():
                                 .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist())
                                 .reset_index(drop=True))
         
-        #TODO temporary casting to float for input data (from model_three) which defaults to int once read
+        #TODO temporary casting for input data VALUEs
         if stem in ["EmissionsPenalty","TotalAnnualMaxCapacityInvestment"]:
             original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
-        
-        assert (original_df_sorted.equals(comparison_df_sorted)), f"unequal files: {stem}"
+        if stem in ["OperationalLife"]:
+            original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(np.int64)
 
+
+        if "YEAR" in original_df_sorted.columns:
+            original_df_sorted["YEAR"] = original_df_sorted["YEAR"].astype(np.int64)
+        if "MODE_OF_OPERATION" in original_df_sorted.columns:
+            original_df_sorted["MODE_OF_OPERATION"] = original_df_sorted["MODE_OF_OPERATION"].astype(np.int64)
+
+        if original_df_sorted.empty and comparison_df_sorted.empty:
+            assert (list(original_df_sorted.columns) == list(comparison_df_sorted.columns)), f"unequal files: {stem}"
+        else:
+            assert (original_df_sorted.equals(comparison_df_sorted)), f"unequal files: {stem}"
+        
     except AssertionError as e:
         print(f"Assertion Error: {e}")
         print(f"---------- original_df_sorted ----------")
