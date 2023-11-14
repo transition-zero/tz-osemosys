@@ -124,7 +124,7 @@ class Emission(OSeMOSYSBase):
                 )
             )
 
-            return emission_instances
+        return emission_instances
 
 
     def to_otoole_csv(self, comparison_directory) -> "cls":
