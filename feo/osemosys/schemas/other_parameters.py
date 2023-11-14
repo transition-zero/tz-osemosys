@@ -18,8 +18,8 @@ class OtherParameters(OSeMOSYSBase):
     DiscountRateIdv: RegionTechnologyYearData | None
     DiscountRateStorage: RegionCommodityYearData | None
     ReserveMargin: RegionYearData | None
-    ReserveMarginTagFuel: RegionCommodityYearData | None
-    ReserveMarginTagTechnology: RegionTechnologyYearData | None
+    ReserveMarginTagFuel: OSeMOSYSDataInt | None
+    ReserveMarginTagTechnology: OSeMOSYSDataInt | None
     REMinProductionTarget: RegionYearData | None
 
     @classmethod
@@ -41,7 +41,10 @@ class OtherParameters(OSeMOSYSBase):
         df_MODE_OF_OPERATION = pd.read_csv(os.path.join(root_dir, "MODE_OF_OPERATION.csv"))
         df_DepreciationMethod = pd.read_csv(os.path.join(root_dir, "DepreciationMethod.csv"))
         df_DiscountRate = pd.read_csv(os.path.join(root_dir, "DiscountRate.csv"))
-        df_DiscountRateIdv = pd.read_csv(os.path.join(root_dir, "DiscountRateIdv.csv"))
+        try:
+            df_DiscountRateIdv = pd.read_csv(os.path.join(root_dir, "DiscountRateIdv.csv"))
+        except:
+            df_DiscountRateIdv = pd.DataFrame(columns=["REGION","TECHNOLOGY","VALUE"])
         df_DiscountRateStorage = pd.read_csv(os.path.join(root_dir, "DiscountRateStorage.csv"))
         df_ReserveMargin = pd.read_csv(os.path.join(root_dir, "ReserveMargin.csv"))
         df_ReserveMarginTagFuel = pd.read_csv(os.path.join(root_dir, "ReserveMarginTagFuel.csv"))
@@ -110,7 +113,7 @@ class OtherParameters(OSeMOSYSBase):
                 else None
             ),
             ReserveMarginTagFuel=(
-                RegionCommodityYearData(
+                OSeMOSYSDataInt(
                     data=group_to_json(
                         g=df_ReserveMarginTagFuel,
                         data_columns=["REGION","FUEL","YEAR"],
@@ -121,7 +124,7 @@ class OtherParameters(OSeMOSYSBase):
                 else None
             ),
             ReserveMarginTagTechnology=(
-                RegionTechnologyYearData(
+                OSeMOSYSDataInt(
                     data=group_to_json(
                         g=df_ReserveMarginTagTechnology,
                         data_columns=["REGION","TECHNOLOGY","YEAR"],
@@ -153,7 +156,7 @@ class OtherParameters(OSeMOSYSBase):
 
         # Depreciation Method
         if self.DepreciationMethod is not None:
-            df = json_dict_to_dataframe(self.DepreciationMethod)
+            df = json_dict_to_dataframe(self.DepreciationMethod.data)
             df.columns = ["REGION","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "DepreciationMethod.csv"), index=False)
         else:
@@ -164,7 +167,7 @@ class OtherParameters(OSeMOSYSBase):
         
         # DiscountRate
         if self.DiscountRate is not None:
-            df = json_dict_to_dataframe(self.DiscountRate)
+            df = json_dict_to_dataframe(self.DiscountRate.data)
             df.columns = ["REGION","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "DiscountRate.csv"), index=False)
         else:
@@ -175,7 +178,7 @@ class OtherParameters(OSeMOSYSBase):
             
         # DiscountRateIdv
         if self.DiscountRateIdv is not None:
-            df = json_dict_to_dataframe(self.DiscountRateIdv)
+            df = json_dict_to_dataframe(self.DiscountRateIdv.data)
             df.columns = ["REGION","TECHNOLOGY","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "DiscountRateIdv.csv"), index=False)
         else:
@@ -186,7 +189,7 @@ class OtherParameters(OSeMOSYSBase):
             
         # DiscountRateStorage
         if self.DiscountRateStorage is not None:
-            df = json_dict_to_dataframe(self.DiscountRateStorage)
+            df = json_dict_to_dataframe(self.DiscountRateStorage.data)
             df.columns = ["REGION","STORAGE","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "DiscountRateStorage.csv"), index=False)
         else:
@@ -197,7 +200,7 @@ class OtherParameters(OSeMOSYSBase):
 
         # ReserveMargin
         if self.ReserveMargin is not None:
-            df = json_dict_to_dataframe(self.ReserveMargin)
+            df = json_dict_to_dataframe(self.ReserveMargin.data)
             df.columns = ["REGION","YEAR","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "ReserveMargin.csv"), index=False)
         else:
@@ -208,7 +211,7 @@ class OtherParameters(OSeMOSYSBase):
 
         # ReserveMarginTagFuel
         if self.ReserveMarginTagFuel is not None:
-            df = json_dict_to_dataframe(self.ReserveMarginTagFuel)
+            df = json_dict_to_dataframe(self.ReserveMarginTagFuel.data)
             df.columns = ["REGION","FUEL","YEAR","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "ReserveMarginTagFuel.csv"), index=False)
         else:
@@ -219,7 +222,7 @@ class OtherParameters(OSeMOSYSBase):
             
         # ReserveMarginTagTechnology
         if self.ReserveMarginTagTechnology is not None:
-            df = json_dict_to_dataframe(self.ReserveMarginTagTechnology)
+            df = json_dict_to_dataframe(self.ReserveMarginTagTechnology.data)
             df.columns = ["REGION","TECHNOLOGY","YEAR","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "ReserveMarginTagTechnology.csv"), index=False)
         else:
@@ -230,7 +233,7 @@ class OtherParameters(OSeMOSYSBase):
 
         # REMinProductionTarget
         if self.REMinProductionTarget is not None:
-            df = json_dict_to_dataframe(self.REMinProductionTarget)
+            df = json_dict_to_dataframe(self.REMinProductionTarget.data)
             df.columns = ["REGION","YEAR","VALUE"]
             df.to_csv(os.path.join(comparison_directory, "REMinProductionTarget.csv"), index=False)
         else:
