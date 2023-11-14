@@ -365,8 +365,11 @@ class TimeDefinition(OSeMOSYSBase):
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
         for key in cls.otoole_stems:
-            dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
-            if dfs[key].empty:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+            except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
 
@@ -379,16 +382,19 @@ class TimeDefinition(OSeMOSYSBase):
             dfs["DaysInDayType"]["VALUE"].isin([1, 2, 3, 4, 5, 6, 7]).all()
         ), "Days in day type can only take values from 1-7"
 
-        YEAR = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
-        SEASON = dfs["SEASON"]["VALUE"].values.tolist() if not dfs["SEASON"].empty else None
-        DAYTYPE = dfs["DAYTYPE"]["VALUE"].values.tolist() if not dfs["DAYTYPE"].empty else None
+        if "YEAR" in dfs:
+            YEAR = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
+        else:
+            raise FileNotFoundError("YEAR.csv not read in, likely missing from root_dir")
+        SEASON = dfs["SEASON"]["VALUE"].values.tolist() if "SEASON" not in otoole_cfg.empty_dfs else None
+        DAYTYPE = dfs["DAYTYPE"]["VALUE"].values.tolist() if "DAYTYPE" not in otoole_cfg.empty_dfs else None
         DAILYTIMEBRACKET = (
             dfs["DAILYTIMEBRACKET"]["VALUE"].values.tolist()
-            if not dfs["DAILYTIMEBRACKET"].empty
+            if "DAILYTIMEBRACKET" not in otoole_cfg.empty_dfs
             else None
         )
         TIMESLICE = (
-            dfs["TIMESLICE"]["VALUE"].values.tolist() if not dfs["TIMESLICE"].empty else None
+            dfs["TIMESLICE"]["VALUE"].values.tolist() if "TIMESLICE" not in otoole_cfg.empty_dfs else None
         )
 
         return cls(
@@ -409,7 +415,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["YearSplit"].empty
+                if "YearSplit" not in otoole_cfg.empty_dfs
                 else None
             ),
             DaySplit=(
@@ -420,7 +426,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["DaySplit"].empty
+                if "DaySplit" not in otoole_cfg.empty_dfs
                 else None
             ),
             DaysInDayType=(
@@ -431,7 +437,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["DaysInDayType"].empty
+                if "DaysInDayType" not in otoole_cfg.empty_dfs
                 else None
             ),
             Conversionld=(
@@ -442,7 +448,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["Conversionld"].empty
+                if "Conversionld" not in otoole_cfg.empty_dfs
                 else None
             ),
             Conversionlh=(
@@ -453,7 +459,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["Conversionlh"].empty
+                if "Conversionlh" not in otoole_cfg.empty_dfs
                 else None
             ),
             Conversionls=(
@@ -464,7 +470,7 @@ class TimeDefinition(OSeMOSYSBase):
                         target_column="VALUE",
                     )
                 ).model_dump()["data"]
-                if not dfs["Conversionls"].empty
+                if "Conversionls" not in otoole_cfg.empty_dfs
                 else None
             ),
         )
