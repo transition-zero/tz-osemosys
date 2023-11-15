@@ -93,13 +93,21 @@ class OtherParameters(OSeMOSYSBase):
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
+        # ###################
+        # Basic Data Checks #
+        #####################
+        if "MODE_OF_OPERATION" in dfs:
+            MODE_OF_OPERATION = dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist()
+        else:
+            raise FileNotFoundError("MODE_OF_OPERATION.csv not read in, likely missing from root_dir")
+
         return cls(
             id="OtherParameters",
             # TODO
             long_name=None,
             description=None,
             otoole_cfg=otoole_cfg,
-            MODE_OF_OPERATION=dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist(),
+            MODE_OF_OPERATION=MODE_OF_OPERATION,
             DepreciationMethod=(
                 OSeMOSYSData(
                     data=group_to_json(
