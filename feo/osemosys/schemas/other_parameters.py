@@ -45,6 +45,24 @@ class OtherParameters(OSeMOSYSBase):
         "ReserveMarginTagTechnology",
         "REMinProductionTarget",
     ]
+    
+    @root_validator(pre=True)
+    def construct_from_components(cls, values):
+        MODE_OF_OPERATION = values.get("MODE_OF_OPERATION")
+        DepreciationMethod = values.get("DepreciationMethod")
+        DiscountRate = values.get("DiscountRate")
+        DiscountRateIdv = values.get("DiscountRateIdv")
+        DiscountRateStorage = values.get("DiscountRateStorage")
+        ReserveMargin = values.get("ReserveMargin")
+        ReserveMarginTagFuel = values.get("ReserveMarginTagFuel")
+        ReserveMarginTagTechnology = values.get("ReserveMarginTagTechnology")
+        REMinProductionTarget = values.get("REMinProductionTarget")
+        
+        # failed to specify MODE_OF_OPERATION
+        if not MODE_OF_OPERATION:
+            raise ValueError("MODE_OF_OPERATION (List[int]) must be specified.")
+
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> "cls":
