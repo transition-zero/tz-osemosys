@@ -110,8 +110,8 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 # If TIMESLICE defined, but neither DAILYTIMEBRACKET nor Conversionlh is
                 else:
-                    for slice in TIMESLICE:
-                        if "H2" in slice:
+                    for item in TIMESLICE:
+                        if "H2" in item:
                             raise ValueError(
                                 "More than one daily time bracket specified in TIMESLICE, DAILYTIMEBRACKET and Conversionlh must be provided"
                             )
@@ -145,8 +145,8 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 # If TIMESLICE defined, but neither DAYTYPE nor Conversionld is
                 else:
-                    for slice in TIMESLICE:
-                        if "D2" in slice:
+                    for item in TIMESLICE:
+                        if "D2" in item:
                             raise ValueError(
                                 "More than one day type specified in TIMESLICE, DAYTYPE and Conversionld must be provided"
                             )
@@ -180,8 +180,8 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 # If TIMESLICE defined, but neither SEASON nor Conversionls is
                 else:
-                    for slice in TIMESLICE:
-                        if "S2" in slice:
+                    for item in TIMESLICE:
+                        if "S2" in item:
                             raise ValueError(
                                 "More than one season specified in TIMESLICE, SEASON and Conversionls must be provided"
                             )
