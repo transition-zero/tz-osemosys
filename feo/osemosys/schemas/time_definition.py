@@ -21,10 +21,10 @@ class OtooleCfg(BaseModel):
 
 
 class TimeAdjacency(BaseModel):
-    YEAR: dict[int, int]
-    SEASON: dict[int, int]
-    DAYTYPE: dict[int, int]
-    time_brackets: dict[int, int]
+    YEAR: dict[str, str]
+    SEASON: dict[str, str]
+    DAYTYPE: dict[str, str]
+    time_brackets: dict[str, str]
 
 
 class TimeDefinition(OSeMOSYSBase):
@@ -37,9 +37,9 @@ class TimeDefinition(OSeMOSYSBase):
 
     # can be constructed
     TIMESLICE: conlist(int | str, min_length=1)
-    SEASON: conlist(int, min_length=1)
-    DAYTYPE: conlist(int, min_length=1)
-    DAILYTIMEBRACKET: conlist(int, min_length=1)
+    SEASON: conlist(int | str, min_length=1)
+    DAYTYPE: conlist(int | str, min_length=1)
+    DAILYTIMEBRACKET: conlist(int | str, min_length=1)
     YearSplit: OSeMOSYSData
     DaySplit: OSeMOSYSData
     DaysInDayType: OSeMOSYSData
@@ -129,14 +129,14 @@ class TimeDefinition(OSeMOSYSBase):
             if Conversionld is not None:
                 if set(TIMESLICE) != set(Conversionld.keys()):
                     raise ValueError(
-                        "provided 'TIMESLICE' do not match keys of 'Conversionlh'"
+                        "provided 'TIMESLICE' do not match keys of 'Conversionld'"
                     )
                 if Conversionld is not None:
                     if set(DAYTYPE) != set(
                         flatten([list(v.keys()) for k, v in Conversionld.items()])
                     ):
                         raise ValueError(
-                            "provided 'Conversionlh' keys do not match 'DAYTYPE'"
+                            "provided 'Conversionld' keys do not match 'DAYTYPE'"
                         )
             else:
                 if DAYTYPE is not None:
@@ -386,10 +386,10 @@ class TimeDefinition(OSeMOSYSBase):
             YEAR = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
         else:
             raise FileNotFoundError("YEAR.csv not read in, likely missing from root_dir")
-        SEASON = dfs["SEASON"]["VALUE"].values.tolist() if "SEASON" not in otoole_cfg.empty_dfs else None
-        DAYTYPE = dfs["DAYTYPE"]["VALUE"].values.tolist() if "DAYTYPE" not in otoole_cfg.empty_dfs else None
+        SEASON = dfs["SEASON"]["VALUE"].astype(str).values.tolist() if "SEASON" not in otoole_cfg.empty_dfs else None
+        DAYTYPE = dfs["DAYTYPE"]["VALUE"].astype(str).values.tolist() if "DAYTYPE" not in otoole_cfg.empty_dfs else None
         DAILYTIMEBRACKET = (
-            dfs["DAILYTIMEBRACKET"]["VALUE"].values.tolist()
+            dfs["DAILYTIMEBRACKET"]["VALUE"].astype(str).values.tolist()
             if "DAILYTIMEBRACKET" not in otoole_cfg.empty_dfs
             else None
         )
@@ -408,7 +408,7 @@ class TimeDefinition(OSeMOSYSBase):
             otoole_cfg=otoole_cfg,
             DAILYTIMEBRACKET=DAILYTIMEBRACKET,
             YearSplit=(
-                StringYearData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["YearSplit"],
                         data_columns=["TIMESLICE", "YEAR"],
@@ -419,7 +419,7 @@ class TimeDefinition(OSeMOSYSBase):
                 else None
             ),
             DaySplit=(
-                IntYearData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DaySplit"],
                         data_columns=["DAILYTIMEBRACKET", "YEAR"],
@@ -430,7 +430,7 @@ class TimeDefinition(OSeMOSYSBase):
                 else None
             ),
             DaysInDayType=(
-                IntIntIntData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DaysInDayType"],
                         data_columns=["SEASON", "DAYTYPE", "YEAR"],
@@ -441,7 +441,7 @@ class TimeDefinition(OSeMOSYSBase):
                 else None
             ),
             Conversionld=(
-                StringYearData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["Conversionld"],
                         data_columns=["TIMESLICE", "DAYTYPE"],
@@ -452,7 +452,7 @@ class TimeDefinition(OSeMOSYSBase):
                 else None
             ),
             Conversionlh=(
-                StringYearData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["Conversionlh"],
                         data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
@@ -463,7 +463,7 @@ class TimeDefinition(OSeMOSYSBase):
                 else None
             ),
             Conversionls=(
-                StringYearData(
+                OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["Conversionls"],
                         data_columns=["TIMESLICE", "SEASON"],
