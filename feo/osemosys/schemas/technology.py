@@ -449,124 +449,108 @@ class TechnologyStorage(OSeMOSYSBase):
     Class to contain all information pertaining to storage technologies
     """
 
-    CapitalCostStorage: RegionYearData | None
-    OperationalLifeStorage: RegionData | None
-    MinStorageCharge: RegionYearData | None  # Lower bound to the amount of energy stored, as a fraction of the maximum, with a number reanging between 0 and 1
-    StorageLevelStart: RegionData | None  # Level of storage at the beginning of first modelled year, in units of activity
-    ResidualStorageCapacity: RegionYearData | None
-    StorageMaxDischargeRate: RegionData | None  # Maximum discharging rate for the storage, in units of activity per year
-    StorageMaxChargeRate: RegionData | None  # Maximum charging rate for the storage, in units of activity per year
+    CapitalCostStorage: OSeMOSYSData | None
+    OperationalLifeStorage: OSeMOSYSData | None
+    MinStorageCharge: OSeMOSYSData | None  # Lower bound to the amount of energy stored, as a fraction of the maximum, with a number reanging between 0 and 1
+    StorageLevelStart: OSeMOSYSData | None  # Level of storage at the beginning of first modelled year, in units of activity
+    ResidualStorageCapacity: OSeMOSYSData | None
+    StorageMaxDischargeRate: OSeMOSYSData | None  # Maximum discharging rate for the storage, in units of activity per year
+    StorageMaxChargeRate: OSeMOSYSData | None  # Maximum charging rate for the storage, in units of activity per year
+
+    otoole_cfg: OtooleCfg | None
+    otoole_stems: ClassVar[list[str]] = [
+        "CapitalCostStorage",
+        "OperationalLifeStorage",
+        "MinStorageCharge",
+        "StorageLevelStart",
+        "ResidualStorageCapacity",
+        "StorageMaxDischargeRate",
+        "StorageMaxChargeRate",
+    ]
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
+        
+        # ###########
+        # Load Data #
+        # ###########
+
         df_storage_technologies = pd.read_csv(os.path.join(root_dir, "STORAGE.csv"))
 
-        df_CapitalCostStorage = pd.read_csv(os.path.join(root_dir, "CapitalCostStorage.csv"))
-        df_OperationalLifeStorage = pd.read_csv(os.path.join(root_dir, "OperationalLifeStorage.csv"))
-        df_MinStorageCharge = pd.read_csv(os.path.join(root_dir, "MinStorageCharge.csv"))
-        df_StorageLevelStart = pd.read_csv(os.path.join(root_dir, "StorageLevelStart.csv"))
-        df_ResidualStorageCapacity = pd.read_csv(os.path.join(root_dir, "ResidualStorageCapacity.csv"))
-        df_StorageMaxDischargeRate = pd.read_csv(os.path.join(root_dir, "StorageMaxDischargeRate.csv"))
-        df_StorageMaxChargeRate = pd.read_csv(os.path.join(root_dir, "StorageMaxChargeRate.csv"))
+        dfs = {}
+        otoole_cfg = OtooleCfg(empty_dfs=[])
+        for key in cls.otoole_stems:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+            except FileNotFoundError:
+                otoole_cfg.empty_dfs.append(key)
 
+        # ########################
+        # Define class instances #
+        # ########################
+        
         storage_instances = []
         for storage in df_storage_technologies["VALUE"].values.tolist():
+            data_json_format = {}
+            for stem in cls.otoole_stems:
+                # If input CSV present
+                if stem in dfs:
+                    data_columns=dfs[stem].columns.tolist()
+                    data_columns.remove("STORAGE")
+                    data_columns.remove("VALUE")
+                    data_json_format[stem] = (
+                        group_to_json(
+                            g=dfs[stem].loc[
+                                dfs[stem]["STORAGE"] == technology
+                            ],
+                            root_column="STORAGE",
+                            data_columns=data_columns,
+                            target_column="VALUE",
+                        )
+                        if storage in dfs[stem]["STORAGE"].values
+                        else None
+                    )
+                # If input CSV missing
+                else:
+                    data_json_format[stem] = None
+        
             storage_instances.append(
                 cls(
                     id=storage,
                     long_name=None,
                     description=None,
-                    CapitalCostStorage=(
-                        RegionYearData(
-                            data=group_to_json(
-                                g=df_CapitalCostStorage.loc[df_CapitalCostStorage["STORAGE"] == storage],
-                                root_column="STORAGE",
-                                data_columns=["REGION", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_CapitalCostStorage["STORAGE"].values
-                        else None
-                    ),
-                    OperationalLifeStorage=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_OperationalLifeStorage.loc[df_OperationalLifeStorage["STORAGE"] == storage],
-                                root_column="STORAGE",
-                                data_columns=["REGION"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_OperationalLifeStorage["STORAGE"].values
-                        else None
-                    ),
-                    MinStorageCharge=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_MinStorageCharge.loc[df_MinStorageCharge["STORAGE"] == storage],
-                                root_column="STORAGE",
-                                data_columns=["REGION", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_MinStorageCharge["STORAGE"].values
-                        else None
-                    ),
-                    StorageLevelStart=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_StorageLevelStart.loc[df_StorageLevelStart["STORAGE"] == storage],
-                                root_column="STORAGE",
-                                data_columns=["REGION"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_StorageLevelStart["STORAGE"].values
-                        else None
-                    ),
-                    ResidualStorageCapacity=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_ResidualStorageCapacity.loc[
-                                    df_ResidualStorageCapacity["STORAGE"] == storage
-                                ],
-                                root_column="STORAGE",
-                                data_columns=["REGION", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_ResidualStorageCapacity["STORAGE"].values
-                        else None
-                    ),
-                    StorageMaxDischargeRate=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_StorageMaxDischargeRate.loc[
-                                    df_StorageMaxDischargeRate["STORAGE"] == storage
-                                ],
-                                root_column="STORAGE",
-                                data_columns=["REGION"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_StorageMaxDischargeRate["STORAGE"].values
-                        else None
-                    ),
-                    StorageMaxChargeRate=(
-                        RegionTechnologyYearData(
-                            data=group_to_json(
-                                g=df_StorageMaxChargeRate.loc[df_StorageMaxChargeRate["STORAGE"] == storage],
-                                root_column="STORAGE",
-                                data_columns=["REGION"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if storage in df_StorageMaxChargeRate["STORAGE"].values
-                        else None
-                    ),
+                    otoole_cfg=otoole_cfg,
+                    CapitalCostStorage=OSeMOSYSData(
+                        data=data_json_format["CapitalCostStorage"]
+                    )
+                    if data_json_format["CapitalCostStorage"] is not None
+                    else None,
+                    OperationalLifeStorage=OSeMOSYSData(
+                        data=data_json_format["OperationalLifeStorage"]
+                    )
+                    if data_json_format["OperationalLifeStorage"] is not None
+                    else None,
+                    MinStorageCharge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
+                    if data_json_format["MinStorageCharge"] is not None
+                    else None,
+                    StorageLevelStart=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
+                    if data_json_format["StorageLevelStart"] is not None
+                    else None,
+                    ResidualStorageCapacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
+                    if data_json_format["ResidualStorageCapacity"] is not None
+                    else None,
+                    StorageMaxDischargeRate=OSeMOSYSData(data=data_json_format["StorageMaxDischargeRate"])
+                    if data_json_format["StorageMaxDischargeRate"] is not None
+                    else None,
+                    StorageMaxChargeRate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
+                    if data_json_format["StorageMaxChargeRate"] is not None
+                    else None,
+                    
                 )
             )
-
+        
         return storage_instances
     
     def to_otoole_csv(self, comparison_directory) -> "cls":
