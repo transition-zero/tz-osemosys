@@ -1,6 +1,8 @@
 import os
 
 import pandas as pd
+from typing import ClassVar
+from pathlib import Path
 
 from feo.osemosys.utils import *
 
@@ -10,6 +12,13 @@ from .base import *
 # ### TECHNOLOGY ###
 # ##################
 
+class OtooleCfg(BaseModel):
+    """
+    Paramters needed to round-trip csvs from otoole
+    """
+
+    empty_dfs: List[str] | None
+
 
 class Technology(OSeMOSYSBase):
     """
@@ -18,30 +27,30 @@ class Technology(OSeMOSYSBase):
 
     # Capacity unit to activity unit conversion
     # Conversion factor relating the energy that would be produced when one unit of capacity is fully used in one year.
-    CapacityToActivityUnit: RegionData | None
+    CapacityToActivityUnit: OSeMOSYSData | None
 
     # Capacity of one new unit of a technology
     # If specified the problem will turn into a Mixed Integer Linear Problem
-    CapacityOfOneTechnologyUnit: RegionYearData | None
+    CapacityOfOneTechnologyUnit: OSeMOSYSData | None
 
     # Capacity factor, lifespan, availability
-    AvailabilityFactor: RegionYearData | None  # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
-    CapacityFactor: RegionYearTimeData | None
-    OperationalLife: StringInt | None
+    AvailabilityFactor: OSeMOSYSData | None  # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
+    CapacityFactor: OSeMOSYSData | None
+    OperationalLife: OSeMOSYSData | None
 
     # financials
-    CapitalCost: RegionYearData | None
-    FixedCost: RegionYearData | None
-    VariableCost: RegionModeYearData | None
+    CapitalCost: OSeMOSYSData | None
+    FixedCost: OSeMOSYSData | None
+    VariableCost: OSeMOSYSData | None
 
     # initial capacity
-    ResidualCapacity: RegionYearData | None
+    ResidualCapacity: OSeMOSYSData | None
 
     # constraints - capacity
-    TotalAnnualMaxCapacity: RegionYearData | None  # Maximum technology capacity (installed + residual) per year
-    TotalAnnualMinCapacity: RegionYearData | None  # Minimum technology capacity (installed + residual) per year
-    TotalAnnualMaxCapacityInvestment: RegionYearData | None  # Maximum technology capacity additions per year
-    TotalAnnualMinCapacityInvestment: RegionYearData | None  # Minimum technology capacity additions per year
+    TotalAnnualMaxCapacity: OSeMOSYSData | None  # Maximum technology capacity (installed + residual) per year
+    TotalAnnualMinCapacity: OSeMOSYSData | None  # Minimum technology capacity (installed + residual) per year
+    TotalAnnualMaxCapacityInvestment: OSeMOSYSData | None  # Maximum technology capacity additions per year
+    TotalAnnualMinCapacityInvestment: OSeMOSYSData | None  # Minimum technology capacity additions per year
 
     # TODO
     # Relative growth rate restrictions not currently implemented in osemosys, can be added via change in osemosys code
@@ -51,275 +60,184 @@ class Technology(OSeMOSYSBase):
     # additional_capacity_min_growth_rate: RegionYearData     # growth rate (<1.)
 
     # constraints - activity
-    TotalTechnologyAnnualActivityUpperLimit: RegionYearData | None  # Maximum technology activity per year
-    TotalTechnologyAnnualActivityLowerLimit: RegionYearData | None  # Minimum technology activity per year
-    TotalTechnologyModelPeriodActivityUpperLimit: RegionData | None  # Maximum technology activity across whole modelled period
-    TotalTechnologyModelPeriodActivityLowerLimit: RegionData | None  # Minimum technology activity across whole modelled period
+    TotalTechnologyAnnualActivityUpperLimit: OSeMOSYSData | None  # Maximum technology activity per year
+    TotalTechnologyAnnualActivityLowerLimit: OSeMOSYSData | None  # Minimum technology activity per year
+    TotalTechnologyModelPeriodActivityUpperLimit: OSeMOSYSData | None  # Maximum technology activity across whole modelled period
+    TotalTechnologyModelPeriodActivityLowerLimit: OSeMOSYSData | None  # Minimum technology activity across whole modelled period
 
     # activity ratios & efficiency
-    EmissionActivityRatio: StringStringIntIntData | None  # Technology emission activity ratio by mode of operation
-    InputActivityRatio: StringStringIntIntData | None  # Technology fuel input activity ratio by mode of operation
-    OutputActivityRatio: StringStringIntIntData | None  # Technology fuel output activity ratio by mode of operation
-    TechnologyToStorage: StringStringIntIntData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
-    TechnologyFromStorage: StringStringIntIntData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
+    EmissionActivityRatio: OSeMOSYSData | None  # Technology emission activity ratio by mode of operation
+    InputActivityRatio: OSeMOSYSData | None  # Technology fuel input activity ratio by mode of operation
+    OutputActivityRatio: OSeMOSYSData | None  # Technology fuel output activity ratio by mode of operation
+    TechnologyToStorage: OSeMOSYSData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
+    TechnologyFromStorage: OSeMOSYSData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
 
     # Renewable technology tag
-    RETagTechnology: RegionTechnologyYearData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
+    RETagTechnology: OSeMOSYSData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
+
+    otoole_cfg: OtooleCfg | None
+    otoole_stems: ClassVar[list[str]] = [
+        "CapacityToActivityUnit",
+        "CapacityOfOneTechnologyUnit",
+        "AvailabilityFactor",
+        "CapacityFactor",
+        "OperationalLife",
+        "CapitalCost",
+        "FixedCost",
+        "VariableCost",
+        "ResidualCapacity",
+        "TotalAnnualMaxCapacity",
+        "TotalAnnualMinCapacity",
+        "TotalAnnualMaxCapacityInvestment",
+        "TotalAnnualMinCapacityInvestment",
+        "TotalTechnologyAnnualActivityUpperLimit",
+        "TotalTechnologyAnnualActivityLowerLimit",
+        "TotalTechnologyModelPeriodActivityUpperLimit",
+        "TotalTechnologyModelPeriodActivityLowerLimit",
+        "EmissionActivityRatio",
+        "InputActivityRatio",
+        "OutputActivityRatio",
+        "TechnologyToStorage",
+        "TechnologyFromStorage",
+        "RETagTechnology",
+    ]
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
+        
+        # ###########
+        # Load Data #
+        # ###########
+
         df_technologies = pd.read_csv(os.path.join(root_dir, "TECHNOLOGY.csv"))
+        
+        dfs = {}
+        otoole_cfg = OtooleCfg(empty_dfs=[])
+        for key in cls.otoole_stems:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+            except FileNotFoundError:
+                otoole_cfg.empty_dfs.append(key)
 
-        parser_data = [
-            {
-                "name": "CapacityToActivityUnit",
-                "filepath": "CapacityToActivityUnit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION"],
-            },
-            {
-                "name": "CapacityOfOneTechnologyUnit",
-                "filepath": "CapacityOfOneTechnologyUnit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "AvailabilityFactor",
-                "filepath": "AvailabilityFactor.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "CapacityFactor",
-                "filepath": "CapacityFactor.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "TIMESLICE", "YEAR"],
-            },
-            {
-                "name": "OperationalLife",
-                "filepath": "OperationalLife.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION"],
-            },
-            {
-                "name": "CapitalCost",
-                "filepath": "CapitalCost.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "FixedCost",
-                "filepath": "FixedCost.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "VariableCost",
-                "filepath": "VariableCost.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "MODE_OF_OPERATION", "YEAR"],
-            },
-            {
-                "name": "ResidualCapacity",
-                "filepath": "ResidualCapacity.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalAnnualMaxCapacity",
-                "filepath": "TotalAnnualMaxCapacity.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalAnnualMinCapacity",
-                "filepath": "TotalAnnualMinCapacity.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalAnnualMaxCapacityInvestment",
-                "filepath": "TotalAnnualMaxCapacityInvestment.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalAnnualMinCapacityInvestment",
-                "filepath": "TotalAnnualMinCapacityInvestment.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalTechnologyAnnualActivityUpperLimit",
-                "filepath": "TotalTechnologyAnnualActivityUpperLimit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "TotalTechnologyAnnualActivityLowerLimit",
-                "filepath": "TotalTechnologyAnnualActivityLowerLimit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION"],
-            },
-            {
-                "name": "TotalTechnologyModelPeriodActivityUpperLimit",
-                "filepath": "TotalTechnologyModelPeriodActivityUpperLimit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION"],
-            },
-            {
-                "name": "TotalTechnologyModelPeriodActivityLowerLimit",
-                "filepath": "TotalTechnologyModelPeriodActivityLowerLimit.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR"],
-            },
-            {
-                "name": "EmissionActivityRatio",
-                "filepath": "EmissionActivityRatio.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "EMISSION", "MODE_OF_OPERATION", "YEAR"],
-            },
-            {
-                "name": "InputActivityRatio",
-                "filepath": "InputActivityRatio.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "FUEL", "MODE_OF_OPERATION", "YEAR"],
-            },
-            {
-                "name": "OutputActivityRatio",
-                "filepath": "OutputActivityRatio.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "FUEL", "MODE_OF_OPERATION", "YEAR"],
-            },
-            {
-                "name": "TechnologyToStorage",
-                "filepath": "TechnologyToStorage.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "STORAGE", "MODE_OF_OPERATION"],
-            },
-            {
-                "name": "TechnologyFromStorage",
-                "filepath": "TechnologyFromStorage.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "STORAGE", "MODE_OF_OPERATION"],
-            },
-            {
-                "name": "RETagTechnology",
-                "filepath": "RETagTechnology.csv",
-                "root_column": "TECHNOLOGY",
-                "data_columns": ["REGION", "YEAR", "VALUE"],
-            },
-        ]
 
-        # Read in dataframes - Creates dict of "name":dataframe
-        df_all = {}
-        for parser in parser_data:
-            df_all[parser["name"]] = pd.read_csv(os.path.join(root_dir, parser["filepath"]))
+        # ########################
+        # Define class instances #
+        # ########################
 
-        # Define class instances
         technology_instances = []
         for technology in df_technologies["VALUE"].values.tolist():
             data_json_format = {}
-            for parser in parser_data:
-                data_json_format[parser["name"]] = (
-                    group_to_json(
-                        g=df_all[parser["name"]].loc[
-                            df_all[parser["name"]]["TECHNOLOGY"] == technology
-                        ],
-                        root_column=parser["root_column"],
-                        data_columns=parser["data_columns"],
-                        target_column="VALUE",
+            for stem in cls.otoole_stems:
+                # If input CSV present
+                if stem in dfs:
+                    data_columns=dfs[stem].columns.tolist()
+                    data_columns.remove("TECHNOLOGY")
+                    data_columns.remove("VALUE")
+                    data_json_format[stem] = (
+                        group_to_json(
+                            g=dfs[stem].loc[
+                                dfs[stem]["TECHNOLOGY"] == technology
+                            ],
+                            root_column="TECHNOLOGY",
+                            data_columns=data_columns,
+                            target_column="VALUE",
+                        )
+                        if technology in dfs[stem]["TECHNOLOGY"].values
+                        else None
                     )
-                    if technology in df_all[parser["name"]]["TECHNOLOGY"].values
-                    else None
-                )
-
+                # If input CSV missing
+                else:
+                    data_json_format[stem] = None
+            
             technology_instances.append(
                 cls(
                     id=technology,
                     long_name=None,
                     description=None,
-                    CapacityToActivityUnit=RegionData(
+                    otoole_cfg=otoole_cfg,
+                    CapacityToActivityUnit=OSeMOSYSData(
                         data=data_json_format["CapacityToActivityUnit"]
                     )
                     if data_json_format["CapacityToActivityUnit"] is not None
                     else None,
-                    CapacityOfOneTechnologyUnit=RegionYearData(
+                    CapacityOfOneTechnologyUnit=OSeMOSYSData(
                         data=data_json_format["CapacityOfOneTechnologyUnit"]
                     )
                     if data_json_format["CapacityOfOneTechnologyUnit"] is not None
                     else None,
-                    AvailabilityFactor=RegionYearData(data=data_json_format["AvailabilityFactor"])
+                    AvailabilityFactor=OSeMOSYSData(data=data_json_format["AvailabilityFactor"])
                     if data_json_format["AvailabilityFactor"] is not None
                     else None,
-                    CapacityFactor=RegionYearTimeData(data=data_json_format["CapacityFactor"])
+                    CapacityFactor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
                     if data_json_format["CapacityFactor"] is not None
                     else None,
-                    OperationalLife=StringInt(data=data_json_format["OperationalLife"])
+                    OperationalLife=OSeMOSYSData(data=data_json_format["OperationalLife"])
                     if data_json_format["OperationalLife"] is not None
                     else None,
-                    CapitalCost=RegionYearData(data=data_json_format["CapitalCost"])
+                    CapitalCost=OSeMOSYSData(data=data_json_format["CapitalCost"])
                     if data_json_format["CapitalCost"] is not None
                     else None,
-                    FixedCost=RegionYearData(data=data_json_format["FixedCost"])
+                    FixedCost=OSeMOSYSData(data=data_json_format["FixedCost"])
                     if data_json_format["FixedCost"] is not None
                     else None,
-                    VariableCost=RegionModeYearData(data=data_json_format["VariableCost"])
+                    VariableCost=OSeMOSYSData(data=data_json_format["VariableCost"])
                     if data_json_format["VariableCost"] is not None
                     else None,
-                    ResidualCapacity=RegionYearData(data=data_json_format["ResidualCapacity"])
+                    ResidualCapacity=OSeMOSYSData(data=data_json_format["ResidualCapacity"])
                     if data_json_format["ResidualCapacity"] is not None
                     else None,
-                    TotalAnnualMaxCapacity=RegionYearData(data=data_json_format["TotalAnnualMaxCapacity"])
+                    TotalAnnualMaxCapacity=OSeMOSYSData(data=data_json_format["TotalAnnualMaxCapacity"])
                     if data_json_format["TotalAnnualMaxCapacity"] is not None
                     else None,
-                    TotalAnnualMinCapacity=RegionYearData(data=data_json_format["TotalAnnualMinCapacity"])
+                    TotalAnnualMinCapacity=OSeMOSYSData(data=data_json_format["TotalAnnualMinCapacity"])
                     if data_json_format["TotalAnnualMinCapacity"] is not None
                     else None,
-                    TotalAnnualMaxCapacityInvestment=RegionYearData(
+                    TotalAnnualMaxCapacityInvestment=OSeMOSYSData(
                         data=data_json_format["TotalAnnualMaxCapacityInvestment"]
                     )
                     if data_json_format["TotalAnnualMaxCapacityInvestment"] is not None
                     else None,
-                    TotalAnnualMinCapacityInvestment=RegionYearData(
+                    TotalAnnualMinCapacityInvestment=OSeMOSYSData(
                         data=data_json_format["TotalAnnualMinCapacityInvestment"]
                     )
                     if data_json_format["TotalAnnualMinCapacityInvestment"] is not None
                     else None,
-                    TotalTechnologyAnnualActivityUpperLimit=RegionYearData(data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"])
+                    TotalTechnologyAnnualActivityUpperLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"])
                     if data_json_format["TotalTechnologyAnnualActivityUpperLimit"] is not None
                     else None,
-                    TotalTechnologyAnnualActivityLowerLimit=RegionYearData(data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"])
+                    TotalTechnologyAnnualActivityLowerLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"])
                     if data_json_format["TotalTechnologyAnnualActivityLowerLimit"] is not None
                     else None,
-                    TotalTechnologyModelPeriodActivityUpperLimit=RegionData(data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"])
+                    TotalTechnologyModelPeriodActivityUpperLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"])
                     if data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"] is not None
                     else None,
-                    TotalTechnologyModelPeriodActivityLowerLimit=RegionData(data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"])
+                    TotalTechnologyModelPeriodActivityLowerLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"])
                     if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"] is not None
                     else None,
-                    EmissionActivityRatio=StringStringIntIntData(
+                    EmissionActivityRatio=OSeMOSYSData(
                         data=data_json_format["EmissionActivityRatio"]
                     )
                     if data_json_format["EmissionActivityRatio"] is not None
                     else None,
-                    InputActivityRatio=StringStringIntIntData(
+                    InputActivityRatio=OSeMOSYSData(
                         data=data_json_format["InputActivityRatio"]
                     )
                     if data_json_format["InputActivityRatio"] is not None
                     else None,
-                    OutputActivityRatio=StringStringIntIntData(
+                    OutputActivityRatio=OSeMOSYSData(
                         data=data_json_format["OutputActivityRatio"]
                     )
                     if data_json_format["OutputActivityRatio"] is not None
                     else None,
-                    TechnologyToStorage=StringStringIntIntData(data=data_json_format["TechnologyToStorage"])
+                    TechnologyToStorage=OSeMOSYSData(data=data_json_format["TechnologyToStorage"])
                     if data_json_format["TechnologyToStorage"] is not None
                     else None,
-                    TechnologyFromStorage=StringStringIntIntData(data=data_json_format["TechnologyFromStorage"])
+                    TechnologyFromStorage=OSeMOSYSData(data=data_json_format["TechnologyFromStorage"])
                     if data_json_format["TechnologyFromStorage"] is not None
                     else None,
-                    RETagTechnology=RegionTechnologyYearData(data=data_json_format["RETagTechnology"])
+                    RETagTechnology=OSeMOSYSData(data=data_json_format["RETagTechnology"])
                     if data_json_format["RETagTechnology"] is not None
                     else None,
                 )
