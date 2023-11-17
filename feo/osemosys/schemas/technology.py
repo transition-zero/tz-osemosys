@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from typing import ClassVar
 from pathlib import Path
+from pydantic import BaseModel, conlist, root_validator
 
 from feo.osemosys.utils import *
 
@@ -101,6 +102,35 @@ class Technology(OSeMOSYSBase):
         "TechnologyFromStorage",
         "RETagTechnology",
     ]
+
+    @root_validator(pre=True)
+    def construct_from_components(cls, values):
+        CapacityToActivityUnit = values.get("CapacityToActivityUnit")
+        CapacityOfOneTechnologyUnit = values.get("CapacityOfOneTechnologyUnit")
+        AvailabilityFactor = values.get("AvailabilityFactor")
+        CapacityFactor = values.get("CapacityFactor")
+        OperationalLife = values.get("OperationalLife")
+        CapitalCost = values.get("CapitalCost")
+        FixedCost = values.get("FixedCost")
+        VariableCost = values.get("VariableCost")
+        ResidualCapacity = values.get("ResidualCapacity")
+        TotalAnnualMaxCapacity = values.get("TotalAnnualMaxCapacity")
+        TotalAnnualMinCapacity = values.get("TotalAnnualMinCapacity")
+        TotalAnnualMaxCapacityInvestment = values.get("TotalAnnualMaxCapacityInvestment")
+        TotalAnnualMinCapacityInvestment = values.get("TotalAnnualMinCapacityInvestment")
+        TotalTechnologyAnnualActivityUpperLimit = values.get("TotalTechnologyAnnualActivityUpperLimit")
+        TotalTechnologyAnnualActivityLowerLimit = values.get("TotalTechnologyAnnualActivityLowerLimit")
+        TotalTechnologyModelPeriodActivityUpperLimit = values.get("TotalTechnologyModelPeriodActivityUpperLimit")
+        TotalTechnologyModelPeriodActivityLowerLimit = values.get("TotalTechnologyModelPeriodActivityLowerLimit")
+        EmissionActivityRatio = values.get("EmissionActivityRatio")
+        InputActivityRatio = values.get("InputActivityRatio")
+        OutputActivityRatio = values.get("OutputActivityRatio")
+        TechnologyToStorage = values.get("TechnologyToStorage")
+        TechnologyFromStorage = values.get("TechnologyFromStorage")
+        RETagTechnology = values.get("RETagTechnology")
+
+        return values
+    
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
