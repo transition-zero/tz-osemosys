@@ -17,7 +17,7 @@ extras:
 
 from typing import Dict, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 # ####################
 # ### BASE CLASSES ###
@@ -36,18 +36,22 @@ IdxVar = str | int
 
 class OSeMOSYSData(BaseModel):
     data: Union[
-        DataVar,  # {data: 4.}
+        DataVar,  # {data: 6.}
         Dict[IdxVar, DataVar],
         Dict[IdxVar, Dict[IdxVar, DataVar]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]],
+        Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]],
+        Dict[IdxVar,Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
     ]
 
 class OSeMOSYSDataInt(BaseModel):
     data: Union[
-        int,  # {data: 4.}
+        int,  # {data: 6.}
         Dict[IdxVar, int],
         Dict[IdxVar, Dict[IdxVar, int]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
+        Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
+        Dict[IdxVar,Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
     ]
 
 
