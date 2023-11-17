@@ -468,6 +468,18 @@ class TechnologyStorage(OSeMOSYSBase):
         "StorageMaxChargeRate",
     ]
 
+    @root_validator(pre=True)
+    def construct_from_components(cls, values):
+        CapitalCostStorage = values.get("CapitalCostStorage")
+        OperationalLifeStorage = values.get("OperationalLifeStorage")
+        MinStorageCharge = values.get("MinStorageCharge")
+        StorageLevelStart = values.get("StorageLevelStart")
+        ResidualStorageCapacity = values.get("ResidualStorageCapacity")
+        StorageMaxDischargeRate = values.get("StorageMaxDischargeRate")
+        StorageMaxChargeRate = values.get("StorageMaxChargeRate")
+        
+        return values
+
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
         
