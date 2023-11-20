@@ -13,7 +13,7 @@ class DefaultValues(OSeMOSYSBase):
     Class to contain all default values
     """
 
-    values: StringData
+    values: OSeMOSYSData
 
     @classmethod
     def from_otoole_yaml(cls, root_dir) -> "cls":
@@ -54,7 +54,7 @@ class DefaultValues(OSeMOSYSBase):
             # TODO
             long_name=None,
             description=None,
-            values=StringData(data=default_values_dict),
+            values=OSeMOSYSData(data=default_values_dict),
             )
 
     
