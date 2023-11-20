@@ -1,10 +1,21 @@
 import os
 
 import pandas as pd
+from pydantic import BaseModel, conlist, root_validator
+from typing import ClassVar
+from pathlib import Path
 
 from feo.osemosys.utils import *
 
 from .base import *
+
+
+class OtooleCfg(BaseModel):
+    """
+    Paramters needed to round-trip csvs from otoole
+    """
+
+    empty_dfs: List[str] | None
 
 
 class Emission(OSeMOSYSBase):
@@ -13,16 +24,35 @@ class Emission(OSeMOSYSBase):
     """
 
     # Annual emissions constraint per region, year, and emission type
-    AnnualEmissionLimit: RegionTechnologyYearData | None
+    AnnualEmissionLimit: OSeMOSYSData | None
     # Total modelled period emissions constraint per region and emission type
-    ModelPeriodEmissionLimit: RegionTechnologyYearData | None
+    ModelPeriodEmissionLimit: OSeMOSYSData | None
     # Annual exogenous emission per region, year, and emission type. I.e. emissions from non-modelled sources.
-    AnnualExogenousEmission: RegionTechnologyYearData | None
+    AnnualExogenousEmission: OSeMOSYSData | None
     # Total modelled period exogenous emission per region and emission type. I.e. emissions from non-modelled sources.
-    ModelPeriodExogenousEmission: RegionTechnologyYearData | None
+    ModelPeriodExogenousEmission: OSeMOSYSData | None
     # Financial EmissionsPenalty for each unit of eimssion per region, year, and emission type. E.g. used to model carbon prices.
-    EmissionsPenalty: RegionTechnologyYearData | None
+    EmissionsPenalty: OSeMOSYSData | None
 
+    otoole_cfg: OtooleCfg | None
+    otoole_stems: ClassVar[list[str]] = [
+        "AnnualEmissionLimit",
+        "ModelPeriodEmissionLimit",
+        "AnnualExogenousEmission",
+        "ModelPeriodExogenousEmission",
+        "EmissionsPenalty",
+    ]
+
+    @root_validator(pre=True)
+    def construct_from_components(cls, values):
+        AnnualEmissionLimit = values.get("AnnualEmissionLimit")
+        ModelPeriodEmissionLimit = values.get("ModelPeriodEmissionLimit")
+        AnnualExogenousEmission = values.get("AnnualExogenousEmission")
+        ModelPeriodExogenousEmission = values.get("ModelPeriodExogenousEmission")
+        EmissionsPenalty = values.get("EmissionsPenalty")
+
+        return values
+    
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
         """
@@ -39,12 +69,27 @@ class Emission(OSeMOSYSBase):
             A list of Emission instances that can be used downstream or dumped to json/yaml
         """
 
+        # ###########
+        # Load Data #
+        # ###########
+
         df_emissions = pd.read_csv(os.path.join(root_dir, "EMISSION.csv"))
-        df_AnnualEmissionLimit = pd.read_csv(os.path.join(root_dir, "AnnualEmissionLimit.csv"))
-        df_ModelPeriodEmissionLimit = pd.read_csv(os.path.join(root_dir, "ModelPeriodEmissionLimit.csv"))
-        df_AnnualExogenousEmission = pd.read_csv(os.path.join(root_dir, "AnnualExogenousEmission.csv"))
-        df_ModelPeriodExogenousEmission = pd.read_csv(os.path.join(root_dir, "ModelPeriodExogenousEmission.csv"))
-        df_EmissionsPenalty = pd.read_csv(os.path.join(root_dir, "EmissionsPenalty.csv"))
+        
+        dfs = {}
+        otoole_cfg = OtooleCfg(empty_dfs=[])
+        for key in cls.otoole_stems:
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+            except FileNotFoundError:
+                otoole_cfg.empty_dfs.append(key)
+                dfs[key] = pd.DataFrame(columns=["EMISSION"])
+
+
+        # ########################
+        # Define class instances #
+        # ########################
 
         emission_instances = []
         for emission in df_emissions["VALUE"].values.tolist():
@@ -53,72 +98,73 @@ class Emission(OSeMOSYSBase):
                     id=emission,
                     long_name=None,
                     description=None,
+                    otoole_cfg=otoole_cfg,
                     AnnualEmissionLimit=(
-                        RegionTechnologyYearData(
+                        OSeMOSYSData(
                             data=group_to_json(
-                                g=df_AnnualEmissionLimit.loc[
-                                    df_AnnualEmissionLimit["EMISSION"] == emission
+                                g=dfs["AnnualEmissionLimit"].loc[
+                                    dfs["AnnualEmissionLimit"]["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_AnnualEmissionLimit["EMISSION"].values
+                        if emission in dfs["AnnualEmissionLimit"]["EMISSION"].values
                         else None
                     ),
                     ModelPeriodEmissionLimit=(
-                        RegionTechnologyYearData(
+                        OSeMOSYSData(
                             data=group_to_json(
-                                g=df_ModelPeriodEmissionLimit.loc[
-                                    df_ModelPeriodEmissionLimit["EMISSION"] == emission
+                                g=dfs["ModelPeriodEmissionLimit"].loc[
+                                    dfs["ModelPeriodEmissionLimit"]["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_ModelPeriodEmissionLimit["EMISSION"].values
+                        if emission in dfs["ModelPeriodEmissionLimit"]["EMISSION"].values
                         else None
                     ),
                     AnnualExogenousEmission=(
-                        RegionTechnologyYearData(
+                        OSeMOSYSData(
                             data=group_to_json(
-                                g=df_AnnualExogenousEmission.loc[
-                                    df_AnnualExogenousEmission["EMISSION"] == emission
+                                g=dfs["AnnualExogenousEmission"].loc[
+                                    dfs["AnnualExogenousEmission"]["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_AnnualExogenousEmission["EMISSION"].values
+                        if emission in dfs["AnnualExogenousEmission"]["EMISSION"].values
                         else None
                     ),
                     ModelPeriodExogenousEmission=(
-                        RegionTechnologyYearData(
+                        OSeMOSYSData(
                             data=group_to_json(
-                                g=df_ModelPeriodExogenousEmission.loc[
-                                    df_ModelPeriodExogenousEmission["EMISSION"] == emission
+                                g=dfs["ModelPeriodExogenousEmission"].loc[
+                                    dfs["ModelPeriodExogenousEmission"]["EMISSION"] == emission
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_ModelPeriodExogenousEmission["EMISSION"].values
+                        if emission in dfs["ModelPeriodExogenousEmission"]["EMISSION"].values
                         else None
                     ),
                     EmissionsPenalty=(
-                        RegionTechnologyYearData(
+                        OSeMOSYSData(
                             data=group_to_json(
-                                g=df_EmissionsPenalty.loc[df_EmissionsPenalty["EMISSION"] == emission],
+                                g=dfs["EmissionsPenalty"].loc[dfs["EmissionsPenalty"]["EMISSION"] == emission],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in df_EmissionsPenalty["EMISSION"].values
+                        if emission in dfs["EmissionsPenalty"]["EMISSION"].values
                         else None
                     ),
                 )
