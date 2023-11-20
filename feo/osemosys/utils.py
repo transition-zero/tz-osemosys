@@ -172,6 +172,7 @@ def json_dict_to_dataframe(data, prefix=""):
         return pd.DataFrame({prefix: [data]})
 
 def to_csv_iterative(comparison_directory, data, id, column_structure, id_column, output_csv_name):
+    #TODO: this is very slow and needs to be improved
     """
     Function to iteratively add data to selected output CSVs
     Used to iterate over techology, fuel and emission types
