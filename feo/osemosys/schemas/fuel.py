@@ -68,6 +68,10 @@ class Fuel(OSeMOSYSBase):
             "demand profiles must sum to one for all REGION, FUEL, and YEAR",
         )
 
+        # ########################
+        # Define class instances #
+        # ########################
+
         fuel_instances = []
         for fuel in df_fuel["VALUE"].values.tolist():
             fuel_instances.append(
