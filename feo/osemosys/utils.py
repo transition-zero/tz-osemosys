@@ -154,7 +154,7 @@ def json_dict_to_dataframe(data, prefix=""):
         # If data is a dictionary, iterate through its items
         result = pd.DataFrame()
         for key, value in data.items():
-            new_prefix = f"{prefix}.{key}" if prefix else key
+            new_prefix = f"{prefix}-{key}" if prefix else key
             df = json_dict_to_dataframe(value, new_prefix)
             result = pd.concat([result, df], axis=1)
         if (
@@ -162,7 +162,7 @@ def json_dict_to_dataframe(data, prefix=""):
         ):  # Execute this step if all iterations complete and final result ready to be returned
             result = result.T
             result = result.reset_index()
-            result = pd.concat([result["index"].str.split(".", expand=True), result[0]], axis=1)
+            result = pd.concat([result["index"].str.split("-", expand=True), result[0]], axis=1)
             return result
         else:
             return result
@@ -197,6 +197,12 @@ def to_csv_iterative(comparison_directory, data, id, column_structure, id_column
             df_to_add.columns = cols
             df_to_add[id_column] = id
             df_to_add = df_to_add[column_structure]
+            #TODO: possibly remove this casting if e.g. MODE_OF_OPERATION able to take string values
+            for column in df_to_add.columns.to_list():
+                if column == "YEAR" or column == "MODE_OF_OPERATION":
+                    df_to_add[column] = df_to_add[column].astype(float).round().astype(int)
+                if column == "VALUE" and output_csv_name == "OperationalLife":
+                    df_to_add[column] = df_to_add[column].astype(float).round().astype(int)
             # Add to dataframe
             df = pd.concat([df, df_to_add])
             # Write dataframe
