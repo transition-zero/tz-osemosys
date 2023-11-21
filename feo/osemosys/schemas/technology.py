@@ -28,30 +28,30 @@ class Technology(OSeMOSYSBase):
 
     # Capacity unit to activity unit conversion
     # Conversion factor relating the energy that would be produced when one unit of capacity is fully used in one year.
-    CapacityToActivityUnit: OSeMOSYSData | None
+    capacity_activity_unit_ratio: OSeMOSYSData | None
 
     # Capacity of one new unit of a technology
     # If specified the problem will turn into a Mixed Integer Linear Problem
-    CapacityOfOneTechnologyUnit: OSeMOSYSData | None
+    capacity_one_tech_unit: OSeMOSYSData | None
 
     # Capacity factor, lifespan, availability
-    AvailabilityFactor: OSeMOSYSData | None  # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
-    CapacityFactor: OSeMOSYSData | None
-    OperationalLife: OSeMOSYSData | None
+    availability_factor: OSeMOSYSData | None  # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
+    capacity_factor: OSeMOSYSData | None
+    operating_life: OSeMOSYSData | None
 
     # financials
-    CapitalCost: OSeMOSYSData | None
-    FixedCost: OSeMOSYSData | None
-    VariableCost: OSeMOSYSData | None
+    capex: OSeMOSYSData | None
+    opex_fixed: OSeMOSYSData | None
+    opex_variable: OSeMOSYSData | None
 
     # initial capacity
-    ResidualCapacity: OSeMOSYSData | None
+    residual_capacity: OSeMOSYSData | None
 
     # constraints - capacity
-    TotalAnnualMaxCapacity: OSeMOSYSData | None  # Maximum technology capacity (installed + residual) per year
-    TotalAnnualMinCapacity: OSeMOSYSData | None  # Minimum technology capacity (installed + residual) per year
-    TotalAnnualMaxCapacityInvestment: OSeMOSYSData | None  # Maximum technology capacity additions per year
-    TotalAnnualMinCapacityInvestment: OSeMOSYSData | None  # Minimum technology capacity additions per year
+    capacity_gross_max: OSeMOSYSData | None  # Maximum technology capacity (installed + residual) per year
+    capacity_gross_min: OSeMOSYSData | None  # Minimum technology capacity (installed + residual) per year
+    capacity_additional_max: OSeMOSYSData | None  # Maximum technology capacity additions per year
+    capacity_additional_min: OSeMOSYSData | None  # Minimum technology capacity additions per year
 
     # TODO
     # Relative growth rate restrictions not currently implemented in osemosys, can be added via change in osemosys code
@@ -61,20 +61,20 @@ class Technology(OSeMOSYSBase):
     # additional_capacity_min_growth_rate: RegionYearData     # growth rate (<1.)
 
     # constraints - activity
-    TotalTechnologyAnnualActivityUpperLimit: OSeMOSYSData | None  # Maximum technology activity per year
-    TotalTechnologyAnnualActivityLowerLimit: OSeMOSYSData | None  # Minimum technology activity per year
-    TotalTechnologyModelPeriodActivityUpperLimit: OSeMOSYSData | None  # Maximum technology activity across whole modelled period
-    TotalTechnologyModelPeriodActivityLowerLimit: OSeMOSYSData | None  # Minimum technology activity across whole modelled period
+    activity_annual_max: OSeMOSYSData | None  # Maximum technology activity per year
+    activity_annual_min: OSeMOSYSData | None  # Minimum technology activity per year
+    activity_total_max: OSeMOSYSData | None  # Maximum technology activity across whole modelled period
+    activity_total_min: OSeMOSYSData | None  # Minimum technology activity across whole modelled period
 
     # activity ratios & efficiency
-    EmissionActivityRatio: OSeMOSYSData | None  # Technology emission activity ratio by mode of operation
-    InputActivityRatio: OSeMOSYSData | None  # Technology fuel input activity ratio by mode of operation
-    OutputActivityRatio: OSeMOSYSData | None  # Technology fuel output activity ratio by mode of operation
-    TechnologyToStorage: OSeMOSYSData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
-    TechnologyFromStorage: OSeMOSYSData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
+    emission_activity_ratio: OSeMOSYSData | None  # Technology emission activity ratio by mode of operation
+    input_activity_ratio: OSeMOSYSData | None  # Technology fuel input activity ratio by mode of operation
+    output_activity_ratio: OSeMOSYSData | None  # Technology fuel output activity ratio by mode of operation
+    to_storage: OSeMOSYSData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
+    from_storage: OSeMOSYSData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
 
     # Renewable technology tag
-    RETagTechnology: OSeMOSYSData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
+    is_renewable: OSeMOSYSData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[list[str]] = [
@@ -105,29 +105,29 @@ class Technology(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
-        CapacityToActivityUnit = values.get("CapacityToActivityUnit")
-        CapacityOfOneTechnologyUnit = values.get("CapacityOfOneTechnologyUnit")
-        AvailabilityFactor = values.get("AvailabilityFactor")
-        CapacityFactor = values.get("CapacityFactor")
-        OperationalLife = values.get("OperationalLife")
-        CapitalCost = values.get("CapitalCost")
-        FixedCost = values.get("FixedCost")
-        VariableCost = values.get("VariableCost")
-        ResidualCapacity = values.get("ResidualCapacity")
-        TotalAnnualMaxCapacity = values.get("TotalAnnualMaxCapacity")
-        TotalAnnualMinCapacity = values.get("TotalAnnualMinCapacity")
-        TotalAnnualMaxCapacityInvestment = values.get("TotalAnnualMaxCapacityInvestment")
-        TotalAnnualMinCapacityInvestment = values.get("TotalAnnualMinCapacityInvestment")
-        TotalTechnologyAnnualActivityUpperLimit = values.get("TotalTechnologyAnnualActivityUpperLimit")
-        TotalTechnologyAnnualActivityLowerLimit = values.get("TotalTechnologyAnnualActivityLowerLimit")
-        TotalTechnologyModelPeriodActivityUpperLimit = values.get("TotalTechnologyModelPeriodActivityUpperLimit")
-        TotalTechnologyModelPeriodActivityLowerLimit = values.get("TotalTechnologyModelPeriodActivityLowerLimit")
-        EmissionActivityRatio = values.get("EmissionActivityRatio")
-        InputActivityRatio = values.get("InputActivityRatio")
-        OutputActivityRatio = values.get("OutputActivityRatio")
-        TechnologyToStorage = values.get("TechnologyToStorage")
-        TechnologyFromStorage = values.get("TechnologyFromStorage")
-        RETagTechnology = values.get("RETagTechnology")
+        capacity_activity_unit_ratio = values.get("capacity_activity_unit_ratio")
+        capacity_one_tech_unit = values.get("capacity_one_tech_unit")
+        availability_factor = values.get("availability_factor")
+        capacity_factor = values.get("capacity_factor")
+        operating_life = values.get("operating_life")
+        capex = values.get("capex")
+        opex_fixed = values.get("opex_fixed")
+        opex_variable = values.get("opex_variable")
+        residual_capacity = values.get("residual_capacity")
+        capacity_gross_max = values.get("capacity_gross_max")
+        capacity_gross_min = values.get("capacity_gross_min")
+        capacity_additional_max = values.get("capacity_additional_max")
+        capacity_additional_min = values.get("capacity_additional_min")
+        activity_annual_max = values.get("activity_annual_max")
+        activity_annual_min = values.get("activity_annual_min")
+        activity_total_max = values.get("activity_total_max")
+        activity_total_min = values.get("activity_total_min")
+        emission_activity_ratio = values.get("emission_activity_ratio")
+        input_activity_ratio = values.get("input_activity_ratio")
+        output_activity_ratio = values.get("output_activity_ratio")
+        to_storage = values.get("to_storage")
+        from_storage = values.get("from_storage")
+        is_renewable = values.get("is_renewable")
 
         return values
     
@@ -187,87 +187,87 @@ class Technology(OSeMOSYSBase):
                     long_name=None,
                     description=None,
                     otoole_cfg=otoole_cfg,
-                    CapacityToActivityUnit=OSeMOSYSData(
+                    capacity_activity_unit_ratio=OSeMOSYSData(
                         data=data_json_format["CapacityToActivityUnit"]
                     )
                     if data_json_format["CapacityToActivityUnit"] is not None
                     else None,
-                    CapacityOfOneTechnologyUnit=OSeMOSYSData(
+                    capacity_one_tech_unit=OSeMOSYSData(
                         data=data_json_format["CapacityOfOneTechnologyUnit"]
                     )
                     if data_json_format["CapacityOfOneTechnologyUnit"] is not None
                     else None,
-                    AvailabilityFactor=OSeMOSYSData(data=data_json_format["AvailabilityFactor"])
+                    availability_factor=OSeMOSYSData(data=data_json_format["AvailabilityFactor"])
                     if data_json_format["AvailabilityFactor"] is not None
                     else None,
-                    CapacityFactor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
+                    capacity_factor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
                     if data_json_format["CapacityFactor"] is not None
                     else None,
-                    OperationalLife=OSeMOSYSData(data=data_json_format["OperationalLife"])
+                    operating_life=OSeMOSYSData(data=data_json_format["OperationalLife"])
                     if data_json_format["OperationalLife"] is not None
                     else None,
-                    CapitalCost=OSeMOSYSData(data=data_json_format["CapitalCost"])
+                    capex=OSeMOSYSData(data=data_json_format["CapitalCost"])
                     if data_json_format["CapitalCost"] is not None
                     else None,
-                    FixedCost=OSeMOSYSData(data=data_json_format["FixedCost"])
+                    opex_fixed=OSeMOSYSData(data=data_json_format["FixedCost"])
                     if data_json_format["FixedCost"] is not None
                     else None,
-                    VariableCost=OSeMOSYSData(data=data_json_format["VariableCost"])
+                    opex_variable=OSeMOSYSData(data=data_json_format["VariableCost"])
                     if data_json_format["VariableCost"] is not None
                     else None,
-                    ResidualCapacity=OSeMOSYSData(data=data_json_format["ResidualCapacity"])
+                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualCapacity"])
                     if data_json_format["ResidualCapacity"] is not None
                     else None,
-                    TotalAnnualMaxCapacity=OSeMOSYSData(data=data_json_format["TotalAnnualMaxCapacity"])
+                    capacity_gross_max=OSeMOSYSData(data=data_json_format["TotalAnnualMaxCapacity"])
                     if data_json_format["TotalAnnualMaxCapacity"] is not None
                     else None,
-                    TotalAnnualMinCapacity=OSeMOSYSData(data=data_json_format["TotalAnnualMinCapacity"])
+                    capacity_gross_min=OSeMOSYSData(data=data_json_format["TotalAnnualMinCapacity"])
                     if data_json_format["TotalAnnualMinCapacity"] is not None
                     else None,
-                    TotalAnnualMaxCapacityInvestment=OSeMOSYSData(
+                    capacity_additional_max=OSeMOSYSData(
                         data=data_json_format["TotalAnnualMaxCapacityInvestment"]
                     )
                     if data_json_format["TotalAnnualMaxCapacityInvestment"] is not None
                     else None,
-                    TotalAnnualMinCapacityInvestment=OSeMOSYSData(
+                    capacity_additional_min=OSeMOSYSData(
                         data=data_json_format["TotalAnnualMinCapacityInvestment"]
                     )
                     if data_json_format["TotalAnnualMinCapacityInvestment"] is not None
                     else None,
-                    TotalTechnologyAnnualActivityUpperLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"])
+                    activity_annual_max=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"])
                     if data_json_format["TotalTechnologyAnnualActivityUpperLimit"] is not None
                     else None,
-                    TotalTechnologyAnnualActivityLowerLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"])
+                    activity_annual_min=OSeMOSYSData(data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"])
                     if data_json_format["TotalTechnologyAnnualActivityLowerLimit"] is not None
                     else None,
-                    TotalTechnologyModelPeriodActivityUpperLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"])
+                    activity_total_max=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"])
                     if data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"] is not None
                     else None,
-                    TotalTechnologyModelPeriodActivityLowerLimit=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"])
+                    activity_total_min=OSeMOSYSData(data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"])
                     if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"] is not None
                     else None,
-                    EmissionActivityRatio=OSeMOSYSData(
+                    emission_activity_ratio=OSeMOSYSData(
                         data=data_json_format["EmissionActivityRatio"]
                     )
                     if data_json_format["EmissionActivityRatio"] is not None
                     else None,
-                    InputActivityRatio=OSeMOSYSData(
+                    input_activity_ratio=OSeMOSYSData(
                         data=data_json_format["InputActivityRatio"]
                     )
                     if data_json_format["InputActivityRatio"] is not None
                     else None,
-                    OutputActivityRatio=OSeMOSYSData(
+                    output_activity_ratio=OSeMOSYSData(
                         data=data_json_format["OutputActivityRatio"]
                     )
                     if data_json_format["OutputActivityRatio"] is not None
                     else None,
-                    TechnologyToStorage=OSeMOSYSData(data=data_json_format["TechnologyToStorage"])
+                    to_storage=OSeMOSYSData(data=data_json_format["TechnologyToStorage"])
                     if data_json_format["TechnologyToStorage"] is not None
                     else None,
-                    TechnologyFromStorage=OSeMOSYSData(data=data_json_format["TechnologyFromStorage"])
+                    from_storage=OSeMOSYSData(data=data_json_format["TechnologyFromStorage"])
                     if data_json_format["TechnologyFromStorage"] is not None
                     else None,
-                    RETagTechnology=OSeMOSYSData(data=data_json_format["RETagTechnology"])
+                    is_renewable=OSeMOSYSData(data=data_json_format["RETagTechnology"])
                     if data_json_format["RETagTechnology"] is not None
                     else None,
                 )
@@ -278,163 +278,163 @@ class Technology(OSeMOSYSBase):
 
     def to_otoole_csv(self, comparison_directory) -> "cls":
 
-        # CapacityToActivityUnit
+        # capacity_activity_unit_ratio
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.CapacityToActivityUnit, 
+                         data=self.capacity_activity_unit_ratio, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="CapacityToActivityUnit.csv")
-        # CapacityOfOneTechnologyUnit
+        # capacity_one_tech_unit
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.CapacityOfOneTechnologyUnit, 
+                         data=self.capacity_one_tech_unit, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="CapacityOfOneTechnologyUnit.csv")
-        # AvailabilityFactor
+        # availability_factor
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.AvailabilityFactor, 
+                         data=self.availability_factor, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="AvailabilityFactor.csv")
-        # CapacityFactor
+        # capacity_factor
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.CapacityFactor, 
+                         data=self.capacity_factor, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "TIMESLICE", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="CapacityFactor.csv")
-        # OperationalLife
+        # operating_life
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.OperationalLife, 
+                         data=self.operating_life, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="OperationalLife.csv")
-        # CapitalCost
+        # capex
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.CapitalCost, 
+                         data=self.capex, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="CapitalCost.csv")
-        # FixedCost
+        # opex_fixed
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.FixedCost, 
+                         data=self.opex_fixed, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="FixedCost.csv")
-        # VariableCost
+        # opex_variable
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.VariableCost, 
+                         data=self.opex_variable, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="VariableCost.csv")
-        # ResidualCapacity
+        # residual_capacity
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.ResidualCapacity, 
+                         data=self.residual_capacity, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="ResidualCapacity.csv")
-        # TotalAnnualMaxCapacity
+        # capacity_gross_max
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalAnnualMaxCapacity, 
+                         data=self.capacity_gross_max, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalAnnualMaxCapacity.csv")
-        # TotalAnnualMinCapacity
+        # capacity_gross_min
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalAnnualMinCapacity, 
+                         data=self.capacity_gross_min, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalAnnualMinCapacity.csv")
-        # TotalAnnualMaxCapacityInvestment
+        # capacity_additional_max
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalAnnualMaxCapacityInvestment, 
+                         data=self.capacity_additional_max, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalAnnualMaxCapacityInvestment.csv")
-        # TotalAnnualMinCapacityInvestment
+        # capacity_additional_min
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalAnnualMinCapacityInvestment, 
+                         data=self.capacity_additional_min, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalAnnualMinCapacityInvestment.csv")
-        # TotalTechnologyAnnualActivityUpperLimit
+        # activity_annual_max
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalTechnologyAnnualActivityUpperLimit, 
+                         data=self.activity_annual_max, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalTechnologyAnnualActivityUpperLimit.csv")
-        # TotalTechnologyAnnualActivityLowerLimit
+        # activity_annual_min
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalTechnologyAnnualActivityLowerLimit, 
+                         data=self.activity_annual_min, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalTechnologyAnnualActivityLowerLimit.csv")
-        # TotalTechnologyModelPeriodActivityUpperLimit
+        # activity_total_max
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalTechnologyModelPeriodActivityUpperLimit, 
+                         data=self.activity_total_max, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalTechnologyModelPeriodActivityUpperLimit.csv")
-        # TotalTechnologyModelPeriodActivityLowerLimit
+        # activity_total_min
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TotalTechnologyModelPeriodActivityLowerLimit, 
+                         data=self.activity_total_min, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TotalTechnologyModelPeriodActivityLowerLimit.csv")
-        # EmissionActivityRatio
+        # emission_activity_ratio
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.EmissionActivityRatio, 
+                         data=self.emission_activity_ratio, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "EMISSION", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="EmissionActivityRatio.csv")
-        # InputActivityRatio
+        # input_activity_ratio
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.InputActivityRatio, 
+                         data=self.input_activity_ratio, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="InputActivityRatio.csv")
-        # OutputActivityRatio
+        # output_activity_ratio
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.OutputActivityRatio, 
+                         data=self.output_activity_ratio, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="OutputActivityRatio.csv")
-        # TechnologyToStorage
+        # to_storage
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TechnologyToStorage, 
+                         data=self.to_storage, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TechnologyToStorage.csv")
-        # TechnologyFromStorage
+        # from_storage
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TechnologyFromStorage, 
+                         data=self.from_storage, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
                          id_column="TECHNOLOGY", 
                          output_csv_name="TechnologyFromStorage.csv")
-        # RETagTechnology
+        # is_renewable
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.RETagTechnology, 
+                         data=self.is_renewable, 
                          id=self.id, 
                          column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
                          id_column="TECHNOLOGY", 
@@ -449,13 +449,13 @@ class TechnologyStorage(OSeMOSYSBase):
     Class to contain all information pertaining to storage technologies
     """
 
-    CapitalCostStorage: OSeMOSYSData | None
-    OperationalLifeStorage: OSeMOSYSData | None
-    MinStorageCharge: OSeMOSYSData | None  # Lower bound to the amount of energy stored, as a fraction of the maximum, with a number reanging between 0 and 1
-    StorageLevelStart: OSeMOSYSData | None  # Level of storage at the beginning of first modelled year, in units of activity
-    ResidualStorageCapacity: OSeMOSYSData | None
-    StorageMaxDischargeRate: OSeMOSYSData | None  # Maximum discharging rate for the storage, in units of activity per year
-    StorageMaxChargeRate: OSeMOSYSData | None  # Maximum charging rate for the storage, in units of activity per year
+    capex: OSeMOSYSData | None
+    operating_life: OSeMOSYSData | None
+    minimum_charge: OSeMOSYSData | None  # Lower bound to the amount of energy stored, as a fraction of the maximum, with a number reanging between 0 and 1
+    initial_level: OSeMOSYSData | None  # Level of storage at the beginning of first modelled year, in units of activity
+    residual_capacity: OSeMOSYSData | None
+    max_discharge_rate: OSeMOSYSData | None  # Maximum discharging rate for the storage, in units of activity per year
+    max_charge_rate: OSeMOSYSData | None  # Maximum charging rate for the storage, in units of activity per year
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[list[str]] = [
@@ -470,13 +470,13 @@ class TechnologyStorage(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
-        CapitalCostStorage = values.get("CapitalCostStorage")
-        OperationalLifeStorage = values.get("OperationalLifeStorage")
-        MinStorageCharge = values.get("MinStorageCharge")
-        StorageLevelStart = values.get("StorageLevelStart")
-        ResidualStorageCapacity = values.get("ResidualStorageCapacity")
-        StorageMaxDischargeRate = values.get("StorageMaxDischargeRate")
-        StorageMaxChargeRate = values.get("StorageMaxChargeRate")
+        capex = values.get("capex")
+        operating_life = values.get("operating_life")
+        minimum_charge = values.get("minimum_charge")
+        initial_level = values.get("initial_level")
+        residual_capacity = values.get("residual_capacity")
+        max_discharge_rate = values.get("max_discharge_rate")
+        max_charge_rate = values.get("max_charge_rate")
         
         return values
 
@@ -515,7 +515,7 @@ class TechnologyStorage(OSeMOSYSBase):
                     data_json_format[stem] = (
                         group_to_json(
                             g=dfs[stem].loc[
-                                dfs[stem]["STORAGE"] == technology
+                                dfs[stem]["STORAGE"] == storage
                             ],
                             root_column="STORAGE",
                             data_columns=data_columns,
@@ -534,29 +534,29 @@ class TechnologyStorage(OSeMOSYSBase):
                     long_name=None,
                     description=None,
                     otoole_cfg=otoole_cfg,
-                    CapitalCostStorage=OSeMOSYSData(
+                    capex=OSeMOSYSData(
                         data=data_json_format["CapitalCostStorage"]
                     )
                     if data_json_format["CapitalCostStorage"] is not None
                     else None,
-                    OperationalLifeStorage=OSeMOSYSData(
+                    operating_life=OSeMOSYSData(
                         data=data_json_format["OperationalLifeStorage"]
                     )
                     if data_json_format["OperationalLifeStorage"] is not None
                     else None,
-                    MinStorageCharge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
+                    minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
                     if data_json_format["MinStorageCharge"] is not None
                     else None,
-                    StorageLevelStart=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
+                    initial_level=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
                     if data_json_format["StorageLevelStart"] is not None
                     else None,
-                    ResidualStorageCapacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
+                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
                     if data_json_format["ResidualStorageCapacity"] is not None
                     else None,
-                    StorageMaxDischargeRate=OSeMOSYSData(data=data_json_format["StorageMaxDischargeRate"])
+                    max_discharge_rate=OSeMOSYSData(data=data_json_format["StorageMaxDischargeRate"])
                     if data_json_format["StorageMaxDischargeRate"] is not None
                     else None,
-                    StorageMaxChargeRate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
+                    max_charge_rate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
                     if data_json_format["StorageMaxChargeRate"] is not None
                     else None,
                     
@@ -567,51 +567,51 @@ class TechnologyStorage(OSeMOSYSBase):
     
     def to_otoole_csv(self, comparison_directory) -> "cls":
 
-        # CapitalCostStorage
+        # capex
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.CapitalCostStorage, 
+                         data=self.capex, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="CapitalCostStorage.csv")
-        # OperationalLifeStorage
+        # operating_life
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.OperationalLifeStorage, 
+                         data=self.operating_life, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="OperationalLifeStorage.csv")
-        # MinStorageCharge
+        # minimum_charge
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.MinStorageCharge, 
+                         data=self.minimum_charge, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="MinStorageCharge.csv")
-        # StorageLevelStart
+        # initial_level
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.StorageLevelStart, 
+                         data=self.initial_level, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="StorageLevelStart.csv")
-        # ResidualStorageCapacity
+        # residual_capacity
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.ResidualStorageCapacity, 
+                         data=self.residual_capacity, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="ResidualStorageCapacity.csv")
-        # StorageMaxDischargeRate
+        # max_discharge_rate
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.StorageMaxDischargeRate, 
+                         data=self.max_discharge_rate, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "VALUE"], 
                          id_column="STORAGE", 
                          output_csv_name="StorageMaxDischargeRate.csv")
-        # StorageMaxChargeRate
+        # max_charge_rate
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.StorageMaxChargeRate, 
+                         data=self.max_charge_rate, 
                          id=self.id, 
                          column_structure=["REGION", "STORAGE", "VALUE"], 
                          id_column="STORAGE", 
