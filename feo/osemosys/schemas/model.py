@@ -4,7 +4,7 @@ import pandas as pd
 
 from feo.osemosys.schemas.base import *
 from feo.osemosys.schemas.commodity import Commodity
-from feo.osemosys.schemas.emission import Emission
+from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
@@ -27,8 +27,8 @@ class RunSpec(OSeMOSYSBase):
     # commodities
     commodities: List[Commodity]
 
-    # Emission constraints (e.g. CO2)
-    emissions: List[Emission]
+    # Impact constraints (e.g. CO2)
+    impacts: List[Impact]
 
     # technologies
     technologies: List[Technology]
@@ -104,11 +104,11 @@ class RunSpec(OSeMOSYSBase):
             commodity.to_otoole_csv(comparison_directory)
         pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
         
-        emission_list = []
-        for emission in self.emissions:
-            emission_list.append(emission.id)
-            emission.to_otoole_csv(comparison_directory)
-        pd.DataFrame(emission_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
+        impact_list = []
+        for impact in self.impacts:
+            impact_list.append(impact.id)
+            impact.to_otoole_csv(comparison_directory)
+        pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
 
         technology_list = []
         for technology in self.technologies:
@@ -135,7 +135,7 @@ class RunSpec(OSeMOSYSBase):
             id="id",
             long_name=None,
             description=None,
-            emissions=Emission.from_otoole_csv(root_dir=root_dir),
+            impacts=Impact.from_otoole_csv(root_dir=root_dir),
             regions=Region.from_otoole_csv(root_dir=root_dir),
             technologies=Technology.from_otoole_csv(root_dir=root_dir),
             storage_technologies=TechnologyStorage.from_otoole_csv(root_dir=root_dir),

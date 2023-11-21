@@ -18,21 +18,21 @@ class OtooleCfg(BaseModel):
     empty_dfs: List[str] | None
 
 
-class Emission(OSeMOSYSBase):
+class Impact(OSeMOSYSBase):
     """
     Class to contain all information pertaining to emissions restrictions and penalties (independant of technology).
     """
 
     # Annual emissions constraint per region, year, and emission type
-    AnnualEmissionLimit: OSeMOSYSData | None
+    constraint_annual: OSeMOSYSData | None
     # Total modelled period emissions constraint per region and emission type
-    ModelPeriodEmissionLimit: OSeMOSYSData | None
+    constraint_total: OSeMOSYSData | None
     # Annual exogenous emission per region, year, and emission type. I.e. emissions from non-modelled sources.
-    AnnualExogenousEmission: OSeMOSYSData | None
+    exogenous_annual: OSeMOSYSData | None
     # Total modelled period exogenous emission per region and emission type. I.e. emissions from non-modelled sources.
-    ModelPeriodExogenousEmission: OSeMOSYSData | None
-    # Financial EmissionsPenalty for each unit of eimssion per region, year, and emission type. E.g. used to model carbon prices.
-    EmissionsPenalty: OSeMOSYSData | None
+    exogenous_total: OSeMOSYSData | None
+    # Financial penalty for each unit of eimssion per region, year, and emission type. E.g. used to model carbon prices.
+    penalty: OSeMOSYSData | None
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[list[str]] = [
@@ -45,18 +45,18 @@ class Emission(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
-        AnnualEmissionLimit = values.get("AnnualEmissionLimit")
-        ModelPeriodEmissionLimit = values.get("ModelPeriodEmissionLimit")
-        AnnualExogenousEmission = values.get("AnnualExogenousEmission")
-        ModelPeriodExogenousEmission = values.get("ModelPeriodExogenousEmission")
-        EmissionsPenalty = values.get("EmissionsPenalty")
+        constraint_annual = values.get("constraint_annual")
+        constraint_total = values.get("constraint_total")
+        exogenous_annual = values.get("exogenous_annual")
+        exogenous_total = values.get("exogenous_total")
+        penalty = values.get("penalty")
 
         return values
     
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
         """
-        Instantiate a number of Emission objects from otoole-organised csvs.
+        Instantiate a number of Impact objects from otoole-organised csvs.
 
         Parameters
         ----------
@@ -73,7 +73,7 @@ class Emission(OSeMOSYSBase):
         # Load Data #
         # ###########
 
-        df_emissions = pd.read_csv(os.path.join(root_dir, "EMISSION.csv"))
+        df_impacts = pd.read_csv(os.path.join(root_dir, "EMISSION.csv"))
         
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
@@ -91,124 +91,124 @@ class Emission(OSeMOSYSBase):
         # Define class instances #
         # ########################
 
-        emission_instances = []
-        for emission in df_emissions["VALUE"].values.tolist():
-            emission_instances.append(
+        impact_instances = []
+        for impact in df_impacts["VALUE"].values.tolist():
+            impact_instances.append(
                 cls(
-                    id=emission,
+                    id=impact,
                     long_name=None,
                     description=None,
                     otoole_cfg=otoole_cfg,
-                    AnnualEmissionLimit=(
+                    constraint_annual=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["AnnualEmissionLimit"].loc[
-                                    dfs["AnnualEmissionLimit"]["EMISSION"] == emission
+                                    dfs["AnnualEmissionLimit"]["EMISSION"] == impact
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in dfs["AnnualEmissionLimit"]["EMISSION"].values
+                        if impact in dfs["AnnualEmissionLimit"]["EMISSION"].values
                         else None
                     ),
-                    ModelPeriodEmissionLimit=(
+                    constraint_total=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["ModelPeriodEmissionLimit"].loc[
-                                    dfs["ModelPeriodEmissionLimit"]["EMISSION"] == emission
+                                    dfs["ModelPeriodEmissionLimit"]["EMISSION"] == impact
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in dfs["ModelPeriodEmissionLimit"]["EMISSION"].values
+                        if impact in dfs["ModelPeriodEmissionLimit"]["EMISSION"].values
                         else None
                     ),
-                    AnnualExogenousEmission=(
+                    exogenous_annual=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["AnnualExogenousEmission"].loc[
-                                    dfs["AnnualExogenousEmission"]["EMISSION"] == emission
+                                    dfs["AnnualExogenousEmission"]["EMISSION"] == impact
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in dfs["AnnualExogenousEmission"]["EMISSION"].values
+                        if impact in dfs["AnnualExogenousEmission"]["EMISSION"].values
                         else None
                     ),
-                    ModelPeriodExogenousEmission=(
+                    exogenous_total=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["ModelPeriodExogenousEmission"].loc[
-                                    dfs["ModelPeriodExogenousEmission"]["EMISSION"] == emission
+                                    dfs["ModelPeriodExogenousEmission"]["EMISSION"] == impact
                                 ],
                                 root_column="EMISSION",
                                 data_columns=["REGION"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in dfs["ModelPeriodExogenousEmission"]["EMISSION"].values
+                        if impact in dfs["ModelPeriodExogenousEmission"]["EMISSION"].values
                         else None
                     ),
-                    EmissionsPenalty=(
+                    penalty=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["EmissionsPenalty"].loc[dfs["EmissionsPenalty"]["EMISSION"] == emission],
+                                g=dfs["EmissionsPenalty"].loc[dfs["EmissionsPenalty"]["EMISSION"] == impact],
                                 root_column="EMISSION",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if emission in dfs["EmissionsPenalty"]["EMISSION"].values
+                        if impact in dfs["EmissionsPenalty"]["EMISSION"].values
                         else None
                     ),
                 )
             )
 
-        return emission_instances
+        return impact_instances
 
 
     def to_otoole_csv(self, comparison_directory) -> "cls":
         
-        emission = self.id
+        impact = self.id
 
-        # AnnualEmissionLimit
+        # constraint_annual
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.AnnualEmissionLimit, 
-                         id=emission, 
+                         data=self.constraint_annual, 
+                         id=impact, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="AnnualEmissionLimit.csv")
-        # ModelPeriodEmissionLimit
+        # constraint_total
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.ModelPeriodEmissionLimit, 
-                         id=emission, 
+                         data=self.constraint_total, 
+                         id=impact, 
                          column_structure=["REGION", "EMISSION", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="ModelPeriodEmissionLimit.csv")
-        # AnnualExogenousEmission
+        # exogenous_annual
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.AnnualExogenousEmission, 
-                         id=emission, 
+                         data=self.exogenous_annual, 
+                         id=impact, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="AnnualExogenousEmission.csv")
-        # ModelPeriodExogenousEmission
+        # exogenous_total
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.ModelPeriodExogenousEmission, 
-                         id=emission, 
+                         data=self.exogenous_total, 
+                         id=impact, 
                          column_structure=["REGION", "EMISSION", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="ModelPeriodExogenousEmission.csv")
-        # EmissionsPenalty
+        # penalty
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.EmissionsPenalty, 
-                         id=emission, 
+                         data=self.penalty, 
+                         id=impact, 
                          column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
                          id_column="EMISSION", 
                          output_csv_name="EmissionsPenalty.csv")
