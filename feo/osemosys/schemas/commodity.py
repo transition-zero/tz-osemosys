@@ -17,7 +17,7 @@ class OtooleCfg(BaseModel):
 
     empty_dfs: List[str] | None
 
-class Fuel(OSeMOSYSBase):
+class Commodity(OSeMOSYSBase):
     # either demand (region:year:timeslice:value)
     # or annual_demand (region:year:value) must be specified;
     # SpecifiedDemandProfile may be optionally specified with annual_demand
@@ -50,7 +50,7 @@ class Fuel(OSeMOSYSBase):
         # Load Data #
         # ###########
 
-        df_fuel = pd.read_csv(os.path.join(root_dir, "FUEL.csv"))
+        df_commodity = pd.read_csv(os.path.join(root_dir, "FUEL.csv"))
         
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
@@ -72,11 +72,11 @@ class Fuel(OSeMOSYSBase):
         # Define class instances #
         # ########################
 
-        fuel_instances = []
-        for fuel in df_fuel["VALUE"].values.tolist():
-            fuel_instances.append(
+        commodity_instances = []
+        for commodity in df_commodity["VALUE"].values.tolist():
+            commodity_instances.append(
                 cls(
-                    id=fuel,
+                    id=commodity,
                     # TODO
                     long_name=None,
                     description=None,
@@ -84,88 +84,89 @@ class Fuel(OSeMOSYSBase):
                     SpecifiedAnnualDemand=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["SpecifiedAnnualDemand"].loc[dfs["SpecifiedAnnualDemand"]["FUEL"] == fuel],
+                                g=dfs["SpecifiedAnnualDemand"].loc[dfs["SpecifiedAnnualDemand"]["FUEL"] == commodity],
                                 root_column="FUEL",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if fuel in dfs["SpecifiedAnnualDemand"]["FUEL"].values
+                        if commodity in dfs["SpecifiedAnnualDemand"]["FUEL"].values
                         else None
                     ),
                     SpecifiedDemandProfile=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["SpecifiedDemandProfile"].loc[dfs["SpecifiedDemandProfile"]["FUEL"] == fuel],
+                                g=dfs["SpecifiedDemandProfile"].loc[dfs["SpecifiedDemandProfile"]["FUEL"] == commodity],
                                 root_column="FUEL",
                                 data_columns=["REGION", "TIMESLICE", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if fuel in dfs["SpecifiedDemandProfile"]["FUEL"].values
+                        if commodity in dfs["SpecifiedDemandProfile"]["FUEL"].values
                         else None
                     ),
-                    AccumulatedAnnualDemand=(
+                    #TODO: why does this default year values to str rather than ints?
+                    AccumulatedAnnualDemand=(   
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["AccumulatedAnnualDemand"].loc[
-                                    dfs["AccumulatedAnnualDemand"]["FUEL"] == fuel
+                                    dfs["AccumulatedAnnualDemand"]["FUEL"] == commodity
                                 ],
                                 root_column="FUEL",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if fuel in dfs["AccumulatedAnnualDemand"]["FUEL"].values
+                        if commodity in dfs["AccumulatedAnnualDemand"]["FUEL"].values
                         else None
                     ),
                     RETagFuel=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == fuel],
+                                g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == commodity],
                                 root_column="FUEL",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
-                        if fuel in dfs["RETagFuel"]["FUEL"].values
+                        if commodity in dfs["RETagFuel"]["FUEL"].values
                         else None
                     ),
                 )
             )
 
-        return fuel_instances
+        return commodity_instances
 
 
     def to_otoole_csv(self, comparison_directory) -> "cls":
         
-        fuel = self.id
+        commodity = self.id
 
         # SpecifiedAnnualDemand
         to_csv_iterative(comparison_directory=comparison_directory, 
                          data=self.SpecifiedAnnualDemand, 
-                         id=fuel, 
+                         id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="SpecifiedAnnualDemand.csv")
         # SpecifiedDemandProfile
         to_csv_iterative(comparison_directory=comparison_directory, 
                          data=self.SpecifiedDemandProfile, 
-                         id=fuel, 
+                         id=commodity, 
                          column_structure=["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="SpecifiedDemandProfile.csv")
         # AccumulatedAnnualDemand        
         to_csv_iterative(comparison_directory=comparison_directory, 
                          data=self.AccumulatedAnnualDemand, 
-                         id=fuel, 
+                         id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="AccumulatedAnnualDemand.csv")
         # RETagFuel
         to_csv_iterative(comparison_directory=comparison_directory, 
                          data=self.RETagFuel, 
-                         id=fuel, 
+                         id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="RETagFuel.csv")
