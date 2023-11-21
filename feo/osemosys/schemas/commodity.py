@@ -20,11 +20,11 @@ class OtooleCfg(BaseModel):
 class Commodity(OSeMOSYSBase):
     # either demand (region:year:timeslice:value)
     # or annual_demand (region:year:value) must be specified;
-    # SpecifiedDemandProfile may be optionally specified with annual_demand
-    SpecifiedAnnualDemand: OSeMOSYSData | None
-    SpecifiedDemandProfile: OSeMOSYSData | None
-    AccumulatedAnnualDemand: OSeMOSYSData | None
-    RETagFuel: OSeMOSYSData | None  # why would this change over time??
+    # demand_profile may be optionally specified with annual_demand
+    demand_annual: OSeMOSYSData | None
+    demand_profile: OSeMOSYSData | None
+    accumulated_demand: OSeMOSYSData | None
+    is_renewable: OSeMOSYSData | None  # why would this change over time??
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[list[str]] = [
@@ -36,10 +36,10 @@ class Commodity(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
-        CapacityTSpecifiedAnnualDemandoActivityUnit = values.get("SpecifiedAnnualDemand")
-        SpecifiedDemandProfile = values.get("SpecifiedDemandProfile")
-        AccumulatedAnnualDemand = values.get("AccumulatedAnnualDemand")
-        RETagFuel = values.get("RETagFuel")
+        demand_annual = values.get("demand_annual")
+        demand_profile = values.get("demand_profile")
+        accumulated_demand = values.get("accumulated_demand")
+        is_renewable = values.get("is_renewable")
 
         return values
 
@@ -81,7 +81,7 @@ class Commodity(OSeMOSYSBase):
                     long_name=None,
                     description=None,
                     otoole_cfg=otoole_cfg,
-                    SpecifiedAnnualDemand=(
+                    demand_annual=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["SpecifiedAnnualDemand"].loc[dfs["SpecifiedAnnualDemand"]["FUEL"] == commodity],
@@ -93,7 +93,7 @@ class Commodity(OSeMOSYSBase):
                         if commodity in dfs["SpecifiedAnnualDemand"]["FUEL"].values
                         else None
                     ),
-                    SpecifiedDemandProfile=(
+                    demand_profile=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["SpecifiedDemandProfile"].loc[dfs["SpecifiedDemandProfile"]["FUEL"] == commodity],
@@ -106,7 +106,7 @@ class Commodity(OSeMOSYSBase):
                         else None
                     ),
                     #TODO: why does this default year values to str rather than ints?
-                    AccumulatedAnnualDemand=(   
+                    accumulated_demand=(   
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["AccumulatedAnnualDemand"].loc[
@@ -120,7 +120,7 @@ class Commodity(OSeMOSYSBase):
                         if commodity in dfs["AccumulatedAnnualDemand"]["FUEL"].values
                         else None
                     ),
-                    RETagFuel=(
+                    is_renewable=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == commodity],
@@ -142,30 +142,30 @@ class Commodity(OSeMOSYSBase):
         
         commodity = self.id
 
-        # SpecifiedAnnualDemand
+        # demand_annual
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.SpecifiedAnnualDemand, 
+                         data=self.demand_annual, 
                          id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="SpecifiedAnnualDemand.csv")
-        # SpecifiedDemandProfile
+        # demand_profile
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.SpecifiedDemandProfile, 
+                         data=self.demand_profile, 
                          id=commodity, 
                          column_structure=["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="SpecifiedDemandProfile.csv")
-        # AccumulatedAnnualDemand        
+        # accumulated_demand        
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.AccumulatedAnnualDemand, 
+                         data=self.accumulated_demand, 
                          id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
                          output_csv_name="AccumulatedAnnualDemand.csv")
-        # RETagFuel
+        # is_renewable
         to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.RETagFuel, 
+                         data=self.is_renewable, 
                          id=commodity, 
                          column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
                          id_column="FUEL", 
