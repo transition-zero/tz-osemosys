@@ -99,9 +99,18 @@ class RunSpec(OSeMOSYSBase):
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
         
         commodity_list = []
+        commodity_csv_dict = self.commodities[0].otoole_stems
+        output_dfs = {}
+        # Create output dfs, adding to dict with filename as key
+        for file in list(commodity_csv_dict):
+            output_dfs[file] = pd.DataFrame(columns = commodity_csv_dict[file]["column_structure"])
+        # Add data to output dfs iteratively
         for commodity in self.commodities:
             commodity_list.append(commodity.id)
-            commodity.to_otoole_csv(comparison_directory)
+            output_dfs = commodity.to_otoole_csv(comparison_directory, output_dfs)
+        # Write output csv files
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
         pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
         
         impact_list = []

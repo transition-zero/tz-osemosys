@@ -27,12 +27,12 @@ class Commodity(OSeMOSYSBase):
     is_renewable: OSeMOSYSData | None  # why would this change over time??
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "SpecifiedAnnualDemand",
-        "SpecifiedDemandProfile",
-        "AccumulatedAnnualDemand",
-        "RETagFuel",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "SpecifiedAnnualDemand":{"attribute":"demand_annual","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "SpecifiedDemandProfile":{"attribute":"demand_profile","column_structure":["REGION","FUEL","TIMESLICE","YEAR","VALUE"]},
+        "AccumulatedAnnualDemand":{"attribute":"accumulated_demand","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "RETagFuel":{"attribute":"is_renewable","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+    }
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
@@ -54,7 +54,7 @@ class Commodity(OSeMOSYSBase):
         
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
@@ -138,35 +138,25 @@ class Commodity(OSeMOSYSBase):
         return commodity_instances
 
 
-    def to_otoole_csv(self, comparison_directory) -> "cls":
+    def to_otoole_csv(self, comparison_directory, output_dfs) -> "cls":
         
         commodity = self.id
 
-        # demand_annual
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.demand_annual, 
-                         id=commodity, 
-                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
-                         id_column="FUEL", 
-                         output_csv_name="SpecifiedAnnualDemand.csv")
-        # demand_profile
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.demand_profile, 
-                         id=commodity, 
-                         column_structure=["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"], 
-                         id_column="FUEL", 
-                         output_csv_name="SpecifiedDemandProfile.csv")
-        # accumulated_demand        
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.accumulated_demand, 
-                         id=commodity, 
-                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
-                         id_column="FUEL", 
-                         output_csv_name="AccumulatedAnnualDemand.csv")
-        # is_renewable
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.is_renewable, 
-                         id=commodity, 
-                         column_structure=["REGION", "FUEL", "YEAR", "VALUE"], 
-                         id_column="FUEL", 
-                         output_csv_name="RETagFuel.csv")
+        # Iterate over otoole style csv names
+        for output_file in list(self.otoole_stems):
+            
+            # Get class instance attribute name corresponding to otoole csv name
+            attribute = self.otoole_stems[output_file]["attribute"]
+
+            # Add data from this class instance to the shared df passed by model.py
+            if getattr(self, f"{attribute}") is not None:
+                data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
+                column_structure = self.otoole_stems[output_file]["column_structure"][:]
+                column_structure.remove("FUEL")
+                data.columns = column_structure
+                data["FUEL"] = commodity
+                data = data[self.otoole_stems[output_file]["column_structure"]]
+                #TODO add casting to int for YEAR and MODE_OF_OPERATION?
+                output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
+
+        return output_dfs
