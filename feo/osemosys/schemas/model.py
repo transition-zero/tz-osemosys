@@ -92,9 +92,18 @@ class RunSpec(OSeMOSYSBase):
         self.other_parameters.to_otoole_csv(comparison_directory)
 
         region_list = []
+        region_csv_dict = self.regions[0].otoole_stems
+        output_dfs = {}
+        # Create output dfs, adding to dict with filename as key
+        for file in list(region_csv_dict):
+            output_dfs[file] = pd.DataFrame(columns = region_csv_dict[file]["column_structure"])
+        # Add data to output dfs iteratively
         for region in self.regions:
             region_list.append(region.id)
-            region.to_otoole_csv(comparison_directory)
+            output_dfs = region.to_otoole_csv(comparison_directory, output_dfs)
+        # Write output csv files
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "REGION.csv"), index=False)
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
         
