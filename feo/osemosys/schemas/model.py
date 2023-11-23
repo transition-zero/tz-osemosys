@@ -138,19 +138,42 @@ class RunSpec(OSeMOSYSBase):
         pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
 
         technology_list = []
+        technology_csv_dict = Technology.otoole_stems
+        output_dfs = {}
+        # Create output dfs, adding to dict with filename as key
+        for file in list(technology_csv_dict):
+            output_dfs[file] = pd.DataFrame(columns = technology_csv_dict[file]["column_structure"])
+        # Add data to output dfs iteratively
         for technology in self.technologies:
             technology_list.append(technology.id)
-            technology.to_otoole_csv(comparison_directory)
+            output_dfs = technology.to_otoole_csv(comparison_directory, output_dfs)
+        # Write output csv files
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
         pd.DataFrame(technology_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "TECHNOLOGY.csv"), index=False)
 
         # If no storage technologies
         if not self.storage_technologies:
-            TechnologyStorage.to_empty_csv(comparison_directory=comparison_directory)
+            # Create empty output CSVs
+            storage_csv_dict = TechnologyStorage.otoole_stems
+            for file in list(storage_csv_dict):
+                (pd.DataFrame(columns = storage_csv_dict[file]["column_structure"])
+                 .to_csv(os.path.join(comparison_directory, file+".csv"), index=False))
+                pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
         else:
             storage_list = []
-            for storage_technology in self.storage_technologies:
-                storage_list.append(storage_technology.id)
-                storage_technology.to_otoole_csv(comparison_directory)
+            storage_csv_dict = TechnologyStorage.otoole_stems
+            output_dfs = {}
+            # Create output dfs, adding to dict with filename as key
+            for file in list(storage_csv_dict):
+                output_dfs[file] = pd.DataFrame(columns = storage_csv_dict[file]["column_structure"])
+            # Add data to output dfs iteratively
+            for storage in self.storage_technologies:
+                storage_list.append(storage.id)
+                output_dfs = storage.to_otoole_csv(comparison_directory, output_dfs)
+            # Write output csv files
+            for file in list(output_dfs):
+                output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
             pd.DataFrame(storage_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
             
 
