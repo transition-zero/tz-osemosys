@@ -171,45 +171,6 @@ def json_dict_to_dataframe(data, prefix=""):
         # with empty column name, used in iteration
         return pd.DataFrame({prefix: [data]})
 
-def to_csv_iterative(comparison_directory, data, id, column_structure, id_column, output_csv_name):
-    #TODO: this is very slow and needs to be improved
-    """
-    Function to iteratively add data to selected output CSVs
-    Used to iterate over techology, fuel and emission types
-    """      
-    # Create output dataframe if not already existing
-    if not os.path.isfile(os.path.join(comparison_directory, output_csv_name)):
-        pd.DataFrame(columns=column_structure).to_csv(
-            os.path.join(comparison_directory, output_csv_name), index=False
-        )
-    if data is not None:
-        # Convert JSON data object to df
-        df_to_add = json_dict_to_dataframe(data.data)
-        if not df_to_add.empty:
-            # Read existing dataframe
-            df = pd.read_csv(
-                os.path.join(comparison_directory, output_csv_name)
-            )
-
-            # Rename columns
-            cols = column_structure[:]
-            cols.remove(id_column)
-            df_to_add.columns = cols
-            df_to_add[id_column] = id
-            df_to_add = df_to_add[column_structure]
-            #TODO: possibly remove this casting if e.g. MODE_OF_OPERATION able to take string values
-            for column in df_to_add.columns.to_list():
-                if column == "YEAR" or column == "MODE_OF_OPERATION":
-                    df_to_add[column] = df_to_add[column].astype(float).round().astype(int)
-                if column == "VALUE" and output_csv_name == "OperationalLife":
-                    df_to_add[column] = df_to_add[column].astype(float).round().astype(int)
-            # Add to dataframe
-            df = pd.concat([df, df_to_add])
-            # Write dataframe
-            df.to_csv(
-                os.path.join(comparison_directory, output_csv_name), index=False
-            )
-
 
 def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls":
     """
