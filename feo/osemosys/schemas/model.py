@@ -114,9 +114,18 @@ class RunSpec(OSeMOSYSBase):
         pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
         
         impact_list = []
+        impact_csv_dict = self.impacts[0].otoole_stems
+        output_dfs = {}
+        # Create output dfs, adding to dict with filename as key
+        for file in list(impact_csv_dict):
+            output_dfs[file] = pd.DataFrame(columns = impact_csv_dict[file]["column_structure"])
+        # Add data to output dfs iteratively
         for impact in self.impacts:
             impact_list.append(impact.id)
-            impact.to_otoole_csv(comparison_directory)
+            output_dfs = impact.to_otoole_csv(comparison_directory, output_dfs)
+        # Write output csv files
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
         pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
 
         technology_list = []

@@ -139,8 +139,6 @@ class Commodity(OSeMOSYSBase):
 
 
     def to_otoole_csv(self, comparison_directory, output_dfs) -> "cls":
-        
-        commodity = self.id
 
         # Iterate over otoole style csv names
         for output_file in list(self.otoole_stems):
@@ -154,7 +152,7 @@ class Commodity(OSeMOSYSBase):
                 column_structure = self.otoole_stems[output_file]["column_structure"][:]
                 column_structure.remove("FUEL")
                 data.columns = column_structure
-                data["FUEL"] = commodity
+                data["FUEL"] = self.id
                 data = data[self.otoole_stems[output_file]["column_structure"]]
                 #TODO add casting to int for YEAR and MODE_OF_OPERATION?
                 output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
