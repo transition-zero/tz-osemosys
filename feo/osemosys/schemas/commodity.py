@@ -140,21 +140,4 @@ class Commodity(OSeMOSYSBase):
 
     def to_otoole_csv(self, comparison_directory, output_dfs) -> "cls":
 
-        # Iterate over otoole style csv names
-        for output_file in list(self.otoole_stems):
-            
-            # Get class instance attribute name corresponding to otoole csv name
-            attribute = self.otoole_stems[output_file]["attribute"]
-
-            # Add data from this class instance to the shared df passed by model.py
-            if getattr(self, f"{attribute}") is not None:
-                data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
-                column_structure = self.otoole_stems[output_file]["column_structure"][:]
-                column_structure.remove("FUEL")
-                data.columns = column_structure
-                data["FUEL"] = self.id
-                data = data[self.otoole_stems[output_file]["column_structure"]]
-                #TODO add casting to int for YEAR and MODE_OF_OPERATION?
-                output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
-
-        return output_dfs
+        return add_instance_data_to_output_dfs(self, output_dfs, "FUEL")

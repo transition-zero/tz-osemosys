@@ -44,6 +44,16 @@ class OSeMOSYSData(BaseModel):
         Dict[IdxVar,Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
     ]
 
+
+#OSeMOSYUSData_sum1= wraps(OSeMOSYSData, validotr)
+
+#@field_validator
+#def rnsure_profiles_sum_to_1(cls, valeus):
+#    # validate
+#    None
+
+
+
 class OSeMOSYSDataInt(BaseModel):
     data: Union[
         int,  # {data: 6.}

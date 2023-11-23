@@ -209,3 +209,31 @@ def to_csv_iterative(comparison_directory, data, id, column_structure, id_column
             df.to_csv(
                 os.path.join(comparison_directory, output_csv_name), index=False
             )
+
+
+def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls":
+    """
+    Add data from the given class instance to the given output dfs, returning the modified dfs
+    
+    If root_column is given, add root_column as a column to the instance data with values of self.id
+    (to account for data from multiple instances, e.g. technology, being added to the same df)
+    """
+
+    # Iterate over otoole style csv names
+    for output_file in list(self.otoole_stems):
+        
+        # Get class instance attribute name corresponding to otoole csv name
+        attribute = self.otoole_stems[output_file]["attribute"]
+
+        # Add data from this class instance to the output_dfs
+        if getattr(self, f"{attribute}") is not None:
+            data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
+            column_structure = self.otoole_stems[output_file]["column_structure"][:]
+            column_structure.remove(root_column)
+            data.columns = column_structure
+            data[root_column] = self.id
+            data = data[self.otoole_stems[output_file]["column_structure"]]
+            #TODO add casting to int for YEAR and MODE_OF_OPERATION?
+            output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
+
+    return output_dfs
