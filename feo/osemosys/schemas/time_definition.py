@@ -36,8 +36,8 @@ class TimeDefinition(OSeMOSYSBase):
     years: conlist(int, min_length=1)
 
     # can be constructed
-    timeslices: conlist(int | str, min_length=1)
     seasons: conlist(int | str, min_length=1)
+    timeslices: conlist(int | str, min_length=1)
     day_types: conlist(int | str, min_length=1)
     daily_time_brackets: conlist(int | str, min_length=1)
     year_split: OSeMOSYSData
@@ -51,19 +51,19 @@ class TimeDefinition(OSeMOSYSBase):
     adj_inv: TimeAdjacency
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "YEAR",
-        "SEASON",
-        "TIMESLICE",
-        "DAYTYPE",
-        "DAILYTIMEBRACKET",
-        "YearSplit",
-        "DaySplit",
-        "DaysInDayType",
-        "Conversionld",
-        "Conversionlh",
-        "Conversionls",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "YEAR":{"attribute":"years","column_structure":["VALUE"]},
+        "SEASON":{"attribute":"seasons","column_structure":["VALUE"]},
+        "TIMESLICE":{"attribute":"timeslices","column_structure":["VALUE"]},
+        "DAYTYPE":{"attribute":"day_types","column_structure":["VALUE"]},
+        "DAILYTIMEBRACKET":{"attribute":"daily_time_brackets","column_structure":["VALUE"]},
+        "YearSplit":{"attribute":"year_split","column_structure":["TIMESLICE","YEAR","VALUE"]},
+        "DaySplit":{"attribute":"day_split","column_structure":["DAILYTIMEBRACKET","YEAR","VALUE"]},
+        "DaysInDayType":{"attribute":"days_in_day_type","column_structure":["SEASON","DAYTYPE","YEAR","VALUE"]},
+        "Conversionlh":{"attribute":"timeslice_in_timebracket","column_structure":["TIMESLICE","DAILYTIMEBRACKET","VALUE"]},
+        "Conversionld":{"attribute":"timeslice_in_daytype","column_structure":["TIMESLICE","DAYTYPE","VALUE"]},
+        "Conversionls":{"attribute":"timeslice_in_season","column_structure":["TIMESLICE","SEASON","VALUE"]},  
+    }
 
     # TODO: post-validation that everything has the right keys and sums,etc.
 
@@ -364,7 +364,7 @@ class TimeDefinition(OSeMOSYSBase):
         # ###########
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
