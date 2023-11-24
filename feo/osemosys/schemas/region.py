@@ -88,6 +88,6 @@ class Region(OSeMOSYSBase):
         return region_instances
 
 
-    def to_otoole_csv(self, comparison_directory, output_dfs) -> "dfs":
+    def to_otoole_csv(self, output_dfs, root_column) -> "dfs":
 
-        return add_instance_data_to_output_dfs(self, output_dfs, "REGION")
+        return add_instance_data_to_output_dfs(self, output_dfs, root_column)

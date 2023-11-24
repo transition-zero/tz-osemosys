@@ -88,25 +88,25 @@ class RunSpec(OSeMOSYSBase):
 
         ### Write output CSVs
 
+        #time_list = to_csv(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
         self.time_definition.to_otoole_csv(comparison_directory)
+        
         self.other_parameters.to_otoole_csv(comparison_directory)
 
-
-        region_list = to_csv(self, Region.otoole_stems, "regions", comparison_directory)
-        pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "REGION.csv"), index=False)
-        pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
+        # regions
+        to_csv(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
         
-        commodity_list = to_csv(self, Commodity.otoole_stems, "commodities", comparison_directory)
-        pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
+        # commodities
+        to_csv(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
         
-        impact_list = to_csv(self, Impact.otoole_stems, "impacts", comparison_directory)
-        pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
+        # impacts
+        to_csv(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
 
-        technology_list = to_csv(self, Technology.otoole_stems, "technologies", comparison_directory)
-        pd.DataFrame(technology_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "TECHNOLOGY.csv"), index=False)
+        # technologies
+        to_csv(self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY")
 
-        # If no storage technologies
-        if not self.storage_technologies:
+        # storage_technologies
+        if not self.storage_technologies: # If no storage technologies
             # Create empty output CSVs
             storage_csv_dict = TechnologyStorage.otoole_stems
             for file in list(storage_csv_dict):
@@ -114,8 +114,7 @@ class RunSpec(OSeMOSYSBase):
                  .to_csv(os.path.join(comparison_directory, file+".csv"), index=False))
                 pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
         else:
-            storage_list = to_csv(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory)
-            pd.DataFrame(storage_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
+            to_csv(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory, "STORAGE")
             
 
 

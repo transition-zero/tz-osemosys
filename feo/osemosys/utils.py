@@ -190,9 +190,11 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
         if getattr(self, f"{attribute}") is not None:
             data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
             column_structure = self.otoole_stems[output_file]["column_structure"][:]
-            column_structure.remove(root_column)
+            if root_column is not None:
+                column_structure.remove(root_column)
             data.columns = column_structure
-            data[root_column] = self.id
+            if root_column is not None:    
+                data[root_column] = self.id
             data = data[self.otoole_stems[output_file]["column_structure"]]
             #TODO add casting to int for YEAR and MODE_OF_OPERATION?
             output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
@@ -200,24 +202,29 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
     return output_dfs
 
 
-def to_csv(self, otoole_stems, attribute, comparison_directory):
+def to_csv(self, otoole_stems, attribute, comparison_directory, root_column=None):
     """"
     Function to iteratively add data to output dfs and write the output CSVs
     Used for attributes consisting of several class instances (e.g. Technology)
     """
-    
-    id_list = []
-    csv_dict = otoole_stems
-    output_dfs = {}
+
     # Create output dfs, adding to dict with filename as key
-    for file in list(csv_dict):
-        output_dfs[file] = pd.DataFrame(columns = csv_dict[file]["column_structure"])
-    # Add data to output dfs iteratively
-    for instance in getattr(self, f"{attribute}"):
-        id_list.append(instance.id)
-        output_dfs = instance.to_otoole_csv(comparison_directory, output_dfs)
+    output_dfs = {}
+    for file in list(otoole_stems):
+        output_dfs[file] = pd.DataFrame(columns = otoole_stems[file]["column_structure"])
+    
+    # Add data to output dfs iteratively for attributes with multiple instances (eg. technologies)
+    if isinstance(getattr(self, f"{attribute}"), list):
+        id_list = []
+        for instance in getattr(self, f"{attribute}"):
+            id_list.append(instance.id)
+            output_dfs = instance.to_otoole_csv(output_dfs, root_column)
+        (pd.DataFrame(id_list, columns = ["VALUE"])
+         .to_csv(os.path.join(comparison_directory, root_column+".csv"), index=False))
+    # Add data to output dfs once for single instance attributes (eg. time_definition)
+    else:
+        output_dfs = getattr(self, f"{attribute}").to_otoole_csv(output_dfs, root_column)
+    
     # Write output csv files
     for file in list(output_dfs):
         output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
-
-    return id_list
