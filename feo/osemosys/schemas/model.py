@@ -91,65 +91,18 @@ class RunSpec(OSeMOSYSBase):
         self.time_definition.to_otoole_csv(comparison_directory)
         self.other_parameters.to_otoole_csv(comparison_directory)
 
-        region_list = []
-        region_csv_dict = self.regions[0].otoole_stems
-        output_dfs = {}
-        # Create output dfs, adding to dict with filename as key
-        for file in list(region_csv_dict):
-            output_dfs[file] = pd.DataFrame(columns = region_csv_dict[file]["column_structure"])
-        # Add data to output dfs iteratively
-        for region in self.regions:
-            region_list.append(region.id)
-            output_dfs = region.to_otoole_csv(comparison_directory, output_dfs)
-        # Write output csv files
-        for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+
+        region_list = to_csv(self, Region.otoole_stems, "regions", comparison_directory)
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "REGION.csv"), index=False)
         pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
         
-        commodity_list = []
-        commodity_csv_dict = self.commodities[0].otoole_stems
-        output_dfs = {}
-        # Create output dfs, adding to dict with filename as key
-        for file in list(commodity_csv_dict):
-            output_dfs[file] = pd.DataFrame(columns = commodity_csv_dict[file]["column_structure"])
-        # Add data to output dfs iteratively
-        for commodity in self.commodities:
-            commodity_list.append(commodity.id)
-            output_dfs = commodity.to_otoole_csv(comparison_directory, output_dfs)
-        # Write output csv files
-        for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+        commodity_list = to_csv(self, Commodity.otoole_stems, "commodities", comparison_directory)
         pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
         
-        impact_list = []
-        impact_csv_dict = self.impacts[0].otoole_stems
-        output_dfs = {}
-        # Create output dfs, adding to dict with filename as key
-        for file in list(impact_csv_dict):
-            output_dfs[file] = pd.DataFrame(columns = impact_csv_dict[file]["column_structure"])
-        # Add data to output dfs iteratively
-        for impact in self.impacts:
-            impact_list.append(impact.id)
-            output_dfs = impact.to_otoole_csv(comparison_directory, output_dfs)
-        # Write output csv files
-        for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+        impact_list = to_csv(self, Impact.otoole_stems, "impacts", comparison_directory)
         pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
 
-        technology_list = []
-        technology_csv_dict = Technology.otoole_stems
-        output_dfs = {}
-        # Create output dfs, adding to dict with filename as key
-        for file in list(technology_csv_dict):
-            output_dfs[file] = pd.DataFrame(columns = technology_csv_dict[file]["column_structure"])
-        # Add data to output dfs iteratively
-        for technology in self.technologies:
-            technology_list.append(technology.id)
-            output_dfs = technology.to_otoole_csv(comparison_directory, output_dfs)
-        # Write output csv files
-        for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+        technology_list = to_csv(self, Technology.otoole_stems, "technologies", comparison_directory)
         pd.DataFrame(technology_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "TECHNOLOGY.csv"), index=False)
 
         # If no storage technologies
@@ -161,19 +114,7 @@ class RunSpec(OSeMOSYSBase):
                  .to_csv(os.path.join(comparison_directory, file+".csv"), index=False))
                 pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
         else:
-            storage_list = []
-            storage_csv_dict = TechnologyStorage.otoole_stems
-            output_dfs = {}
-            # Create output dfs, adding to dict with filename as key
-            for file in list(storage_csv_dict):
-                output_dfs[file] = pd.DataFrame(columns = storage_csv_dict[file]["column_structure"])
-            # Add data to output dfs iteratively
-            for storage in self.storage_technologies:
-                storage_list.append(storage.id)
-                output_dfs = storage.to_otoole_csv(comparison_directory, output_dfs)
-            # Write output csv files
-            for file in list(output_dfs):
-                output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+            storage_list = to_csv(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory)
             pd.DataFrame(storage_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
             
 

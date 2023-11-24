@@ -198,3 +198,26 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
             output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
 
     return output_dfs
+
+
+def to_csv(self, otoole_stems, attribute, comparison_directory):
+    """"
+    Function to iteratively add data to output dfs and write the output CSVs
+    Used for attributes consisting of several class instances (e.g. Technology)
+    """
+    
+    id_list = []
+    csv_dict = otoole_stems
+    output_dfs = {}
+    # Create output dfs, adding to dict with filename as key
+    for file in list(csv_dict):
+        output_dfs[file] = pd.DataFrame(columns = csv_dict[file]["column_structure"])
+    # Add data to output dfs iteratively
+    for instance in getattr(self, f"{attribute}"):
+        id_list.append(instance.id)
+        output_dfs = instance.to_otoole_csv(comparison_directory, output_dfs)
+    # Write output csv files
+    for file in list(output_dfs):
+        output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+
+    return id_list
