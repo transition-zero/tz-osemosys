@@ -188,7 +188,12 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
 
         # Add data from this class instance to the output_dfs
         if getattr(self, f"{attribute}") is not None:
-            data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
+
+            if isinstance(getattr(self, f"{attribute}"), list):    
+                data = json_dict_to_dataframe(getattr(self, f"{attribute}"))
+            else:
+                data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
+            
             column_structure = self.otoole_stems[output_file]["column_structure"][:]
             if root_column is not None:
                 column_structure.remove(root_column)
@@ -202,7 +207,7 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
     return output_dfs
 
 
-def to_csv(self, otoole_stems, attribute, comparison_directory, root_column=None):
+def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_column=None):
     """"
     Function to iteratively add data to output dfs and write the output CSVs
     Used for attributes consisting of several class instances (e.g. Technology)
@@ -215,6 +220,8 @@ def to_csv(self, otoole_stems, attribute, comparison_directory, root_column=None
     
     # Add data to output dfs iteratively for attributes with multiple instances (eg. technologies)
     if isinstance(getattr(self, f"{attribute}"), list):
+        if root_column is None:
+            raise ValueError("root_column is required for attributes with multiple instances")
         id_list = []
         for instance in getattr(self, f"{attribute}"):
             id_list.append(instance.id)

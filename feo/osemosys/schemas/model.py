@@ -94,16 +94,16 @@ class RunSpec(OSeMOSYSBase):
         self.other_parameters.to_otoole_csv(comparison_directory)
 
         # regions
-        to_csv(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
+        to_csv_helper(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
         
         # commodities
-        to_csv(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
+        to_csv_helper(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
         
         # impacts
-        to_csv(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
+        to_csv_helper(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
 
         # technologies
-        to_csv(self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY")
+        to_csv_helper(self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY")
 
         # storage_technologies
         if not self.storage_technologies: # If no storage technologies
@@ -114,7 +114,7 @@ class RunSpec(OSeMOSYSBase):
                  .to_csv(os.path.join(comparison_directory, file+".csv"), index=False))
                 pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
         else:
-            to_csv(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory, "STORAGE")
+            to_csv_helper(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory, "STORAGE")
             
 
 
