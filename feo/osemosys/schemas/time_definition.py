@@ -278,27 +278,79 @@ class TimeDefinition(OSeMOSYSBase):
                 timeslice_in_daytype[f"S{season}D{day_type}H{time_bracket}"][day_type] = 1
                 timeslice_in_timebracket[f"S{season}D{day_type}H{time_bracket}"][time_bracket] = 1
 
-        # for these, check that they have the correct keys, or if they're None build from scratch
+        # For year_split/day_split/days_in_day_type:
+        # check that they have the correct keys, or if they're None build from scratch
+        
+        ### year_split ###
         if year_split is not None:
             if set(year_split.keys()) != set(timeslices):
                 raise ValueError("'year_split' keys do not match timeslices.")
         else:
-            # TODO: check equals 1
-            year_split = 1 / len(timeslices)
+            # TODO: check sum equals 1
 
+            # Assume each timeslice of same length
+            year_split_length = 1 / len(timeslices)
+
+            # Construct data 
+            year_split_df = pd.DataFrame(columns=["TIMESLICE","YEAR","VALUE"])
+            for timeslice in timeslices:
+                year_split_df = pd.concat([year_split_df, 
+                                         pd.DataFrame({"TIMESLICE":timeslice,
+                                                       "YEAR":years,
+                                                       "VALUE":year_split_length})])
+            year_split = group_to_json(g=year_split_df,
+                                      data_columns=["TIMESLICE","YEAR"],
+                                      target_column="VALUE")
+
+        ### day_split ###
         if day_split is not None:
             if set(day_split.keys()) != set(daily_time_brackets):
                 raise ValueError("'day_split' keys do not match daily_time_brackets.")
         else:
-            # TODO: check equals 1
-            day_split = 1 / len(daily_time_brackets)
+            # TODO: check sum equals 1
+            
+            # Assume all daily ticket brackets are of equal length
+            day_split_length = ((1 / len(daily_time_brackets)) * 24) / (365 * 24)
 
+            # Construct data 
+            day_split_df = pd.DataFrame(columns=["DAILYTIMEBRACKET","YEAR","VALUE"])
+            for bracket in daily_time_brackets:
+                day_split_df = pd.concat([day_split_df, 
+                                         pd.DataFrame({"DAILYTIMEBRACKET":bracket,
+                                                       "YEAR":years,
+                                                       "VALUE":day_split_length})])
+            day_split = group_to_json(g=day_split_df,
+                                      data_columns=["DAILYTIMEBRACKET","YEAR"],
+                                      target_column="VALUE")
+
+        ### days_in_day_type ###
         if days_in_day_type is not None:
-            if set(days_in_day_type.keys()) != set(day_types):
+            # Get daytypes from 2nd level of nested keys
+            daytype_keys = []
+            for level1_key, level2_dict in days_in_day_type.items():
+                for level2_key in level2_dict:
+                    daytype_keys.append(level2_key)
+            if set(daytype_keys) != set(day_types):
                 raise ValueError("'days_in_day_type' keys do not match day_types.")
         else:
-            # TODO: check equals 1
-            days_in_day_type = 1 / len(day_types)
+            # TODO: check sum equals 1
+            if day_types is not None:
+                if len(day_types) > 1:
+                    raise ValueError("days_in_day_type must be provided if providing more than one daytype")
+            else:
+                day_types = [1]
+            
+            days_in_day_type_df = pd.DataFrame(columns=["SEASON","DAYTYPE","YEAR","VALUE"])
+            for season in seasons:
+                days_in_day_type_df = pd.concat([days_in_day_type_df, 
+                                         pd.DataFrame({"SEASON":season,
+                                                       "DAYTYPE":1,
+                                                       "YEAR":years,
+                                                       "VALUE":7})])
+            days_in_day_type = group_to_json(g=days_in_day_type_df,
+                                      data_columns=["SEASON","DAYTYPE","YEAR"],
+                                      target_column="VALUE")
+            
 
         if adj is None or adj_inv is None:
             year_adjacency = dict(zip(sorted(years)[:-1], sorted(years)[1:]))
