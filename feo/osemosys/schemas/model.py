@@ -91,7 +91,8 @@ class RunSpec(OSeMOSYSBase):
         # time_definition
         to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
         
-        self.other_parameters.to_otoole_csv(comparison_directory)
+        # other_parameters
+        to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters", comparison_directory)
 
         # regions
         to_csv_helper(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
