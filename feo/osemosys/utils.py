@@ -190,7 +190,7 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
         if getattr(self, f"{attribute}") is not None:
 
             if isinstance(getattr(self, f"{attribute}"), list):    
-                data = json_dict_to_dataframe(getattr(self, f"{attribute}"))
+                data = pd.DataFrame({"VALUE":getattr(self, f"{attribute}")})
             else:
                 data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
             

@@ -88,8 +88,8 @@ class RunSpec(OSeMOSYSBase):
 
         ### Write output CSVs
 
-        #time_list = to_csv(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
-        self.time_definition.to_otoole_csv(comparison_directory)
+        # time_definition
+        to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
         
         self.other_parameters.to_otoole_csv(comparison_directory)
 
