@@ -34,17 +34,17 @@ class OtherParameters(OSeMOSYSBase):
     renewable_production_target: OSeMOSYSData | None
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "MODE_OF_OPERATION",
-        "DepreciationMethod",
-        "DiscountRate",
-        "DiscountRateIdv",
-        "DiscountRateStorage",
-        "ReserveMargin",
-        "ReserveMarginTagFuel",
-        "ReserveMarginTagTechnology",
-        "REMinProductionTarget",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "MODE_OF_OPERATION":{"attribute":"mode_of_operation","column_structure":["VALUE"]},
+        "DepreciationMethod":{"attribute":"depreciation_method","column_structure":["REGION","VALUE"]},
+        "DiscountRate":{"attribute":"discount_rate","column_structure":["REGION","VALUE"]},
+        "DiscountRateIdv":{"attribute":"discount_rate_idv","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "DiscountRateStorage":{"attribute":"discount_rate_storage","column_structure":["REGION","STORAGE","VALUE"]},
+        "ReserveMargin":{"attribute":"reserve_margin","column_structure":["REGION","YEAR","VALUE"]},
+        "ReserveMarginTagFuel":{"attribute":"reserve_margin_tag_fuel","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "ReserveMarginTagTechnology":{"attribute":"reserve_margin_tag_technology","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "REMinProductionTarget":{"attribute":"renewable_production_target","column_structure":["REGION","YEAR","VALUE"]},
+    }
     
     @root_validator(pre=True)
     def construct_from_components(cls, values):
@@ -85,7 +85,7 @@ class OtherParameters(OSeMOSYSBase):
         # ###########
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
