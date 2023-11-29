@@ -172,7 +172,7 @@ def json_dict_to_dataframe(data, prefix=""):
         return pd.DataFrame({prefix: [data]})
 
 
-def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls":
+def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column=None) -> "cls":
     """
     Add data from the given class instance to the given output dfs, returning the modified dfs
     
@@ -181,27 +181,27 @@ def add_instance_data_to_output_dfs(self, output_dfs, root_column=None) -> "cls"
     """
 
     # Iterate over otoole style csv names
-    for output_file in list(self.otoole_stems):
+    for output_file in list(otoole_stems):
         
         # Get class instance attribute name corresponding to otoole csv name
-        attribute = self.otoole_stems[output_file]["attribute"]
+        sub_attribute = otoole_stems[output_file]["attribute"]
 
         # Add data from this class instance to the output_dfs
-        if getattr(self, f"{attribute}") is not None:
+        if getattr(instance, f"{sub_attribute}") is not None:
 
-            if isinstance(getattr(self, f"{attribute}"), list):    
-                data = pd.DataFrame({"VALUE":getattr(self, f"{attribute}")})
+            if isinstance(getattr(instance, f"{sub_attribute}"), list):    
+                data = pd.DataFrame({"VALUE":getattr(instance, f"{sub_attribute}")})
             else:
-                data = json_dict_to_dataframe(getattr(self, f"{attribute}").data)
+                data = json_dict_to_dataframe(getattr(instance, f"{sub_attribute}").data)
             
-            column_structure = self.otoole_stems[output_file]["column_structure"][:]
+            column_structure = otoole_stems[output_file]["column_structure"][:]
             if root_column is not None:
                 column_structure.remove(root_column)
             data.columns = column_structure
             if root_column is not None:    
-                data[root_column] = self.id
-            data = data[self.otoole_stems[output_file]["column_structure"]]
-            #TODO add casting to int for YEAR and MODE_OF_OPERATION?
+                data[root_column] = instance.id
+            data = data[otoole_stems[output_file]["column_structure"]]
+            #TODO: add casting to int for YEAR and MODE_OF_OPERATION?
             output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
 
     return output_dfs
@@ -225,13 +225,13 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
         id_list = []
         for instance in getattr(self, f"{attribute}"):
             id_list.append(instance.id)
-            output_dfs = instance.to_otoole_csv(output_dfs, root_column)
+            output_dfs = add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column)
         (pd.DataFrame(id_list, columns = ["VALUE"])
          .to_csv(os.path.join(comparison_directory, root_column+".csv"), index=False))
     # Add data to output dfs once for single instance attributes (eg. time_definition)
     else:
-        output_dfs = getattr(self, f"{attribute}").to_otoole_csv(output_dfs, root_column)
-    
+        output_dfs = add_instance_data_to_output_dfs(getattr(self, f"{attribute}"), output_dfs, otoole_stems)
+
     # Write output csv files
     for file in list(output_dfs):
         output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
