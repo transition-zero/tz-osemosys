@@ -197,8 +197,4 @@ class OtherParameters(OSeMOSYSBase):
                 else None
             )
             )
-
-    def to_otoole_csv(self, output_dfs, root_column):
-
-        return add_instance_data_to_output_dfs(self, output_dfs, root_column)
     

@@ -136,8 +136,3 @@ class Commodity(OSeMOSYSBase):
             )
 
         return commodity_instances
-
-
-    def to_otoole_csv(self, output_dfs, root_column) -> "cls":
-
-        return add_instance_data_to_output_dfs(self, output_dfs, root_column)
