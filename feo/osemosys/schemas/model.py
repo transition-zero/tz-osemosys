@@ -88,43 +88,34 @@ class RunSpec(OSeMOSYSBase):
 
         ### Write output CSVs
 
-        self.time_definition.to_otoole_csv(comparison_directory)
-        self.other_parameters.to_otoole_csv(comparison_directory)
-
-        region_list = []
-        for region in self.regions:
-            region_list.append(region.id)
-            region.to_otoole_csv(comparison_directory)
-        pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "REGION.csv"), index=False)
-        pd.DataFrame(region_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "_REGION.csv"), index=False)
+        # time_definition
+        to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
         
-        commodity_list = []
-        for commodity in self.commodities:
-            commodity_list.append(commodity.id)
-            commodity.to_otoole_csv(comparison_directory)
-        pd.DataFrame(commodity_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "FUEL.csv"), index=False)
+        # other_parameters
+        to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters", comparison_directory)
+
+        # regions
+        to_csv_helper(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
         
-        impact_list = []
-        for impact in self.impacts:
-            impact_list.append(impact.id)
-            impact.to_otoole_csv(comparison_directory)
-        pd.DataFrame(impact_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "EMISSION.csv"), index=False)
+        # commodities
+        to_csv_helper(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
+        
+        # impacts
+        to_csv_helper(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
 
-        technology_list = []
-        for technology in self.technologies:
-            technology_list.append(technology.id)
-            technology.to_otoole_csv(comparison_directory)
-        pd.DataFrame(technology_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "TECHNOLOGY.csv"), index=False)
+        # technologies
+        to_csv_helper(self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY")
 
-        # If no storage technologies
-        if not self.storage_technologies:
-            TechnologyStorage.to_empty_csv(comparison_directory=comparison_directory)
+        # storage_technologies
+        if not self.storage_technologies: # If no storage technologies
+            # Create empty output CSVs
+            storage_csv_dict = TechnologyStorage.otoole_stems
+            for file in list(storage_csv_dict):
+                (pd.DataFrame(columns = storage_csv_dict[file]["column_structure"])
+                 .to_csv(os.path.join(comparison_directory, file+".csv"), index=False))
+                pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
         else:
-            storage_list = []
-            for storage_technology in self.storage_technologies:
-                storage_list.append(storage_technology.id)
-                storage_technology.to_otoole_csv(comparison_directory)
-            pd.DataFrame(storage_list, columns = ["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
+            to_csv_helper(self, TechnologyStorage.otoole_stems, "storage_technologies", comparison_directory, "STORAGE")
             
 
 

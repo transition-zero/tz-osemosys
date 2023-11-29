@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 from pydantic import BaseModel, conlist, root_validator
+from typing import ClassVar
 
 import pandas as pd
 
@@ -15,12 +16,16 @@ from .base import *
 
 class Region(OSeMOSYSBase):
     neighbours: conlist(str, min_length=0) | None
-    TradeRoute: OSeMOSYSData | None
+    trade_route: OSeMOSYSData | None
+
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "TradeRoute":{"attribute":"trade_route","column_structure":["REGION","_REGION","FUEL","YEAR","VALUE"]},
+    }
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
         neighbours = values.get("neighbours")
-        TradeRoute = values.get("TradeRoute")
+        trade_route = values.get("trade_route")
 
         return values
     
@@ -50,12 +55,12 @@ class Region(OSeMOSYSBase):
 
         assert (
             routes["REGION"].isin(src_regions["VALUE"]).all()
-        ), "REGION in TradeRoutes missing from REGION.csv"
+        ), "REGION in trade_route missing from REGION.csv"
         if dst_regions is not None:
             assert src_regions.equals(dst_regions), "Source and destination regions not equal."
             assert (
                 routes["_REGION"].isin(dst_regions["VALUE"]).all()
-            ), "_REGION in TradeRoutes missing from _REGION.csv"
+            ), "_REGION in trade_route missing from _REGION.csv"
 
         region_instances = []
         for index, region in src_regions.iterrows():
@@ -67,7 +72,7 @@ class Region(OSeMOSYSBase):
                     ].values.tolist())
                     if dst_regions is not None
                     else None),
-                    TradeRoute = (OSeMOSYSData(data=group_to_json(
+                    trade_route = (OSeMOSYSData(data=group_to_json(
                         g=routes.loc[routes["REGION"] ==  region["VALUE"]],
                         data_columns=["REGION", "_REGION","FUEL", "YEAR"],
                         target_column="VALUE",
@@ -81,14 +86,3 @@ class Region(OSeMOSYSBase):
             )
 
         return region_instances
-
-
-    def to_otoole_csv(self, comparison_directory) -> "CSVs":
-
-        # TradeRoute
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.TradeRoute, 
-                         id=self.id, 
-                         column_structure=["REGION", "_REGION","FUEL", "YEAR", "VALUE"], 
-                         id_column="REGION", 
-                         output_csv_name="TradeRoute.csv")

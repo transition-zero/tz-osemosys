@@ -35,13 +35,13 @@ class Impact(OSeMOSYSBase):
     penalty: OSeMOSYSData | None
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "AnnualEmissionLimit",
-        "ModelPeriodEmissionLimit",
-        "AnnualExogenousEmission",
-        "ModelPeriodExogenousEmission",
-        "EmissionsPenalty",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "AnnualEmissionLimit":{"attribute":"constraint_annual","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+        "ModelPeriodEmissionLimit":{"attribute":"constraint_total","column_structure":["REGION","EMISSION","VALUE"]},
+        "AnnualExogenousEmission":{"attribute":"exogenous_annual","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+        "ModelPeriodExogenousEmission":{"attribute":"exogenous_total","column_structure":["REGION","EMISSION","VALUE"]},
+        "EmissionsPenalty":{"attribute":"penalty","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+    }
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
@@ -77,7 +77,7 @@ class Impact(OSeMOSYSBase):
         
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
@@ -171,45 +171,3 @@ class Impact(OSeMOSYSBase):
             )
 
         return impact_instances
-
-
-    def to_otoole_csv(self, comparison_directory) -> "cls":
-        
-        impact = self.id
-
-        # constraint_annual
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.constraint_annual, 
-                         id=impact, 
-                         column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
-                         id_column="EMISSION", 
-                         output_csv_name="AnnualEmissionLimit.csv")
-        # constraint_total
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.constraint_total, 
-                         id=impact, 
-                         column_structure=["REGION", "EMISSION", "VALUE"], 
-                         id_column="EMISSION", 
-                         output_csv_name="ModelPeriodEmissionLimit.csv")
-        # exogenous_annual
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.exogenous_annual, 
-                         id=impact, 
-                         column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
-                         id_column="EMISSION", 
-                         output_csv_name="AnnualExogenousEmission.csv")
-        # exogenous_total
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.exogenous_total, 
-                         id=impact, 
-                         column_structure=["REGION", "EMISSION", "VALUE"], 
-                         id_column="EMISSION", 
-                         output_csv_name="ModelPeriodExogenousEmission.csv")
-        # penalty
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.penalty, 
-                         id=impact, 
-                         column_structure=["REGION", "EMISSION", "YEAR", "VALUE"], 
-                         id_column="EMISSION", 
-                         output_csv_name="EmissionsPenalty.csv")
-

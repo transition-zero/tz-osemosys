@@ -77,31 +77,31 @@ class Technology(OSeMOSYSBase):
     is_renewable: OSeMOSYSData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "CapacityToActivityUnit",
-        "CapacityOfOneTechnologyUnit",
-        "AvailabilityFactor",
-        "CapacityFactor",
-        "OperationalLife",
-        "CapitalCost",
-        "FixedCost",
-        "VariableCost",
-        "ResidualCapacity",
-        "TotalAnnualMaxCapacity",
-        "TotalAnnualMinCapacity",
-        "TotalAnnualMaxCapacityInvestment",
-        "TotalAnnualMinCapacityInvestment",
-        "TotalTechnologyAnnualActivityUpperLimit",
-        "TotalTechnologyAnnualActivityLowerLimit",
-        "TotalTechnologyModelPeriodActivityUpperLimit",
-        "TotalTechnologyModelPeriodActivityLowerLimit",
-        "EmissionActivityRatio",
-        "InputActivityRatio",
-        "OutputActivityRatio",
-        "TechnologyToStorage",
-        "TechnologyFromStorage",
-        "RETagTechnology",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "CapacityToActivityUnit":{"attribute":"capacity_activity_unit_ratio","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "CapacityOfOneTechnologyUnit":{"attribute":"capacity_one_tech_unit","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "AvailabilityFactor":{"attribute":"availability_factor","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "CapacityFactor":{"attribute":"capacity_factor","column_structure":["REGION","TECHNOLOGY","TIMESLICE","YEAR","VALUE"]},
+        "OperationalLife":{"attribute":"operating_life","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "CapitalCost":{"attribute":"capex","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "FixedCost":{"attribute":"opex_fixed","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "VariableCost":{"attribute":"opex_variable","column_structure":["REGION","TECHNOLOGY","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "ResidualCapacity":{"attribute":"residual_capacity","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMaxCapacity":{"attribute":"capacity_gross_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMinCapacity":{"attribute":"capacity_gross_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMaxCapacityInvestment":{"attribute":"capacity_additional_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMinCapacityInvestment":{"attribute":"capacity_additional_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyAnnualActivityUpperLimit":{"attribute":"activity_annual_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyAnnualActivityLowerLimit":{"attribute":"activity_annual_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyModelPeriodActivityUpperLimit":{"attribute":"activity_total_max","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "TotalTechnologyModelPeriodActivityLowerLimit":{"attribute":"activity_total_min","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "EmissionActivityRatio":{"attribute":"emission_activity_ratio","column_structure":["REGION","TECHNOLOGY","EMISSION","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "InputActivityRatio":{"attribute":"input_activity_ratio","column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "OutputActivityRatio":{"attribute":"output_activity_ratio","column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "TechnologyToStorage":{"attribute":"to_storage","column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
+        "TechnologyFromStorage":{"attribute":"from_storage","column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
+        "RETagTechnology":{"attribute":"is_renewable","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+    }
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
@@ -143,7 +143,7 @@ class Technology(OSeMOSYSBase):
         
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
@@ -159,7 +159,7 @@ class Technology(OSeMOSYSBase):
         technology_instances = []
         for technology in df_technologies["VALUE"].values.tolist():
             data_json_format = {}
-            for stem in cls.otoole_stems:
+            for stem in list(cls.otoole_stems):
                 # If input CSV present
                 if stem in dfs:
                     data_columns=dfs[stem].columns.tolist()
@@ -274,173 +274,6 @@ class Technology(OSeMOSYSBase):
             )
 
         return technology_instances
-    
-
-    def to_otoole_csv(self, comparison_directory) -> "cls":
-
-        # capacity_activity_unit_ratio
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_activity_unit_ratio, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="CapacityToActivityUnit.csv")
-        # capacity_one_tech_unit
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_one_tech_unit, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="CapacityOfOneTechnologyUnit.csv")
-        # availability_factor
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.availability_factor, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="AvailabilityFactor.csv")
-        # capacity_factor
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_factor, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "TIMESLICE", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="CapacityFactor.csv")
-        # operating_life
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.operating_life, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="OperationalLife.csv")
-        # capex
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capex, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="CapitalCost.csv")
-        # opex_fixed
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.opex_fixed, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="FixedCost.csv")
-        # opex_variable
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.opex_variable, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="VariableCost.csv")
-        # residual_capacity
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.residual_capacity, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="ResidualCapacity.csv")
-        # capacity_gross_max
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_gross_max, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalAnnualMaxCapacity.csv")
-        # capacity_gross_min
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_gross_min, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalAnnualMinCapacity.csv")
-        # capacity_additional_max
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_additional_max, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalAnnualMaxCapacityInvestment.csv")
-        # capacity_additional_min
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capacity_additional_min, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalAnnualMinCapacityInvestment.csv")
-        # activity_annual_max
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.activity_annual_max, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalTechnologyAnnualActivityUpperLimit.csv")
-        # activity_annual_min
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.activity_annual_min, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalTechnologyAnnualActivityLowerLimit.csv")
-        # activity_total_max
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.activity_total_max, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalTechnologyModelPeriodActivityUpperLimit.csv")
-        # activity_total_min
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.activity_total_min, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TotalTechnologyModelPeriodActivityLowerLimit.csv")
-        # emission_activity_ratio
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.emission_activity_ratio, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "EMISSION", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="EmissionActivityRatio.csv")
-        # input_activity_ratio
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.input_activity_ratio, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="InputActivityRatio.csv")
-        # output_activity_ratio
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.output_activity_ratio, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "FUEL", "MODE_OF_OPERATION", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="OutputActivityRatio.csv")
-        # to_storage
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.to_storage, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TechnologyToStorage.csv")
-        # from_storage
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.from_storage, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="TechnologyFromStorage.csv")
-        # is_renewable
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.is_renewable, 
-                         id=self.id, 
-                         column_structure=["REGION", "TECHNOLOGY", "YEAR", "VALUE"], 
-                         id_column="TECHNOLOGY", 
-                         output_csv_name="RETagTechnology.csv")
-        
-        
         
         
 
@@ -458,15 +291,15 @@ class TechnologyStorage(OSeMOSYSBase):
     max_charge_rate: OSeMOSYSData | None  # Maximum charging rate for the storage, in units of activity per year
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "CapitalCostStorage",
-        "OperationalLifeStorage",
-        "MinStorageCharge",
-        "StorageLevelStart",
-        "ResidualStorageCapacity",
-        "StorageMaxDischargeRate",
-        "StorageMaxChargeRate",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "CapitalCostStorage":{"attribute":"capex","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "OperationalLifeStorage":{"attribute":"operating_life","column_structure":["REGION","STORAGE","VALUE"]},
+        "MinStorageCharge":{"attribute":"minimum_charge","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "StorageLevelStart":{"attribute":"initial_level","column_structure":["REGION","STORAGE","VALUE"]},
+        "ResidualStorageCapacity":{"attribute":"residual_capacity","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "StorageMaxDischargeRate":{"attribute":"max_discharge_rate","column_structure":["REGION","STORAGE","VALUE"]},
+        "StorageMaxChargeRate":{"attribute":"max_charge_rate","column_structure":["REGION","STORAGE","VALUE"]},
+    }
 
     @root_validator(pre=True)
     def construct_from_components(cls, values):
@@ -491,7 +324,7 @@ class TechnologyStorage(OSeMOSYSBase):
 
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
@@ -506,7 +339,7 @@ class TechnologyStorage(OSeMOSYSBase):
         storage_instances = []
         for storage in df_storage_technologies["VALUE"].values.tolist():
             data_json_format = {}
-            for stem in cls.otoole_stems:
+            for stem in list(cls.otoole_stems):
                 # If input CSV present
                 if stem in dfs:
                     data_columns=dfs[stem].columns.tolist()
@@ -564,70 +397,3 @@ class TechnologyStorage(OSeMOSYSBase):
             )
         
         return storage_instances
-    
-    def to_otoole_csv(self, comparison_directory) -> "cls":
-
-        # capex
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.capex, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="CapitalCostStorage.csv")
-        # operating_life
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.operating_life, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="OperationalLifeStorage.csv")
-        # minimum_charge
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.minimum_charge, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="MinStorageCharge.csv")
-        # initial_level
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.initial_level, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="StorageLevelStart.csv")
-        # residual_capacity
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.residual_capacity, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "YEAR", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="ResidualStorageCapacity.csv")
-        # max_discharge_rate
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.max_discharge_rate, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="StorageMaxDischargeRate.csv")
-        # max_charge_rate
-        to_csv_iterative(comparison_directory=comparison_directory, 
-                         data=self.max_charge_rate, 
-                         id=self.id, 
-                         column_structure=["REGION", "STORAGE", "VALUE"], 
-                         id_column="STORAGE", 
-                         output_csv_name="StorageMaxChargeRate.csv")
-
-    @classmethod  
-    def to_empty_csv(cls, comparison_directory):
-        """
-        If no storage technologies present, write empty CSVs in the otoole format
-        """
-        pd.DataFrame(columns=["VALUE"]).to_csv(os.path.join(comparison_directory, "STORAGE.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "YEAR", "VALUE"]).to_csv(os.path.join(comparison_directory, "CapitalCostStorage.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "VALUE"]).to_csv(os.path.join(comparison_directory, "OperationalLifeStorage.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "YEAR", "VALUE"]).to_csv(os.path.join(comparison_directory, "MinStorageCharge.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "VALUE"]).to_csv(os.path.join(comparison_directory, "StorageLevelStart.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "YEAR", "VALUE"]).to_csv(os.path.join(comparison_directory, "ResidualStorageCapacity.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "VALUE"]).to_csv(os.path.join(comparison_directory, "StorageMaxDischargeRate.csv"), index=False)
-        pd.DataFrame(columns=["REGION", "STORAGE", "VALUE"]).to_csv(os.path.join(comparison_directory, "StorageMaxChargeRate.csv"), index=False)
-

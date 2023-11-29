@@ -23,44 +23,44 @@ class OtherParameters(OSeMOSYSBase):
     Class to contain all other parameters
     """
 
-    MODE_OF_OPERATION: conlist(int, min_length=1)
-    DepreciationMethod: OSeMOSYSData | None
-    DiscountRate: OSeMOSYSData | None
-    DiscountRateIdv: OSeMOSYSData | None
-    DiscountRateStorage: OSeMOSYSData | None
-    ReserveMargin: OSeMOSYSData | None
-    ReserveMarginTagFuel: OSeMOSYSDataInt | None
-    ReserveMarginTagTechnology: OSeMOSYSDataInt | None
-    REMinProductionTarget: OSeMOSYSData | None
+    mode_of_operation: conlist(int, min_length=1)
+    depreciation_method: OSeMOSYSData | None
+    discount_rate: OSeMOSYSData | None
+    discount_rate_idv: OSeMOSYSData | None
+    discount_rate_storage: OSeMOSYSData | None
+    reserve_margin: OSeMOSYSData | None
+    reserve_margin_tag_fuel: OSeMOSYSDataInt | None
+    reserve_margin_tag_technology: OSeMOSYSDataInt | None
+    renewable_production_target: OSeMOSYSData | None
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[list[str]] = [
-        "MODE_OF_OPERATION",
-        "DepreciationMethod",
-        "DiscountRate",
-        "DiscountRateIdv",
-        "DiscountRateStorage",
-        "ReserveMargin",
-        "ReserveMarginTagFuel",
-        "ReserveMarginTagTechnology",
-        "REMinProductionTarget",
-    ]
+    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
+        "MODE_OF_OPERATION":{"attribute":"mode_of_operation","column_structure":["VALUE"]},
+        "DepreciationMethod":{"attribute":"depreciation_method","column_structure":["REGION","VALUE"]},
+        "DiscountRate":{"attribute":"discount_rate","column_structure":["REGION","VALUE"]},
+        "DiscountRateIdv":{"attribute":"discount_rate_idv","column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "DiscountRateStorage":{"attribute":"discount_rate_storage","column_structure":["REGION","STORAGE","VALUE"]},
+        "ReserveMargin":{"attribute":"reserve_margin","column_structure":["REGION","YEAR","VALUE"]},
+        "ReserveMarginTagFuel":{"attribute":"reserve_margin_tag_fuel","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "ReserveMarginTagTechnology":{"attribute":"reserve_margin_tag_technology","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "REMinProductionTarget":{"attribute":"renewable_production_target","column_structure":["REGION","YEAR","VALUE"]},
+    }
     
     @root_validator(pre=True)
     def construct_from_components(cls, values):
-        MODE_OF_OPERATION = values.get("MODE_OF_OPERATION")
-        DepreciationMethod = values.get("DepreciationMethod")
-        DiscountRate = values.get("DiscountRate")
-        DiscountRateIdv = values.get("DiscountRateIdv")
-        DiscountRateStorage = values.get("DiscountRateStorage")
-        ReserveMargin = values.get("ReserveMargin")
-        ReserveMarginTagFuel = values.get("ReserveMarginTagFuel")
-        ReserveMarginTagTechnology = values.get("ReserveMarginTagTechnology")
-        REMinProductionTarget = values.get("REMinProductionTarget")
+        mode_of_operation = values.get("mode_of_operation")
+        depreciation_method = values.get("depreciation_method")
+        discount_rate = values.get("discount_rate")
+        discount_rate_idv = values.get("discount_rate_idv")
+        discount_rate_storage = values.get("discount_rate_storage")
+        reserve_margin = values.get("reserve_margin")
+        reserve_margin_tag_fuel = values.get("reserve_margin_tag_fuel")
+        reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
+        renewable_production_target = values.get("renewable_production_target")
         
-        # failed to specify MODE_OF_OPERATION
-        if not MODE_OF_OPERATION:
-            raise ValueError("MODE_OF_OPERATION (List[int]) must be specified.")
+        # failed to specify mode_of_operation
+        if not mode_of_operation:
+            raise ValueError("mode_of_operation (List[int]) must be specified.")
 
         return values
 
@@ -85,7 +85,7 @@ class OtherParameters(OSeMOSYSBase):
         # ###########
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in cls.otoole_stems:
+        for key in list(cls.otoole_stems):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
@@ -97,7 +97,7 @@ class OtherParameters(OSeMOSYSBase):
         # Basic Data Checks #
         #####################
         if "MODE_OF_OPERATION" in dfs:
-            MODE_OF_OPERATION = dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist()
+            mode_of_operation = dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist()
         else:
             raise FileNotFoundError("MODE_OF_OPERATION.csv not read in, likely missing from root_dir")
 
@@ -107,8 +107,8 @@ class OtherParameters(OSeMOSYSBase):
             long_name=None,
             description=None,
             otoole_cfg=otoole_cfg,
-            MODE_OF_OPERATION=MODE_OF_OPERATION,
-            DepreciationMethod=(
+            mode_of_operation=mode_of_operation,
+            depreciation_method=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DepreciationMethod"],
@@ -119,7 +119,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "DepreciationMethod" not in otoole_cfg.empty_dfs
                 else None
             ),
-            DiscountRate=(
+            discount_rate=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DiscountRate"],
@@ -130,7 +130,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "DiscountRate" not in otoole_cfg.empty_dfs
                 else None
             ),
-            DiscountRateIdv=(
+            discount_rate_idv=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DiscountRateIdv"],
@@ -141,7 +141,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "DiscountRateIdv" not in otoole_cfg.empty_dfs
                 else None
             ),
-            DiscountRateStorage=(
+            discount_rate_storage=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DiscountRateStorage"],
@@ -152,7 +152,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "DiscountRateStorage" not in otoole_cfg.empty_dfs
                 else None
             ),
-            ReserveMargin=(
+            reserve_margin=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["ReserveMargin"],
@@ -163,7 +163,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "ReserveMargin" not in otoole_cfg.empty_dfs
                 else None
             ),
-            ReserveMarginTagFuel=(
+            reserve_margin_tag_fuel=(
                 OSeMOSYSDataInt(
                     data=group_to_json(
                         g=dfs["ReserveMarginTagFuel"],
@@ -174,7 +174,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
                 else None
             ),
-            ReserveMarginTagTechnology=(
+            reserve_margin_tag_technology=(
                 OSeMOSYSDataInt(
                     data=group_to_json(
                         g=dfs["ReserveMarginTagTechnology"],
@@ -185,7 +185,7 @@ class OtherParameters(OSeMOSYSBase):
                 if "ReserveMarginTagTechnology" not in otoole_cfg.empty_dfs
                 else None
             ),
-            REMinProductionTarget=(
+            renewable_production_target=(
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["REMinProductionTarget"],
@@ -197,100 +197,4 @@ class OtherParameters(OSeMOSYSBase):
                 else None
             )
             )
-
-    def to_otoole_csv(self, comparison_directory) -> "CSVs":
-
-        # MODE_OF_OPERATION
-        pd.DataFrame({"VALUE": self.MODE_OF_OPERATION}).to_csv(
-            os.path.join(comparison_directory, "MODE_OF_OPERATION.csv"), index=False
-        )
-
-        # Depreciation Method
-        if self.DepreciationMethod is not None:
-            df = json_dict_to_dataframe(self.DepreciationMethod.data)
-            df.columns = ["REGION","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "DepreciationMethod.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION", "VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "DepreciationMethod.csv"), index=False
-                )
-        
-        # DiscountRate
-        if self.DiscountRate is not None:
-            df = json_dict_to_dataframe(self.DiscountRate.data)
-            df.columns = ["REGION","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "DiscountRate.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION", "VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "DiscountRate.csv"), index=False
-                )
-            
-        # DiscountRateIdv
-        if self.DiscountRateIdv is not None:
-            df = json_dict_to_dataframe(self.DiscountRateIdv.data)
-            df.columns = ["REGION","TECHNOLOGY","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "DiscountRateIdv.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","TECHNOLOGY","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "DiscountRateIdv.csv"), index=False
-                )
-            
-        # DiscountRateStorage
-        if self.DiscountRateStorage is not None:
-            df = json_dict_to_dataframe(self.DiscountRateStorage.data)
-            df.columns = ["REGION","STORAGE","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "DiscountRateStorage.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","STORAGE","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "DiscountRateStorage.csv"), index=False
-                )
-
-        # ReserveMargin
-        if self.ReserveMargin is not None:
-            df = json_dict_to_dataframe(self.ReserveMargin.data)
-            df.columns = ["REGION","YEAR","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "ReserveMargin.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","YEAR","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "ReserveMargin.csv"), index=False
-                )
-
-        # ReserveMarginTagFuel
-        if self.ReserveMarginTagFuel is not None:
-            df = json_dict_to_dataframe(self.ReserveMarginTagFuel.data)
-            df.columns = ["REGION","FUEL","YEAR","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "ReserveMarginTagFuel.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","FUEL","YEAR","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "ReserveMarginTagFuel.csv"), index=False
-                )
-            
-        # ReserveMarginTagTechnology
-        if self.ReserveMarginTagTechnology is not None:
-            df = json_dict_to_dataframe(self.ReserveMarginTagTechnology.data)
-            df.columns = ["REGION","TECHNOLOGY","YEAR","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "ReserveMarginTagTechnology.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","TECHNOLOGY","YEAR","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "ReserveMarginTagTechnology.csv"), index=False
-                )
-
-        # REMinProductionTarget
-        if self.REMinProductionTarget is not None:
-            df = json_dict_to_dataframe(self.REMinProductionTarget.data)
-            df.columns = ["REGION","YEAR","VALUE"]
-            df.to_csv(os.path.join(comparison_directory, "REMinProductionTarget.csv"), index=False)
-        else:
-            pd.DataFrame(
-                columns=["REGION","YEAR","VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "REMinProductionTarget.csv"), index=False
-                )
-
-        
+    
