@@ -349,7 +349,14 @@ class TimeDefinition(OSeMOSYSBase):
             year_split_length = 1 / len(timeslices)
 
             # Construct data
-            year_split_df = pd.DataFrame(columns=["TIMESLICE", "YEAR", "VALUE"])
+            year_split_df = pd.DataFrame(
+                {
+                    "TIMESLICE": pd.Series(dtype="object"),
+                    "YEAR": pd.Series(dtype="int32"),
+                    "VALUE": pd.Series(dtype="float64"),
+                }
+            )
+
             for timeslice in timeslices:
                 year_split_df = pd.concat(
                     [
