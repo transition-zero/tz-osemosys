@@ -433,7 +433,12 @@ class TimeDefinition(OSeMOSYSBase):
                 day_types = [1]
 
             days_in_day_type_df = pd.DataFrame(
-                columns=["SEASON", "DAYTYPE", "YEAR", "VALUE"]
+                {
+                    "SEASON": pd.Series(dtype="int32"),
+                    "DAYTYPE": pd.Series(dtype="int32"),
+                    "YEAR": pd.Series(dtype="int32"),
+                    "VALUE": pd.Series(dtype="float64"),
+                }
             )
             for season in seasons:
                 days_in_day_type_df = pd.concat(
