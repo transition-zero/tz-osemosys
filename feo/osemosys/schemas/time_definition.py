@@ -434,8 +434,8 @@ class TimeDefinition(OSeMOSYSBase):
 
             days_in_day_type_df = pd.DataFrame(
                 {
-                    "SEASON": pd.Series(dtype="int32"),
-                    "DAYTYPE": pd.Series(dtype="int32"),
+                    "SEASON": pd.Series(dtype="object"),
+                    "DAYTYPE": pd.Series(dtype="object"),
                     "YEAR": pd.Series(dtype="int32"),
                     "VALUE": pd.Series(dtype="float64"),
                 }
