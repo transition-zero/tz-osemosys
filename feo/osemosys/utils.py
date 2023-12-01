@@ -202,7 +202,10 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
                 data[root_column] = instance.id
             data = data[otoole_stems[output_file]["column_structure"]]
             #TODO: add casting to int for YEAR and MODE_OF_OPERATION?
-            output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
+            if not output_dfs[output_file].empty:
+                output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
+            else:
+                output_dfs[output_file] = data
 
     return output_dfs
 
