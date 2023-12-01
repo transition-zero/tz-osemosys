@@ -51,18 +51,39 @@ class TimeDefinition(OSeMOSYSBase):
     adj_inv: TimeAdjacency
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "YEAR":{"attribute":"years","column_structure":["VALUE"]},
-        "SEASON":{"attribute":"seasons","column_structure":["VALUE"]},
-        "TIMESLICE":{"attribute":"timeslices","column_structure":["VALUE"]},
-        "DAYTYPE":{"attribute":"day_types","column_structure":["VALUE"]},
-        "DAILYTIMEBRACKET":{"attribute":"daily_time_brackets","column_structure":["VALUE"]},
-        "YearSplit":{"attribute":"year_split","column_structure":["TIMESLICE","YEAR","VALUE"]},
-        "DaySplit":{"attribute":"day_split","column_structure":["DAILYTIMEBRACKET","YEAR","VALUE"]},
-        "DaysInDayType":{"attribute":"days_in_day_type","column_structure":["SEASON","DAYTYPE","YEAR","VALUE"]},
-        "Conversionlh":{"attribute":"timeslice_in_timebracket","column_structure":["TIMESLICE","DAILYTIMEBRACKET","VALUE"]},
-        "Conversionld":{"attribute":"timeslice_in_daytype","column_structure":["TIMESLICE","DAYTYPE","VALUE"]},
-        "Conversionls":{"attribute":"timeslice_in_season","column_structure":["TIMESLICE","SEASON","VALUE"]},  
+    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+        "YEAR": {"attribute": "years", "column_structure": ["VALUE"]},
+        "SEASON": {"attribute": "seasons", "column_structure": ["VALUE"]},
+        "TIMESLICE": {"attribute": "timeslices", "column_structure": ["VALUE"]},
+        "DAYTYPE": {"attribute": "day_types", "column_structure": ["VALUE"]},
+        "DAILYTIMEBRACKET": {
+            "attribute": "daily_time_brackets",
+            "column_structure": ["VALUE"],
+        },
+        "YearSplit": {
+            "attribute": "year_split",
+            "column_structure": ["TIMESLICE", "YEAR", "VALUE"],
+        },
+        "DaySplit": {
+            "attribute": "day_split",
+            "column_structure": ["DAILYTIMEBRACKET", "YEAR", "VALUE"],
+        },
+        "DaysInDayType": {
+            "attribute": "days_in_day_type",
+            "column_structure": ["SEASON", "DAYTYPE", "YEAR", "VALUE"],
+        },
+        "Conversionlh": {
+            "attribute": "timeslice_in_timebracket",
+            "column_structure": ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"],
+        },
+        "Conversionld": {
+            "attribute": "timeslice_in_daytype",
+            "column_structure": ["TIMESLICE", "DAYTYPE", "VALUE"],
+        },
+        "Conversionls": {
+            "attribute": "timeslice_in_season",
+            "column_structure": ["TIMESLICE", "SEASON", "VALUE"],
+        },
     }
 
     # TODO: post-validation that everything has the right keys and sums,etc.
@@ -98,7 +119,12 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 if daily_time_brackets is not None:
                     if set(daily_time_brackets) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+                        flatten(
+                            [
+                                list(v.keys())
+                                for k, v in timeslice_in_timebracket.items()
+                            ]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_timebracket' keys do not match 'daily_time_brackets'"
@@ -117,14 +143,15 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single timebracket
                     daily_time_brackets = [1]
-                    timeslice_in_timebracket = pd.DataFrame({"TIMESLICE":timeslices})
+                    timeslice_in_timebracket = pd.DataFrame({"TIMESLICE": timeslices})
                     timeslice_in_timebracket["DAILYTIMEBRACKET"] = 1
                     timeslice_in_timebracket["VALUE"] = 1
                     timeslice_in_timebracket = group_to_json(
-                                    g=timeslice_in_timebracket,
-                                    data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
-                                    target_column="VALUE")
-                    
+                        g=timeslice_in_timebracket,
+                        data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
+                        target_column="VALUE",
+                    )
+
             # daytype
             if timeslice_in_daytype is not None:
                 if set(timeslices) != set(timeslice_in_daytype.keys()):
@@ -133,7 +160,9 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 if timeslice_in_daytype is not None:
                     if set(day_types) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_daytype.items()]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_daytype' keys do not match 'day_types'"
@@ -152,13 +181,14 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single daytype
                     day_types = [1]
-                    timeslice_in_daytype = pd.DataFrame({"TIMESLICE":timeslices})
+                    timeslice_in_daytype = pd.DataFrame({"TIMESLICE": timeslices})
                     timeslice_in_daytype["DAYTYPE"] = 1
                     timeslice_in_daytype["VALUE"] = 1
                     timeslice_in_daytype = group_to_json(
-                                    g=timeslice_in_daytype,
-                                    data_columns=["TIMESLICE", "DAYTYPE"],
-                                    target_column="VALUE")
+                        g=timeslice_in_daytype,
+                        data_columns=["TIMESLICE", "DAYTYPE"],
+                        target_column="VALUE",
+                    )
 
             # seasons
             if timeslice_in_season is not None:
@@ -168,7 +198,9 @@ class TimeDefinition(OSeMOSYSBase):
                     )
                 if timeslice_in_season is not None:
                     if set(seasons) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_season.items()]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_season' keys do not match 'seasons'"
@@ -187,13 +219,14 @@ class TimeDefinition(OSeMOSYSBase):
                             )
                     # default to a single season
                     seasons = [1]
-                    timeslice_in_season = pd.DataFrame({"TIMESLICE":timeslices})
+                    timeslice_in_season = pd.DataFrame({"TIMESLICE": timeslices})
                     timeslice_in_season["SEASON"] = 1
                     timeslice_in_season["VALUE"] = 1
                     timeslice_in_season = group_to_json(
-                                    g=timeslice_in_season,
-                                    data_columns=["TIMESLICE", "SEASON"],
-                                    target_column="VALUE")
+                        g=timeslice_in_season,
+                        data_columns=["TIMESLICE", "SEASON"],
+                        target_column="VALUE",
+                    )
 
         else:
             # timeslices not defined
@@ -202,14 +235,18 @@ class TimeDefinition(OSeMOSYSBase):
                 timeslices = timeslice_in_daytype.keys()
                 if day_types is not None:
                     if set(day_types) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_daytype.items()]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_daytype' keys do not match 'day_types'"
                         )
                 else:
                     day_types = sorted(
-                        flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_daytype.items()]
+                        )
                     )
             else:
                 if day_types is None:
@@ -225,14 +262,24 @@ class TimeDefinition(OSeMOSYSBase):
                         )
                 if daily_time_brackets is not None:
                     if set(daily_time_brackets) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+                        flatten(
+                            [
+                                list(v.keys())
+                                for k, v in timeslice_in_timebracket.items()
+                            ]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_timebracket' keys do not match 'daily_time_brackets'"
                         )
                 else:
                     daily_time_brackets = sorted(
-                        flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+                        flatten(
+                            [
+                                list(v.keys())
+                                for k, v in timeslice_in_timebracket.items()
+                            ]
+                        )
                     )
             else:
                 if daily_time_brackets is None:
@@ -248,14 +295,18 @@ class TimeDefinition(OSeMOSYSBase):
                         )
                 if seasons is not None:
                     if set(seasons) != set(
-                        flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_season.items()]
+                        )
                     ):
                         raise ValueError(
                             "provided 'timeslice_in_season' keys do not match 'seasons'"
                         )
                 else:
                     seasons = sorted(
-                        flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
+                        flatten(
+                            [list(v.keys()) for k, v in timeslice_in_season.items()]
+                        )
                     )
             else:
                 if seasons is None:
@@ -272,15 +323,21 @@ class TimeDefinition(OSeMOSYSBase):
             )
             timeslices = []
 
-            for season, day_type, time_bracket in product(seasons, day_types, daily_time_brackets):
+            for season, day_type, time_bracket in product(
+                seasons, day_types, daily_time_brackets
+            ):
                 timeslices.append(f"S{season}D{day_type}H{time_bracket}")
                 timeslice_in_season[f"S{season}D{day_type}H{time_bracket}"][season] = 1
-                timeslice_in_daytype[f"S{season}D{day_type}H{time_bracket}"][day_type] = 1
-                timeslice_in_timebracket[f"S{season}D{day_type}H{time_bracket}"][time_bracket] = 1
+                timeslice_in_daytype[f"S{season}D{day_type}H{time_bracket}"][
+                    day_type
+                ] = 1
+                timeslice_in_timebracket[f"S{season}D{day_type}H{time_bracket}"][
+                    time_bracket
+                ] = 1
 
         # For year_split/day_split/days_in_day_type:
         # check that they have the correct keys, or if they're None build from scratch
-        
+
         ### year_split ###
         if year_split is not None:
             if set(year_split.keys()) != set(timeslices):
@@ -291,16 +348,33 @@ class TimeDefinition(OSeMOSYSBase):
             # Assume each timeslice of same length
             year_split_length = 1 / len(timeslices)
 
-            # Construct data 
-            year_split_df = pd.DataFrame(columns=["TIMESLICE","YEAR","VALUE"])
+            # Construct data
+            year_split_df = pd.DataFrame(
+                {
+                    "TIMESLICE": pd.Series(dtype="object"),
+                    "YEAR": pd.Series(dtype="int32"),
+                    "VALUE": pd.Series(dtype="float64"),
+                }
+            )
+
             for timeslice in timeslices:
-                year_split_df = pd.concat([year_split_df, 
-                                         pd.DataFrame({"TIMESLICE":timeslice,
-                                                       "YEAR":years,
-                                                       "VALUE":year_split_length})])
-            year_split = group_to_json(g=year_split_df,
-                                      data_columns=["TIMESLICE","YEAR"],
-                                      target_column="VALUE")
+                year_split_df = pd.concat(
+                    [
+                        year_split_df,
+                        pd.DataFrame(
+                            {
+                                "TIMESLICE": timeslice,
+                                "YEAR": years,
+                                "VALUE": year_split_length,
+                            }
+                        ),
+                    ]
+                )
+            year_split = group_to_json(
+                g=year_split_df,
+                data_columns=["TIMESLICE", "YEAR"],
+                target_column="VALUE",
+            )
 
         ### day_split ###
         if day_split is not None:
@@ -308,20 +382,36 @@ class TimeDefinition(OSeMOSYSBase):
                 raise ValueError("'day_split' keys do not match daily_time_brackets.")
         else:
             # TODO: check sum equals 1
-            
+
             # Assume all daily ticket brackets are of equal length
             day_split_length = ((1 / len(daily_time_brackets)) * 24) / (365 * 24)
 
-            # Construct data 
-            day_split_df = pd.DataFrame(columns=["DAILYTIMEBRACKET","YEAR","VALUE"])
+            # Construct data
+            day_split_df = pd.DataFrame(
+                {
+                    "DAILYTIMEBRACKET": pd.Series(dtype="object"),
+                    "YEAR": pd.Series(dtype="int32"),
+                    "VALUE": pd.Series(dtype="float64"),
+                }
+            )
             for bracket in daily_time_brackets:
-                day_split_df = pd.concat([day_split_df, 
-                                         pd.DataFrame({"DAILYTIMEBRACKET":bracket,
-                                                       "YEAR":years,
-                                                       "VALUE":day_split_length})])
-            day_split = group_to_json(g=day_split_df,
-                                      data_columns=["DAILYTIMEBRACKET","YEAR"],
-                                      target_column="VALUE")
+                day_split_df = pd.concat(
+                    [
+                        day_split_df,
+                        pd.DataFrame(
+                            {
+                                "DAILYTIMEBRACKET": bracket,
+                                "YEAR": years,
+                                "VALUE": day_split_length,
+                            }
+                        ),
+                    ]
+                )
+            day_split = group_to_json(
+                g=day_split_df,
+                data_columns=["DAILYTIMEBRACKET", "YEAR"],
+                target_column="VALUE",
+            )
 
         ### days_in_day_type ###
         if days_in_day_type is not None:
@@ -336,29 +426,46 @@ class TimeDefinition(OSeMOSYSBase):
             # TODO: check sum equals 1
             if day_types is not None:
                 if len(day_types) > 1:
-                    raise ValueError("days_in_day_type must be provided if providing more than one daytype")
+                    raise ValueError(
+                        "days_in_day_type must be provided if providing more than one daytype"
+                    )
             else:
                 day_types = [1]
-            
-            days_in_day_type_df = pd.DataFrame(columns=["SEASON","DAYTYPE","YEAR","VALUE"])
+
+            days_in_day_type_df = pd.DataFrame(
+                {
+                    "SEASON": pd.Series(dtype="object"),
+                    "DAYTYPE": pd.Series(dtype="object"),
+                    "YEAR": pd.Series(dtype="int32"),
+                    "VALUE": pd.Series(dtype="float64"),
+                }
+            )
             for season in seasons:
-                days_in_day_type_df = pd.concat([days_in_day_type_df, 
-                                         pd.DataFrame({"SEASON":season,
-                                                       "DAYTYPE":1,
-                                                       "YEAR":years,
-                                                       "VALUE":7})])
-            days_in_day_type = group_to_json(g=days_in_day_type_df,
-                                      data_columns=["SEASON","DAYTYPE","YEAR"],
-                                      target_column="VALUE")
-            
+                days_in_day_type_df = pd.concat(
+                    [
+                        days_in_day_type_df,
+                        pd.DataFrame(
+                            {"SEASON": season, "DAYTYPE": 1, "YEAR": years, "VALUE": 7}
+                        ),
+                    ]
+                )
+            days_in_day_type = group_to_json(
+                g=days_in_day_type_df,
+                data_columns=["SEASON", "DAYTYPE", "YEAR"],
+                target_column="VALUE",
+            )
 
         if adj is None or adj_inv is None:
             year_adjacency = dict(zip(sorted(years)[:-1], sorted(years)[1:]))
             year_adjacency_inv = dict(zip(sorted(years)[1:], sorted(years)[:-1]))
             season_adjacency = dict(zip(sorted(seasons)[:-1], sorted(seasons)[1:]))
             season_adjacency_inv = dict(zip(sorted(seasons)[1:], sorted(seasons)[:-1]))
-            day_type_adjacency = dict(zip(sorted(day_types)[:-1], sorted(day_types)[1:]))
-            day_type_adjacency_inv = dict(zip(sorted(day_types)[1:], sorted(day_types)[:-1]))
+            day_type_adjacency = dict(
+                zip(sorted(day_types)[:-1], sorted(day_types)[1:])
+            )
+            day_type_adjacency_inv = dict(
+                zip(sorted(day_types)[1:], sorted(day_types)[:-1])
+            )
             time_brackets_adjacency = dict(
                 zip(sorted(daily_time_brackets)[:-1], sorted(daily_time_brackets)[1:])
             )
@@ -424,7 +531,6 @@ class TimeDefinition(OSeMOSYSBase):
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
-
         # ###################
         # Basic Data Checks #
         #####################
@@ -437,16 +543,28 @@ class TimeDefinition(OSeMOSYSBase):
         if "YEAR" in dfs:
             years = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
         else:
-            raise FileNotFoundError("YEAR.csv not read in, likely missing from root_dir")
-        seasons = dfs["SEASON"]["VALUE"].astype(str).values.tolist() if "SEASON" not in otoole_cfg.empty_dfs else None
-        day_types = dfs["DAYTYPE"]["VALUE"].astype(str).values.tolist() if "DAYTYPE" not in otoole_cfg.empty_dfs else None
+            raise FileNotFoundError(
+                "YEAR.csv not read in, likely missing from root_dir"
+            )
+        seasons = (
+            dfs["SEASON"]["VALUE"].astype(str).values.tolist()
+            if "SEASON" not in otoole_cfg.empty_dfs
+            else None
+        )
+        day_types = (
+            dfs["DAYTYPE"]["VALUE"].astype(str).values.tolist()
+            if "DAYTYPE" not in otoole_cfg.empty_dfs
+            else None
+        )
         daily_time_brackets = (
             dfs["DAILYTIMEBRACKET"]["VALUE"].astype(str).values.tolist()
             if "DAILYTIMEBRACKET" not in otoole_cfg.empty_dfs
             else None
         )
         timeslices = (
-            dfs["TIMESLICE"]["VALUE"].values.tolist() if "TIMESLICE" not in otoole_cfg.empty_dfs else None
+            dfs["TIMESLICE"]["VALUE"].values.tolist()
+            if "TIMESLICE" not in otoole_cfg.empty_dfs
+            else None
         )
 
         return cls(
