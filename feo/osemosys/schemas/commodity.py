@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import numpy as np
 from pydantic import BaseModel, conlist, root_validator
 from typing import ClassVar
 from pathlib import Path
@@ -35,12 +36,24 @@ class Commodity(OSeMOSYSBase):
     }
 
     @root_validator(pre=True)
-    def construct_from_components(cls, values):
+    def validation(cls, values):
+        id = values.get("id")
         demand_annual = values.get("demand_annual")
         demand_profile = values.get("demand_profile")
         accumulated_demand = values.get("accumulated_demand")
         is_renewable = values.get("is_renewable")
-
+        
+        # Check demand_profile sums to one, within leniency
+        if demand_profile is not None:
+            #TODO: determine if leniency of 0.05 is acceptable
+            leniency = 0.05
+            demand_profile_df = json_dict_to_dataframe(demand_profile.data)
+            demand_profile_df.columns = ["REGION","TIMESLICE","YEAR","VALUE"]
+            assert (
+                np.allclose(demand_profile_df.groupby(["REGION", "YEAR"])['VALUE'].sum(), 1, atol=leniency)
+            ), f"demand_profile must sum to one (within {leniency}) for all REGION, YEAR, and commodity;\
+                 commodity {id} does not"
+        
         return values
 
     @classmethod
@@ -63,10 +76,19 @@ class Commodity(OSeMOSYSBase):
                 otoole_cfg.empty_dfs.append(key)
                 dfs[key] = pd.DataFrame(columns=["FUEL"])
 
-        assert (
-            (dfs["SpecifiedDemandProfile"].groupby(["REGION", "FUEL", "YEAR"])["VALUE"].sum() == 1.0).all(),
-            "demand profiles must sum to one for all REGION, FUEL, and YEAR",
-        )
+        # ###################
+        # Basic Data Checks #
+        #####################
+
+        # Check no duplicates in FUEL.csv
+        if len(df_commodity) != len(df_commodity["VALUE"].unique()):
+            raise ValueError("FUEL.csv must not contain duplicate values")
+
+        # Check impact names are consistent with those in FUEL.csv
+        for df in dfs.keys():
+            for impact in dfs[df]["FUEL"].unique():
+                if impact not in list(df_commodity["VALUE"]):
+                    raise ValueError(f"{impact} given in {df}.csv but not in FUEL.csv")
 
         # ########################
         # Define class instances #
