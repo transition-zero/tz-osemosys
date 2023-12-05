@@ -151,6 +151,20 @@ class Technology(OSeMOSYSBase):
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
+        # ###################
+        # Basic Data Checks #
+        #####################
+
+        # Check no duplicates in TECHNOLOGY.csv
+        if len(df_technologies) != len(df_technologies["VALUE"].unique()):
+            raise ValueError("TECHNOLOGY.csv must not contain duplicate values")
+
+        # Check technology names are consistent with those in TECHNOLOGY.csv
+        for df in dfs.keys():
+            for technology in dfs[df]["TECHNOLOGY"].unique():
+                if technology not in list(df_technologies["VALUE"]):
+                    raise ValueError(f"{technology} given in {df}.csv but not in TECHNOLOGY.csv")
+
 
         # ########################
         # Define class instances #
@@ -331,6 +345,20 @@ class TechnologyStorage(OSeMOSYSBase):
                     otoole_cfg.empty_dfs.append(key)
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
+
+        # ###################
+        # Basic Data Checks #
+        #####################
+
+        # Check no duplicates in STORAGE.csv
+        if len(df_storage_technologies) != len(df_storage_technologies["VALUE"].unique()):
+            raise ValueError("STORAGE.csv must not contain duplicate values")
+
+        # Check storage technology names are consistent with those in STORAGE.csv
+        for df in dfs.keys():
+            for storage in dfs[df]["STORAGE"].unique():
+                if storage not in list(df_storage_technologies["VALUE"]):
+                    raise ValueError(f"{storage} given in {df}.csv but not in STORAGE.csv")
 
         # ########################
         # Define class instances #
