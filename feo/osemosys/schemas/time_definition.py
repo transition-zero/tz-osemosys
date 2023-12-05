@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import pandas as pd
+import numpy as np
 from pydantic import BaseModel, conlist, root_validator
 
 from feo.osemosys.utils import *
@@ -340,11 +341,20 @@ class TimeDefinition(OSeMOSYSBase):
 
         ### year_split ###
         if year_split is not None:
+            # Check year_split keys match timeslices
             if set(year_split.keys()) != set(timeslices):
                 raise ValueError("'year_split' keys do not match timeslices.")
-        else:
-            # TODO: check sum equals 1
+            
+            # Check year_split sum equals 1, within leniency
+            #TODO: determine if leniency of 0.05 is acceptable
+            leniency = 0.05
+            year_split_df = json_dict_to_dataframe(year_split)
+            year_split_df.columns = ["TIMESLICE","YEAR","VALUE"]
+            assert (
+                np.allclose(year_split_df.groupby(["YEAR"])['VALUE'].sum(), 1, atol=leniency)
+            ), f"year_split must sum to one (within {leniency}) for all years"
 
+        else:
             # Assume each timeslice of same length
             year_split_length = 1 / len(timeslices)
 
@@ -381,8 +391,6 @@ class TimeDefinition(OSeMOSYSBase):
             if set(day_split.keys()) != set(daily_time_brackets):
                 raise ValueError("'day_split' keys do not match daily_time_brackets.")
         else:
-            # TODO: check sum equals 1
-
             # Assume all daily ticket brackets are of equal length
             day_split_length = ((1 / len(daily_time_brackets)) * 24) / (365 * 24)
 
@@ -423,7 +431,6 @@ class TimeDefinition(OSeMOSYSBase):
             if set(daytype_keys) != set(day_types):
                 raise ValueError("'days_in_day_type' keys do not match day_types.")
         else:
-            # TODO: check sum equals 1
             if day_types is not None:
                 if len(day_types) > 1:
                     raise ValueError(
