@@ -86,6 +86,19 @@ class Impact(OSeMOSYSBase):
                 otoole_cfg.empty_dfs.append(key)
                 dfs[key] = pd.DataFrame(columns=["EMISSION"])
 
+        # ###################
+        # Basic Data Checks #
+        #####################
+
+        # Check no duplicates in EMISSION.csv
+        if len(df_impacts) != len(df_impacts["VALUE"].unique()):
+            raise ValueError("EMISSION.csv must not contain duplicate values")
+
+        # Check impact names are consistent with those in EMISSION.csv
+        for df in dfs.keys():
+            for impact in dfs[df]["EMISSION"].unique():
+                if impact not in list(df_impacts["VALUE"]):
+                    raise ValueError(f"{impact} given in {df}.csv but not in EMISSION.csv")
 
         # ########################
         # Define class instances #
