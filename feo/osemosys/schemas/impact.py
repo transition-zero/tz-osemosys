@@ -44,12 +44,58 @@ class Impact(OSeMOSYSBase):
     }
 
     @root_validator(pre=True)
-    def construct_from_components(cls, values):
+    def validator(cls, values):
         constraint_annual = values.get("constraint_annual")
         constraint_total = values.get("constraint_total")
         exogenous_annual = values.get("exogenous_annual")
         exogenous_total = values.get("exogenous_total")
         penalty = values.get("penalty")
+
+        # Check exogenous_annual is lower than constraint_annual for each region, impact and year
+        if exogenous_annual is not None and constraint_annual is not None:
+            exogenous_annual_df = json_dict_to_dataframe(exogenous_annual.data)
+            exogenous_annual_df.columns = ["REGION","YEAR","VALUE"]
+            constraint_annual_df = json_dict_to_dataframe(constraint_annual.data)
+            constraint_annual_df.columns = ["REGION","YEAR","VALUE"]
+
+            merged_df = (
+                pd.merge(
+                    exogenous_annual_df,
+                    constraint_annual_df,
+                    on=['REGION', 'YEAR'],
+                    suffixes=('_exogenous', '_constraint'),
+                    how='outer'
+                )
+                .dropna())
+
+            assert (
+                (merged_df['VALUE_exogenous'] <= merged_df['VALUE_constraint'])
+                .all()
+            ), ("Values in exogenous_annual should be lower than or equal to the corresponding " 
+                "values in constraint_annual.")
+
+        # Check exogenous_total is lower than constraint_total for each region and impact
+        if exogenous_total is not None and constraint_total is not None:
+            exogenous_total_df = json_dict_to_dataframe(exogenous_total.data)
+            exogenous_total_df.columns = ["REGION","VALUE"]
+            constraint_total_df = json_dict_to_dataframe(constraint_total.data)
+            constraint_total_df.columns = ["REGION","VALUE"]
+
+            merged_df = (
+                pd.merge(
+                    exogenous_total_df,
+                    constraint_total_df,
+                    on=['REGION'],
+                    suffixes=('_exogenous', '_constraint'),
+                    how='outer'
+                )
+                .dropna())
+
+            assert (
+                (merged_df['VALUE_exogenous'] <= merged_df['VALUE_constraint'])
+                .all()
+            ), ("Values in exogenous_total should be lower than or equal to the corresponding " 
+                "values in constraint_total.")
 
         return values
     
