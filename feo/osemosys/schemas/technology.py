@@ -37,7 +37,7 @@ class Technology(OSeMOSYSBase):
     # Capacity factor, lifespan, availability
     availability_factor: OSeMOSYSData | None  # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
     capacity_factor: OSeMOSYSData | None
-    operating_life: OSeMOSYSData | None
+    operating_life: OSeMOSYSDataInt | None
 
     # financials
     capex: OSeMOSYSData | None
@@ -70,8 +70,8 @@ class Technology(OSeMOSYSBase):
     emission_activity_ratio: OSeMOSYSData | None  # Technology emission activity ratio by mode of operation
     input_activity_ratio: OSeMOSYSData | None  # Technology fuel input activity ratio by mode of operation
     output_activity_ratio: OSeMOSYSData | None  # Technology fuel output activity ratio by mode of operation
-    to_storage: OSeMOSYSData | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
-    from_storage: OSeMOSYSData | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
+    to_storage: OSeMOSYSDataInt | None  # Binary parameter linking a technology to the storage facility it charges (1 linked, 0 unlinked)
+    from_storage: OSeMOSYSDataInt | None  # Binary parameter linking a storage facility to the technology it feeds (1 linked, 0 unlinked)
 
     # Renewable technology tag
     is_renewable: OSeMOSYSData | None # Binary parameter indicating technologies that can contribute to renewable targets (1 RE, 0 non-RE)
@@ -150,7 +150,8 @@ class Technology(OSeMOSYSBase):
     }
 
     @root_validator(pre=True)
-    def construct_from_components(cls, values):
+    def validator(cls, values):
+        id = values.get("id")
         capacity_activity_unit_ratio = values.get("capacity_activity_unit_ratio")
         capacity_one_tech_unit = values.get("capacity_one_tech_unit")
         availability_factor = values.get("availability_factor")
@@ -174,6 +175,31 @@ class Technology(OSeMOSYSBase):
         to_storage = values.get("to_storage")
         from_storage = values.get("from_storage")
         is_renewable = values.get("is_renewable")
+
+
+        # Check minimum activity constraints are lower than maximum activity constraints
+        if activity_annual_min is not None and activity_annual_max is not None:
+            check_min_vals_lower_max(activity_annual_min, 
+                                     activity_annual_max,
+                                     ["REGION","YEAR","VALUE"],
+                                     (f"Technology {id} values in activity_annual_min should be lower than the corresponding values in activity_annual_max"))
+        if activity_total_min is not None and activity_total_max is not None:
+            check_min_vals_lower_max(activity_total_min, 
+                                     activity_total_max,
+                                     ["REGION","VALUE"],
+                                     (f"Technology {id} values in activity_total_min should be lower than the corresponding values in activity_total_max"))
+        
+        # Check minimum capacity constraints are lower than maximum capacity constraints
+        if capacity_additional_min is not None and capacity_additional_max is not None:
+            check_min_vals_lower_max(capacity_additional_min, 
+                                     capacity_additional_max,
+                                     ["REGION","YEAR","VALUE"],
+                                     (f"Technology {id} values in capacity_additional_min should be lower than the corresponding values in capacity_additional_max"))
+        if capacity_gross_min is not None and capacity_gross_max is not None:
+            check_min_vals_lower_max(capacity_gross_min, 
+                                     capacity_gross_max,
+                                     ["REGION","YEAR","VALUE"],
+                                     (f"Technology {id} values in capacity_gross_min should be lower than the corresponding values in capacity_gross_max"))
 
         return values
     
@@ -263,7 +289,7 @@ class Technology(OSeMOSYSBase):
                     capacity_factor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
                     if data_json_format["CapacityFactor"] is not None
                     else None,
-                    operating_life=OSeMOSYSData(data=data_json_format["OperationalLife"])
+                    operating_life=OSeMOSYSDataInt(data=data_json_format["OperationalLife"])
                     if data_json_format["OperationalLife"] is not None
                     else None,
                     capex=OSeMOSYSData(data=data_json_format["CapitalCost"])
@@ -343,7 +369,7 @@ class TechnologyStorage(OSeMOSYSBase):
     """
 
     capex: OSeMOSYSData | None
-    operating_life: OSeMOSYSData | None
+    operating_life: OSeMOSYSDataInt | None
     minimum_charge: OSeMOSYSData | None  # Lower bound to the amount of energy stored, as a fraction of the maximum, with a number reanging between 0 and 1
     initial_level: OSeMOSYSData | None  # Level of storage at the beginning of first modelled year, in units of activity
     residual_capacity: OSeMOSYSData | None
@@ -460,7 +486,7 @@ class TechnologyStorage(OSeMOSYSBase):
                     )
                     if data_json_format["CapitalCostStorage"] is not None
                     else None,
-                    operating_life=OSeMOSYSData(
+                    operating_life=OSeMOSYSDataInt(
                         data=data_json_format["OperationalLifeStorage"]
                     )
                     if data_json_format["OperationalLifeStorage"] is not None
