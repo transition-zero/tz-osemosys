@@ -24,7 +24,7 @@ class OtherParameters(OSeMOSYSBase):
     """
 
     mode_of_operation: conlist(int, min_length=1)
-    depreciation_method: OSeMOSYSData | None
+    depreciation_method: OSeMOSYSDataInt | None
     discount_rate: OSeMOSYSData | None
     discount_rate_idv: OSeMOSYSData | None
     discount_rate_storage: OSeMOSYSData | None
@@ -47,7 +47,7 @@ class OtherParameters(OSeMOSYSBase):
     }
     
     @root_validator(pre=True)
-    def construct_from_components(cls, values):
+    def validator(cls, values):
         mode_of_operation = values.get("mode_of_operation")
         depreciation_method = values.get("depreciation_method")
         discount_rate = values.get("discount_rate")
@@ -58,9 +58,26 @@ class OtherParameters(OSeMOSYSBase):
         reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
         renewable_production_target = values.get("renewable_production_target")
         
-        # failed to specify mode_of_operation
+        # Failed to specify mode_of_operation
         if not mode_of_operation:
             raise ValueError("mode_of_operation (List[int]) must be specified.")
+        
+        # Failed to fully describe reserve_margin
+        if reserve_margin is not None and reserve_margin_tag_fuel is None:
+            raise ValueError("If defining reserve_margin, reserve_margin_tag_fuel must be defined")
+        if reserve_margin is not None and reserve_margin_tag_technology is None:
+            raise ValueError("If defining reserve_margin, reserve_margin_tag_technology must be defined")
+
+        # Check discount rates are in decimals
+        if discount_rate is not None:
+            df = json_dict_to_dataframe(discount_rate.data).iloc[:, -1]
+            assert ((df.abs() < 1).all()), "discount_rate should take decimal values"
+        if discount_rate_idv is not None:
+            df = json_dict_to_dataframe(discount_rate_idv.data).iloc[:, -1]
+            assert ((df.abs() < 1).all()), "discount_rate_idv should take decimal values"
+        if discount_rate_storage is not None:
+            df = json_dict_to_dataframe(discount_rate_storage.data).iloc[:, -1]
+            assert ((df.abs() < 1).all()), "discount_rate_storage should take decimal values"
 
         return values
 
