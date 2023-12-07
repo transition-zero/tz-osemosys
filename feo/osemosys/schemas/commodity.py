@@ -29,10 +29,18 @@ class Commodity(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "SpecifiedAnnualDemand":{"attribute":"demand_annual","column_structure":["REGION","FUEL","YEAR","VALUE"]},
-        "SpecifiedDemandProfile":{"attribute":"demand_profile","column_structure":["REGION","FUEL","TIMESLICE","YEAR","VALUE"]},
-        "AccumulatedAnnualDemand":{"attribute":"accumulated_demand","column_structure":["REGION","FUEL","YEAR","VALUE"]},
-        "RETagFuel":{"attribute":"is_renewable","column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "SpecifiedAnnualDemand":{
+            "attribute":"demand_annual",
+            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "SpecifiedDemandProfile":{
+            "attribute":"demand_profile",
+            "column_structure":["REGION","FUEL","TIMESLICE","YEAR","VALUE"]},
+        "AccumulatedAnnualDemand":{
+            "attribute":"accumulated_demand",
+            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
+        "RETagFuel":{
+            "attribute":"is_renewable",
+            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
     }
 
     @root_validator(pre=True)
@@ -50,9 +58,11 @@ class Commodity(OSeMOSYSBase):
             demand_profile_df = json_dict_to_dataframe(demand_profile.data)
             demand_profile_df.columns = ["REGION","TIMESLICE","YEAR","VALUE"]
             assert (
-                np.allclose(demand_profile_df.groupby(["REGION", "YEAR"])['VALUE'].sum(), 1, atol=leniency)
-            ), f"demand_profile must sum to one (within {leniency}) for all REGION, YEAR, and commodity;\
-                 commodity {id} does not"
+                np.allclose(demand_profile_df.groupby(["REGION", "YEAR"])['VALUE'].sum(), 
+                            1, 
+                            atol=leniency)
+            ), (f"demand_profile must sum to one (within {leniency}) for all REGION," 
+                f" YEAR, and commodity; commodity {id} does not")
         
         return values
 
