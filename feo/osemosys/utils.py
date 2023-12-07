@@ -238,3 +238,34 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
     # Write output csv files
     for file in list(output_dfs):
         output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+
+
+def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
+    """Check that values in min_data are lower than corresponding values in max_data
+
+    Args:
+        min_data (data instance): data instance with min values
+        max_data (data instance): data instance with max values
+        columns (list[str]): list of column names
+        error_msg (str): error message to display
+    """
+    min_df = json_dict_to_dataframe(min_data.data)
+    min_df.columns = columns
+    max_df = json_dict_to_dataframe(max_data.data)
+    max_df.columns = columns
+
+    columns.remove("VALUE")
+    merged_df = (
+        pd.merge(
+            min_df,
+            max_df,
+            on=columns,
+            suffixes=('_min', '_max'),
+            how='outer'
+        )
+        .dropna())
+
+    assert (
+        (merged_df['VALUE_min'] < merged_df['VALUE_max'])
+        .all()
+    ), f"{error_msg}"
