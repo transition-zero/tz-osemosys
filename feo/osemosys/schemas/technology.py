@@ -53,7 +53,7 @@ class Technology(OSeMOSYSBase):
     capacity_additional_max: OSeMOSYSData | None  # Maximum technology capacity additions per year
     capacity_additional_min: OSeMOSYSData | None  # Minimum technology capacity additions per year
 
-    # TODO
+    # TODO:
     # Relative growth rate restrictions not currently implemented in osemosys, can be added via change in osemosys code
     # additional_capacity_max_growth_rate: RegionYearData     # growth rate (<1.)
     # additional_capacity_max_ceil: RegionYearData            # Absolute value (ceil relative to growth rate)
@@ -78,29 +78,75 @@ class Technology(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "CapacityToActivityUnit":{"attribute":"capacity_activity_unit_ratio","column_structure":["REGION","TECHNOLOGY","VALUE"]},
-        "CapacityOfOneTechnologyUnit":{"attribute":"capacity_one_tech_unit","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "AvailabilityFactor":{"attribute":"availability_factor","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "CapacityFactor":{"attribute":"capacity_factor","column_structure":["REGION","TECHNOLOGY","TIMESLICE","YEAR","VALUE"]},
-        "OperationalLife":{"attribute":"operating_life","column_structure":["REGION","TECHNOLOGY","VALUE"]},
-        "CapitalCost":{"attribute":"capex","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "FixedCost":{"attribute":"opex_fixed","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "VariableCost":{"attribute":"opex_variable","column_structure":["REGION","TECHNOLOGY","MODE_OF_OPERATION","YEAR","VALUE"]},
-        "ResidualCapacity":{"attribute":"residual_capacity","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalAnnualMaxCapacity":{"attribute":"capacity_gross_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalAnnualMinCapacity":{"attribute":"capacity_gross_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalAnnualMaxCapacityInvestment":{"attribute":"capacity_additional_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalAnnualMinCapacityInvestment":{"attribute":"capacity_additional_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalTechnologyAnnualActivityUpperLimit":{"attribute":"activity_annual_max","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalTechnologyAnnualActivityLowerLimit":{"attribute":"activity_annual_min","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "TotalTechnologyModelPeriodActivityUpperLimit":{"attribute":"activity_total_max","column_structure":["REGION","TECHNOLOGY","VALUE"]},
-        "TotalTechnologyModelPeriodActivityLowerLimit":{"attribute":"activity_total_min","column_structure":["REGION","TECHNOLOGY","VALUE"]},
-        "EmissionActivityRatio":{"attribute":"emission_activity_ratio","column_structure":["REGION","TECHNOLOGY","EMISSION","MODE_OF_OPERATION","YEAR","VALUE"]},
-        "InputActivityRatio":{"attribute":"input_activity_ratio","column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
-        "OutputActivityRatio":{"attribute":"output_activity_ratio","column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
-        "TechnologyToStorage":{"attribute":"to_storage","column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
-        "TechnologyFromStorage":{"attribute":"from_storage","column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
-        "RETagTechnology":{"attribute":"is_renewable","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "CapacityToActivityUnit":{
+            "attribute":"capacity_activity_unit_ratio",
+            "column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "CapacityOfOneTechnologyUnit":{
+            "attribute":"capacity_one_tech_unit",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "AvailabilityFactor":{
+            "attribute":"availability_factor",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "CapacityFactor":{
+            "attribute":"capacity_factor",
+            "column_structure":["REGION","TECHNOLOGY","TIMESLICE","YEAR","VALUE"]},
+        "OperationalLife":{
+            "attribute":"operating_life",
+            "column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "CapitalCost":{
+            "attribute":"capex",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "FixedCost":{
+            "attribute":"opex_fixed",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "VariableCost":{
+            "attribute":"opex_variable",
+            "column_structure":["REGION","TECHNOLOGY","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "ResidualCapacity":{
+            "attribute":"residual_capacity",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMaxCapacity":{
+            "attribute":"capacity_gross_max",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMinCapacity":{
+            "attribute":"capacity_gross_min",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMaxCapacityInvestment":{
+            "attribute":"capacity_additional_max",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalAnnualMinCapacityInvestment":{
+            "attribute":"capacity_additional_min",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyAnnualActivityUpperLimit":{
+            "attribute":"activity_annual_max",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyAnnualActivityLowerLimit":{
+            "attribute":"activity_annual_min",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
+        "TotalTechnologyModelPeriodActivityUpperLimit":{
+            "attribute":"activity_total_max",
+            "column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "TotalTechnologyModelPeriodActivityLowerLimit":{
+            "attribute":"activity_total_min",
+            "column_structure":["REGION","TECHNOLOGY","VALUE"]},
+        "EmissionActivityRatio":{
+            "attribute":"emission_activity_ratio",
+            "column_structure":["REGION","TECHNOLOGY","EMISSION","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "InputActivityRatio":{
+            "attribute":"input_activity_ratio",
+            "column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "OutputActivityRatio":{
+            "attribute":"output_activity_ratio",
+            "column_structure":["REGION","TECHNOLOGY","FUEL","MODE_OF_OPERATION","YEAR","VALUE"]},
+        "TechnologyToStorage":{
+            "attribute":"to_storage",
+            "column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
+        "TechnologyFromStorage":{
+            "attribute":"from_storage",
+            "column_structure":["REGION","TECHNOLOGY","STORAGE","MODE_OF_OPERATION","VALUE"]},
+        "RETagTechnology":{
+            "attribute":"is_renewable",
+            "column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
     }
 
     @root_validator(pre=True)
@@ -306,13 +352,27 @@ class TechnologyStorage(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "CapitalCostStorage":{"attribute":"capex","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
-        "OperationalLifeStorage":{"attribute":"operating_life","column_structure":["REGION","STORAGE","VALUE"]},
-        "MinStorageCharge":{"attribute":"minimum_charge","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
-        "StorageLevelStart":{"attribute":"initial_level","column_structure":["REGION","STORAGE","VALUE"]},
-        "ResidualStorageCapacity":{"attribute":"residual_capacity","column_structure":["REGION","STORAGE","YEAR","VALUE"]},
-        "StorageMaxDischargeRate":{"attribute":"max_discharge_rate","column_structure":["REGION","STORAGE","VALUE"]},
-        "StorageMaxChargeRate":{"attribute":"max_charge_rate","column_structure":["REGION","STORAGE","VALUE"]},
+        "CapitalCostStorage":{
+            "attribute":"capex",
+            "column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "OperationalLifeStorage":{
+            "attribute":"operating_life",
+            "column_structure":["REGION","STORAGE","VALUE"]},
+        "MinStorageCharge":{
+            "attribute":"minimum_charge",
+            "column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "StorageLevelStart":{
+            "attribute":"initial_level",
+            "column_structure":["REGION","STORAGE","VALUE"]},
+        "ResidualStorageCapacity":{
+            "attribute":"residual_capacity",
+            "column_structure":["REGION","STORAGE","YEAR","VALUE"]},
+        "StorageMaxDischargeRate":{
+            "attribute":"max_discharge_rate",
+            "column_structure":["REGION","STORAGE","VALUE"]},
+        "StorageMaxChargeRate":{
+            "attribute":"max_charge_rate",
+            "column_structure":["REGION","STORAGE","VALUE"]},
     }
 
     @root_validator(pre=True)
