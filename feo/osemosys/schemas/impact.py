@@ -36,15 +36,26 @@ class Impact(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "AnnualEmissionLimit":{"attribute":"constraint_annual","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
-        "ModelPeriodEmissionLimit":{"attribute":"constraint_total","column_structure":["REGION","EMISSION","VALUE"]},
-        "AnnualExogenousEmission":{"attribute":"exogenous_annual","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
-        "ModelPeriodExogenousEmission":{"attribute":"exogenous_total","column_structure":["REGION","EMISSION","VALUE"]},
-        "EmissionsPenalty":{"attribute":"penalty","column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+        "AnnualEmissionLimit":{
+            "attribute":"constraint_annual",
+            "column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+        "ModelPeriodEmissionLimit":{
+            "attribute":"constraint_total",
+            "column_structure":["REGION","EMISSION","VALUE"]},
+        "AnnualExogenousEmission":{
+            "attribute":"exogenous_annual",
+            "column_structure":["REGION","EMISSION","YEAR","VALUE"]},
+        "ModelPeriodExogenousEmission":{
+            "attribute":"exogenous_total",
+            "column_structure":["REGION","EMISSION","VALUE"]},
+        "EmissionsPenalty":{
+            "attribute":"penalty",
+            "column_structure":["REGION","EMISSION","YEAR","VALUE"]},
     }
 
     @root_validator(pre=True)
     def validator(cls, values):
+        id = values.get("id")
         constraint_annual = values.get("constraint_annual")
         constraint_total = values.get("constraint_total")
         exogenous_annual = values.get("exogenous_annual")
@@ -53,49 +64,17 @@ class Impact(OSeMOSYSBase):
 
         # Check exogenous_annual is lower than constraint_annual for each region, impact and year
         if exogenous_annual is not None and constraint_annual is not None:
-            exogenous_annual_df = json_dict_to_dataframe(exogenous_annual.data)
-            exogenous_annual_df.columns = ["REGION","YEAR","VALUE"]
-            constraint_annual_df = json_dict_to_dataframe(constraint_annual.data)
-            constraint_annual_df.columns = ["REGION","YEAR","VALUE"]
-
-            merged_df = (
-                pd.merge(
-                    exogenous_annual_df,
-                    constraint_annual_df,
-                    on=['REGION', 'YEAR'],
-                    suffixes=('_exogenous', '_constraint'),
-                    how='outer'
-                )
-                .dropna())
-
-            assert (
-                (merged_df['VALUE_exogenous'] <= merged_df['VALUE_constraint'])
-                .all()
-            ), ("Values in exogenous_annual should be lower than or equal to the corresponding " 
-                "values in constraint_annual.")
+            check_min_vals_lower_max(exogenous_annual, 
+                                     constraint_annual,
+                                     ["REGION","YEAR","VALUE"],
+                                     (f"Impact {id} values in exogenous_annual should be lower than the corresponding values in constraint_annual"))
 
         # Check exogenous_total is lower than constraint_total for each region and impact
         if exogenous_total is not None and constraint_total is not None:
-            exogenous_total_df = json_dict_to_dataframe(exogenous_total.data)
-            exogenous_total_df.columns = ["REGION","VALUE"]
-            constraint_total_df = json_dict_to_dataframe(constraint_total.data)
-            constraint_total_df.columns = ["REGION","VALUE"]
-
-            merged_df = (
-                pd.merge(
-                    exogenous_total_df,
-                    constraint_total_df,
-                    on=['REGION'],
-                    suffixes=('_exogenous', '_constraint'),
-                    how='outer'
-                )
-                .dropna())
-
-            assert (
-                (merged_df['VALUE_exogenous'] <= merged_df['VALUE_constraint'])
-                .all()
-            ), ("Values in exogenous_total should be lower than or equal to the corresponding " 
-                "values in constraint_total.")
+            check_min_vals_lower_max(exogenous_total, 
+                                     constraint_total,
+                                     ["REGION","VALUE"],
+                                     (f"Impact {id} values in exogenous_total should be lower than the corresponding values in constraint_total"))
 
         return values
     
