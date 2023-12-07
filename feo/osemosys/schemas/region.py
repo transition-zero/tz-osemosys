@@ -15,15 +15,21 @@ from .base import *
 
 
 class Region(OSeMOSYSBase):
+    """
+    Class to contain all information pertaining to regions and trade routes
+    """
     neighbours: conlist(str, min_length=0) | None
-    trade_route: OSeMOSYSData | None
+    trade_route: OSeMOSYSDataInt | None
 
     otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "TradeRoute":{"attribute":"trade_route","column_structure":["REGION","_REGION","FUEL","YEAR","VALUE"]},
+        "TradeRoute":{
+            "attribute":"trade_route",
+            "column_structure":["REGION","_REGION","FUEL","YEAR","VALUE"]},
     }
 
     @root_validator(pre=True)
-    def construct_from_components(cls, values):
+    def validation(cls, values):
+        #TODO: add any relevant validation
         neighbours = values.get("neighbours")
         trade_route = values.get("trade_route")
 
@@ -31,19 +37,18 @@ class Region(OSeMOSYSBase):
     
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["cls"]:
-        """
-        Instantiate a number of Region objects from otoole-organised csvs.
+        """Instantiate a number of Region objects from otoole-organised csvs.
 
-        Parameters
-        ----------
-        root_dir: str
-            Path to the root of the otoole csv directory
+        Args:
+            root_dir (str): Path to the root of the otoole csv directory
 
-        Returns
-        -------
-        List[Region]
-            A list of Region instances that can be used downstream or dumped to json/yaml
+        Returns:
+            List[Region] (list): A list of Region instances that can be used downstream or dumped to json/yaml
         """
+        
+        # ###########
+        # Load Data #
+        # ###########
 
         src_regions = pd.read_csv(os.path.join(root_dir, "REGION.csv"))
         routes = pd.read_csv(os.path.join(root_dir, "TradeRoute.csv"))
@@ -53,6 +58,11 @@ class Region(OSeMOSYSBase):
         except:
             dst_regions = None
 
+        # ###################
+        # Basic Data Checks #
+        #####################
+        
+        # Assert regions in REGION.csv match those in _REGION.csv
         assert (
             routes["REGION"].isin(src_regions["VALUE"]).all()
         ), "REGION in trade_route missing from REGION.csv"
@@ -61,6 +71,10 @@ class Region(OSeMOSYSBase):
             assert (
                 routes["_REGION"].isin(dst_regions["VALUE"]).all()
             ), "_REGION in trade_route missing from _REGION.csv"
+
+        # ########################
+        # Define class instances #
+        # ########################
 
         region_instances = []
         for index, region in src_regions.iterrows():
