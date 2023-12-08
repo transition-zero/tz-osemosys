@@ -86,7 +86,7 @@ class Region(OSeMOSYSBase):
                     ].values.tolist())
                     if dst_regions is not None
                     else None),
-                    trade_route = (OSeMOSYSData(data=group_to_json(
+                    trade_route = (OSeMOSYSDataInt(data=group_to_json(
                         g=routes.loc[routes["REGION"] ==  region["VALUE"]],
                         data_columns=["REGION", "_REGION","FUEL", "YEAR"],
                         target_column="VALUE",
