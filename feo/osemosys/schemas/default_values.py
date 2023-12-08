@@ -17,19 +17,18 @@ class DefaultValues(OSeMOSYSBase):
 
     @classmethod
     def from_otoole_yaml(cls, root_dir) -> "cls":
-        """
-        Instantiate a single DefaultValues object containing default values for all parameters.
+        """Instantiate a single DefaultValues object from config.yaml file
 
-        Parameters
-        ----------
-        root_dir: str
-            Path to the root of the otoole csv directory
+        Args:
+            root_dir (str): Path to the root of the otoole csv directory
 
-        Returns
-        -------
-        DefaultValues
-            A single DefaultValues instance
+        Returns:
+            DefaultValues: A single DefaultValues instance
         """
+
+        # ###########
+        # Load Data #
+        # ###########
 
         # Find otoole config yaml file in root_dir
         yaml_files = [file for file in os.listdir(root_dir) if file.endswith(".yaml") or file.endswith(".yml")]
@@ -48,6 +47,10 @@ class DefaultValues(OSeMOSYSBase):
         for key in yaml_data.keys():
             if "default" in yaml_data[key]:
                 default_values_dict[key]=yaml_data[key]["default"]
+
+        # #######################
+        # Define class instance #
+        # #######################
 
         return cls(
             id="DefaultValues",
