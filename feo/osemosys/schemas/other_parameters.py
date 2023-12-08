@@ -118,6 +118,10 @@ class OtherParameters(OSeMOSYSBase):
         else:
             raise FileNotFoundError("MODE_OF_OPERATION.csv not read in, likely missing from root_dir")
 
+        # #######################
+        # Define class instance #
+        # #######################
+
         return cls(
             id="OtherParameters",
             # TODO
@@ -126,7 +130,7 @@ class OtherParameters(OSeMOSYSBase):
             otoole_cfg=otoole_cfg,
             mode_of_operation=mode_of_operation,
             depreciation_method=(
-                OSeMOSYSData(
+                OSeMOSYSDataInt(
                     data=group_to_json(
                         g=dfs["DepreciationMethod"],
                         data_columns=["REGION"],
