@@ -146,10 +146,17 @@ def group_to_json(
 
 
 def json_dict_to_dataframe(data, prefix=""):
-    """
-    Function to convert a JSON dictionary as defined by the group_to_json()
+    """Function to convert a JSON dictionary as defined by the group_to_json()
     function into a pandas dataframe with empty column names
+
+    Args:
+        data (dict): JSON style data dict
+        prefix (str, optional): used to build a prefix for the column names when constructing the DataFrame. Defaults to "".
+
+    Returns:
+        DataFrame: data in pandas DataFrame format
     """
+
     if isinstance(data, dict):
         # If data is a dictionary, iterate through its items
         result = pd.DataFrame()
@@ -172,12 +179,19 @@ def json_dict_to_dataframe(data, prefix=""):
         return pd.DataFrame({prefix: [data]})
 
 
-def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column=None) -> "cls":
-    """
-    Add data from the given class instance to the given output dfs, returning the modified dfs
-    
+def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column=None):
+    """Add data from the given class instance to the given output dfs, returning the modified dfs
     If root_column is given, add root_column as a column to the instance data with values of self.id
     (to account for data from multiple instances, e.g. technology, being added to the same df)
+
+    Args:
+        instance (cls): Instance of a data class (such as Technology)
+        output_dfs (dict{str:df}): dict of {output_csv_name:output_data_dataframe}
+        otoole_stems (dict): Dict of mapping otoole names to RunSpec names
+        root_column (str, optional): Missing column to add (e.g. TECHNOLOGY). Defaults to None.
+
+    Returns:
+        output_dfs (dict{str:df}): output_dfs with additional data added
     """
 
     # Iterate over otoole style csv names
@@ -211,9 +225,15 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
 
 
 def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_column=None):
-    """"
-    Function to iteratively add data to output dfs and write the output CSVs
+    """Function to iteratively add data to output dfs and write the output CSVs
     Used for attributes consisting of several class instances (e.g. Technology)
+
+    Args:
+        otoole_stems (dict): Dict of mapping otoole names to RunSpec names
+        attribute (str): attribute name to write to CSVs
+        comparison_directory (str): path to comparison_directory
+        root_column (str, optional): Missing column to add (e.g. TECHNOLOGY). Defaults to None.
+
     """
 
     # Create output dfs, adding to dict with filename as key
@@ -249,11 +269,13 @@ def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
         columns (list[str]): list of column names
         error_msg (str): error message to display
     """
+    # Convert JSON style data to dataframes
     min_df = json_dict_to_dataframe(min_data.data)
     min_df.columns = columns
     max_df = json_dict_to_dataframe(max_data.data)
     max_df.columns = columns
 
+    # Combine dataframes
     columns.remove("VALUE")
     merged_df = (
         pd.merge(
@@ -265,6 +287,7 @@ def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
         )
         .dropna())
 
+    # Check that values in min_data are lower than those in max_data
     assert (
         (merged_df['VALUE_min'] < merged_df['VALUE_max'])
         .all()
