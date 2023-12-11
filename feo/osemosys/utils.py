@@ -151,7 +151,8 @@ def json_dict_to_dataframe(data, prefix=""):
 
     Args:
         data (dict): JSON style data dict
-        prefix (str, optional): used to build a prefix for the column names when constructing the DataFrame. Defaults to "".
+        prefix (str, optional): used to build a prefix for the column names when constructing the
+        DataFrame. Defaults to "".
 
     Returns:
         DataFrame: data in pandas DataFrame format
@@ -196,28 +197,26 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
 
     # Iterate over otoole style csv names
     for output_file in list(otoole_stems):
-        
         # Get class instance attribute name corresponding to otoole csv name
         sub_attribute = otoole_stems[output_file]["attribute"]
 
         # Add data from this class instance to the output_dfs
         if getattr(instance, f"{sub_attribute}") is not None:
-
-            if isinstance(getattr(instance, f"{sub_attribute}"), list):    
-                data = pd.DataFrame({"VALUE":getattr(instance, f"{sub_attribute}")})
+            if isinstance(getattr(instance, f"{sub_attribute}"), list):
+                data = pd.DataFrame({"VALUE": getattr(instance, f"{sub_attribute}")})
             else:
                 data = json_dict_to_dataframe(getattr(instance, f"{sub_attribute}").data)
-            
+
             column_structure = otoole_stems[output_file]["column_structure"][:]
             if root_column is not None:
                 column_structure.remove(root_column)
             data.columns = column_structure
-            if root_column is not None:    
+            if root_column is not None:
                 data[root_column] = instance.id
             data = data[otoole_stems[output_file]["column_structure"]]
-            #TODO: add casting to int for YEAR and MODE_OF_OPERATION?
+            # TODO: add casting to int for YEAR and MODE_OF_OPERATION?
             if not output_dfs[output_file].empty:
-                output_dfs[output_file] = pd.concat([output_dfs[output_file],data])
+                output_dfs[output_file] = pd.concat([output_dfs[output_file], data])
             else:
                 output_dfs[output_file] = data
 
@@ -239,8 +238,8 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
     # Create output dfs, adding to dict with filename as key
     output_dfs = {}
     for file in list(otoole_stems):
-        output_dfs[file] = pd.DataFrame(columns = otoole_stems[file]["column_structure"])
-    
+        output_dfs[file] = pd.DataFrame(columns=otoole_stems[file]["column_structure"])
+
     # Add data to output dfs iteratively for attributes with multiple instances (eg. technologies)
     if isinstance(getattr(self, f"{attribute}"), list):
         if root_column is None:
@@ -248,16 +247,23 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
         id_list = []
         for instance in getattr(self, f"{attribute}"):
             id_list.append(instance.id)
-            output_dfs = add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column)
-        (pd.DataFrame(id_list, columns = ["VALUE"])
-         .to_csv(os.path.join(comparison_directory, root_column+".csv"), index=False))
+            output_dfs = add_instance_data_to_output_dfs(
+                instance, output_dfs, otoole_stems, root_column
+            )
+        (
+            pd.DataFrame(id_list, columns=["VALUE"]).to_csv(
+                os.path.join(comparison_directory, root_column + ".csv"), index=False
+            )
+        )
     # Add data to output dfs once for single instance attributes (eg. time_definition)
     else:
-        output_dfs = add_instance_data_to_output_dfs(getattr(self, f"{attribute}"), output_dfs, otoole_stems)
+        output_dfs = add_instance_data_to_output_dfs(
+            getattr(self, f"{attribute}"), output_dfs, otoole_stems
+        )
 
     # Write output csv files
     for file in list(output_dfs):
-        output_dfs[file].to_csv(os.path.join(comparison_directory, file+".csv"), index=False)
+        output_dfs[file].to_csv(os.path.join(comparison_directory, file + ".csv"), index=False)
 
 
 def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
@@ -277,18 +283,9 @@ def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
 
     # Combine dataframes
     columns.remove("VALUE")
-    merged_df = (
-        pd.merge(
-            min_df,
-            max_df,
-            on=columns,
-            suffixes=('_min', '_max'),
-            how='outer'
-        )
-        .dropna())
+    merged_df = pd.merge(
+        min_df, max_df, on=columns, suffixes=("_min", "_max"), how="outer"
+    ).dropna()
 
     # Check that values in min_data are lower than those in max_data
-    assert (
-        (merged_df['VALUE_min'] < merged_df['VALUE_max'])
-        .all()
-    ), f"{error_msg}"
+    assert (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all(), f"{error_msg}"
