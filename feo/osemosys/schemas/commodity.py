@@ -1,14 +1,14 @@
 import os
-
-import pandas as pd
-import numpy as np
-from pydantic import BaseModel, conlist, root_validator
-from typing import ClassVar
 from pathlib import Path
+from typing import ClassVar, List, Union
 
-from feo.osemosys.utils import *
+import numpy as np
+import pandas as pd
+from pydantic import BaseModel, root_validator
 
-from .base import *
+from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
+
+from .base import OSeMOSYSBase, OSeMOSYSData
 
 
 class OtooleCfg(BaseModel):
@@ -17,6 +17,7 @@ class OtooleCfg(BaseModel):
     """
 
     empty_dfs: List[str] | None
+
 
 class Commodity(OSeMOSYSBase):
     # either demand (region:year:timeslice:value)
@@ -28,53 +29,56 @@ class Commodity(OSeMOSYSBase):
     is_renewable: OSeMOSYSData | None  # why would this change over time??
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "SpecifiedAnnualDemand":{
-            "attribute":"demand_annual",
-            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
-        "SpecifiedDemandProfile":{
-            "attribute":"demand_profile",
-            "column_structure":["REGION","FUEL","TIMESLICE","YEAR","VALUE"]},
-        "AccumulatedAnnualDemand":{
-            "attribute":"accumulated_demand",
-            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
-        "RETagFuel":{
-            "attribute":"is_renewable",
-            "column_structure":["REGION","FUEL","YEAR","VALUE"]},
+    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+        "SpecifiedAnnualDemand": {
+            "attribute": "demand_annual",
+            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "SpecifiedDemandProfile": {
+            "attribute": "demand_profile",
+            "column_structure": ["REGION", "FUEL", "TIMESLICE", "YEAR", "VALUE"],
+        },
+        "AccumulatedAnnualDemand": {
+            "attribute": "accumulated_demand",
+            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "RETagFuel": {
+            "attribute": "is_renewable",
+            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
+        },
     }
 
     @root_validator(pre=True)
     def validation(cls, values):
         id = values.get("id")
-        demand_annual = values.get("demand_annual")
+        values.get("demand_annual")
         demand_profile = values.get("demand_profile")
-        accumulated_demand = values.get("accumulated_demand")
-        is_renewable = values.get("is_renewable")
-        
+        values.get("accumulated_demand")
+        values.get("is_renewable")
+
         # Check demand_profile sums to one, within leniency
         if demand_profile is not None:
-            #TODO: determine if leniency of 0.05 is acceptable
+            # TODO: determine if leniency of 0.05 is acceptable
             leniency = 0.05
             demand_profile_df = json_dict_to_dataframe(demand_profile.data)
-            demand_profile_df.columns = ["REGION","TIMESLICE","YEAR","VALUE"]
-            assert (
-                np.allclose(demand_profile_df.groupby(["REGION", "YEAR"])['VALUE'].sum(), 
-                            1, 
-                            atol=leniency)
-            ), (f"demand_profile must sum to one (within {leniency}) for all REGION," 
-                f" YEAR, and commodity; commodity {id} does not")
-        
+            demand_profile_df.columns = ["REGION", "TIMESLICE", "YEAR", "VALUE"]
+            assert np.allclose(
+                demand_profile_df.groupby(["REGION", "YEAR"])["VALUE"].sum(), 1, atol=leniency
+            ), (
+                f"demand_profile must sum to one (within {leniency}) for all REGION,"
+                f" YEAR, and commodity; commodity {id} does not"
+            )
+
         return values
 
     @classmethod
-    def from_otoole_csv(cls, root_dir) -> List["cls"]:
-        
+    def from_otoole_csv(cls, root_dir):
         # ###########
         # Load Data #
         # ###########
 
         df_commodity = pd.read_csv(os.path.join(root_dir, "FUEL.csv"))
-        
+
         dfs = {}
         otoole_cfg = OtooleCfg(empty_dfs=[])
         for key in list(cls.otoole_stems):
@@ -116,7 +120,9 @@ class Commodity(OSeMOSYSBase):
                     demand_annual=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["SpecifiedAnnualDemand"].loc[dfs["SpecifiedAnnualDemand"]["FUEL"] == commodity],
+                                g=dfs["SpecifiedAnnualDemand"].loc[
+                                    dfs["SpecifiedAnnualDemand"]["FUEL"] == commodity
+                                ],
                                 root_column="FUEL",
                                 data_columns=["REGION", "YEAR"],
                                 target_column="VALUE",
@@ -128,7 +134,9 @@ class Commodity(OSeMOSYSBase):
                     demand_profile=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["SpecifiedDemandProfile"].loc[dfs["SpecifiedDemandProfile"]["FUEL"] == commodity],
+                                g=dfs["SpecifiedDemandProfile"].loc[
+                                    dfs["SpecifiedDemandProfile"]["FUEL"] == commodity
+                                ],
                                 root_column="FUEL",
                                 data_columns=["REGION", "TIMESLICE", "YEAR"],
                                 target_column="VALUE",
@@ -137,8 +145,8 @@ class Commodity(OSeMOSYSBase):
                         if commodity in dfs["SpecifiedDemandProfile"]["FUEL"].values
                         else None
                     ),
-                    #TODO: why does this default year values to str rather than ints?
-                    accumulated_demand=(   
+                    # TODO: why does this default year values to str rather than ints?
+                    accumulated_demand=(
                         OSeMOSYSData(
                             data=group_to_json(
                                 g=dfs["AccumulatedAnnualDemand"].loc[
