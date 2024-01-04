@@ -1,13 +1,12 @@
-import os
+from pathlib import Path
+from typing import ClassVar, List, Union
 
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
-from typing import ClassVar
-from pathlib import Path
 
-from feo.osemosys.utils import *
+from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
 
-from .base import *
+from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
 
 
 class OtooleCfg(BaseModel):
@@ -34,57 +33,81 @@ class OtherParameters(OSeMOSYSBase):
     renewable_production_target: OSeMOSYSData | None
 
     otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[dict[str:dict[str:Union[str, list[str]]]]] = {
-        "MODE_OF_OPERATION":{"attribute":"mode_of_operation","column_structure":["VALUE"]},
-        "DepreciationMethod":{"attribute":"depreciation_method","column_structure":["REGION","VALUE"]},
-        "DiscountRate":{"attribute":"discount_rate","column_structure":["REGION","VALUE"]},
-        "DiscountRateIdv":{"attribute":"discount_rate_idv","column_structure":["REGION","TECHNOLOGY","VALUE"]},
-        "DiscountRateStorage":{"attribute":"discount_rate_storage","column_structure":["REGION","STORAGE","VALUE"]},
-        "ReserveMargin":{"attribute":"reserve_margin","column_structure":["REGION","YEAR","VALUE"]},
-        "ReserveMarginTagFuel":{"attribute":"reserve_margin_tag_fuel","column_structure":["REGION","FUEL","YEAR","VALUE"]},
-        "ReserveMarginTagTechnology":{"attribute":"reserve_margin_tag_technology","column_structure":["REGION","TECHNOLOGY","YEAR","VALUE"]},
-        "REMinProductionTarget":{"attribute":"renewable_production_target","column_structure":["REGION","YEAR","VALUE"]},
+    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+        "MODE_OF_OPERATION": {"attribute": "mode_of_operation", "column_structure": ["VALUE"]},
+        "DepreciationMethod": {
+            "attribute": "depreciation_method",
+            "column_structure": ["REGION", "VALUE"],
+        },
+        "DiscountRate": {"attribute": "discount_rate", "column_structure": ["REGION", "VALUE"]},
+        "DiscountRateIdv": {
+            "attribute": "discount_rate_idv",
+            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
+        },
+        "DiscountRateStorage": {
+            "attribute": "discount_rate_storage",
+            "column_structure": ["REGION", "STORAGE", "VALUE"],
+        },
+        "ReserveMargin": {
+            "attribute": "reserve_margin",
+            "column_structure": ["REGION", "YEAR", "VALUE"],
+        },
+        "ReserveMarginTagFuel": {
+            "attribute": "reserve_margin_tag_fuel",
+            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "ReserveMarginTagTechnology": {
+            "attribute": "reserve_margin_tag_technology",
+            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
+        },
+        "REMinProductionTarget": {
+            "attribute": "renewable_production_target",
+            "column_structure": ["REGION", "YEAR", "VALUE"],
+        },
     }
-    
+
     @root_validator(pre=True)
     def validator(cls, values):
         mode_of_operation = values.get("mode_of_operation")
-        depreciation_method = values.get("depreciation_method")
+        values.get("depreciation_method")
         discount_rate = values.get("discount_rate")
         discount_rate_idv = values.get("discount_rate_idv")
         discount_rate_storage = values.get("discount_rate_storage")
         reserve_margin = values.get("reserve_margin")
         reserve_margin_tag_fuel = values.get("reserve_margin_tag_fuel")
         reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
-        renewable_production_target = values.get("renewable_production_target")
-        
+        values.get("renewable_production_target")
+
         # Failed to specify mode_of_operation
         if not mode_of_operation:
             raise ValueError("mode_of_operation (List[int]) must be specified.")
-        
+
         # Failed to fully describe reserve_margin
         if reserve_margin is not None and reserve_margin_tag_fuel is None:
             raise ValueError("If defining reserve_margin, reserve_margin_tag_fuel must be defined")
         if reserve_margin is not None and reserve_margin_tag_technology is None:
-            raise ValueError("If defining reserve_margin, reserve_margin_tag_technology must be defined")
+            raise ValueError(
+                "If defining reserve_margin, reserve_margin_tag_technology must be defined"
+            )
 
         # Check discount rates are in decimals
         if discount_rate is not None:
             df = json_dict_to_dataframe(discount_rate.data).iloc[:, -1]
-            assert ((df.abs() < 1).all()), "discount_rate should take decimal values"
+            assert (df.abs() < 1).all(), "discount_rate should take decimal values"
         if discount_rate_idv is not None:
             df = json_dict_to_dataframe(discount_rate_idv.data).iloc[:, -1]
-            assert ((df.abs() < 1).all()), "discount_rate_idv should take decimal values"
+            assert (df.abs() < 1).all(), "discount_rate_idv should take decimal values"
         if discount_rate_storage is not None:
             df = json_dict_to_dataframe(discount_rate_storage.data).iloc[:, -1]
-            assert ((df.abs() < 1).all()), "discount_rate_storage should take decimal values"
+            assert (df.abs() < 1).all(), "discount_rate_storage should take decimal values"
 
         return values
 
     @classmethod
-    def from_otoole_csv(cls, root_dir) -> "cls":
+    def from_otoole_csv(cls, root_dir):
         """
-        Instantiate a single OtherParameter object containing all relevant data from otoole-organised csvs.
+        Instantiate a single OtherParameter object containing all relevant data from
+        otoole-organised csvs.
 
         Parameters
         ----------
@@ -116,7 +139,9 @@ class OtherParameters(OSeMOSYSBase):
         if "MODE_OF_OPERATION" in dfs:
             mode_of_operation = dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist()
         else:
-            raise FileNotFoundError("MODE_OF_OPERATION.csv not read in, likely missing from root_dir")
+            raise FileNotFoundError(
+                "MODE_OF_OPERATION.csv not read in, likely missing from root_dir"
+            )
 
         # #######################
         # Define class instance #
@@ -155,7 +180,7 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DiscountRateIdv"],
-                        data_columns=["REGION","TECHNOLOGY"],
+                        data_columns=["REGION", "TECHNOLOGY"],
                         target_column="VALUE",
                     )
                 )
@@ -166,7 +191,7 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["DiscountRateStorage"],
-                        data_columns=["REGION","STORAGE"],
+                        data_columns=["REGION", "STORAGE"],
                         target_column="VALUE",
                     )
                 )
@@ -177,7 +202,7 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["ReserveMargin"],
-                        data_columns=["REGION","YEAR"],
+                        data_columns=["REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
@@ -188,7 +213,7 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSDataInt(
                     data=group_to_json(
                         g=dfs["ReserveMarginTagFuel"],
-                        data_columns=["REGION","FUEL","YEAR"],
+                        data_columns=["REGION", "FUEL", "YEAR"],
                         target_column="VALUE",
                     )
                 )
@@ -199,7 +224,7 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSDataInt(
                     data=group_to_json(
                         g=dfs["ReserveMarginTagTechnology"],
-                        data_columns=["REGION","TECHNOLOGY","YEAR"],
+                        data_columns=["REGION", "TECHNOLOGY", "YEAR"],
                         target_column="VALUE",
                     )
                 )
@@ -210,12 +235,11 @@ class OtherParameters(OSeMOSYSBase):
                 OSeMOSYSData(
                     data=group_to_json(
                         g=dfs["REMinProductionTarget"],
-                        data_columns=["REGION","YEAR"],
+                        data_columns=["REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "REMinProductionTarget" not in otoole_cfg.empty_dfs
                 else None
-            )
-            )
-    
+            ),
+        )
