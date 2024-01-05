@@ -1,8 +1,9 @@
 import os
+from typing import Dict, List, Union
 
 import yaml
 
-from .base import OSeMOSYSBase, OSeMOSYSData
+from .base import OSeMOSYSBase
 
 
 class DefaultValues(OSeMOSYSBase):
@@ -10,11 +11,22 @@ class DefaultValues(OSeMOSYSBase):
     Class to contain all default values
     """
 
-    values: OSeMOSYSData
+    values: Dict[str, Dict[str, Union[str, int, float, List]]]
 
     @classmethod
     def from_otoole_yaml(cls, root_dir) -> "DefaultValues":
-        """Instantiate a single DefaultValues object from config.yaml file
+        """Instantiate a single DefaultValues dict from config.yaml file
+
+        Contains information for each parameter on:
+        indices - column names
+        type - param
+        dtype - data type
+        default - default values
+        (short_name - optional shortened parameter name)
+
+        And information for each set on:
+        dtype - data type
+        type - set
 
         Args:
             root_dir (str): Path to the root of the otoole csv directory
@@ -33,6 +45,7 @@ class DefaultValues(OSeMOSYSBase):
         ]
         if len(yaml_files) == 0:
             raise FileNotFoundError("No otoole config YAML file found in the directory")
+        # TODO: include hardcoded default values here if none given?
         elif len(yaml_files) > 1:
             raise ValueError(">1 otoole config YAML files found in the directory, only 1 required")
         yaml_file = yaml_files[0]
@@ -40,12 +53,6 @@ class DefaultValues(OSeMOSYSBase):
         # Read in otoole config yaml data
         with open(os.path.join(root_dir, yaml_file)) as file:
             yaml_data = yaml.safe_load(file)
-
-        # Create default value dictionary for all parameters
-        default_values_dict = {}
-        for key in yaml_data.keys():
-            if "default" in yaml_data[key]:
-                default_values_dict[key] = yaml_data[key]["default"]
 
         # #######################
         # Define class instance #
@@ -56,5 +63,5 @@ class DefaultValues(OSeMOSYSBase):
             # TODO
             long_name=None,
             description=None,
-            values=OSeMOSYSData(data=default_values_dict),
+            values=yaml_data,
         )

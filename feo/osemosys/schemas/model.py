@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import pandas as pd
+import yaml
 
 from feo.osemosys.schemas.base import OSeMOSYSBase
 from feo.osemosys.schemas.commodity import Commodity
@@ -71,9 +72,9 @@ class RunSpec(OSeMOSYSBase):
         print("coords")
         print(coords)
 
-    def to_otoole_csv(self, comparison_directory):
+    def to_otoole(self, comparison_directory):
         """
-        Convert Runspec to otoole style output CSVs
+        Convert Runspec to otoole style output CSVs and config.yaml
 
         Parameters
         ----------
@@ -129,6 +130,11 @@ class RunSpec(OSeMOSYSBase):
                 "STORAGE",
             )
 
+        # write config yaml
+        yaml_file_path = os.path.join(comparison_directory, "config.yaml")
+        with open(yaml_file_path, "w") as yaml_file:
+            yaml.dump(self.default_values.values, yaml_file, default_flow_style=False)
+
     @classmethod
     def from_otoole(cls, root_dir):
         return cls(
@@ -147,3 +153,15 @@ class RunSpec(OSeMOSYSBase):
             other_parameters=OtherParameters.from_otoole_csv(root_dir=root_dir),
             default_values=DefaultValues.from_otoole_yaml(root_dir=root_dir),
         )
+
+    def to_osemosys_data_file(self, root_dir):
+        """
+        Convert Runspec to osemosys ready text file (uses otoole)
+
+        Parameters
+        ----------
+        root_dir: str
+            Path to the directory containing data CSVs and yaml config file
+
+        #TODO: acceptable to use otoole here or should otoole only be for post processing?
+        """
