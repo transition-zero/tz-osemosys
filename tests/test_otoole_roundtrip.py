@@ -14,6 +14,8 @@ comparison_directory = "otoole_compare/model_three_edited/"
 # uses the class method on the base class to instantiate itself
 run_spec_object = RunSpec.from_otoole(root_dir=root_dir)
 
+run_spec_dataset = run_spec_object.to_xr_ds()
+
 # type(run_spec_object) == <class RunSpec>
 run_spec_object.to_otoole(comparison_directory=comparison_directory)
 
