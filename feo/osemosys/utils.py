@@ -223,15 +223,18 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
     return output_dfs
 
 
-def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_column=None):
+def to_csv_helper(
+    self, otoole_stems, attribute, comparison_directory=None, root_column=None, write_csv=False
+):
     """Function to iteratively add data to output dfs and write the output CSVs
     Used for attributes consisting of several class instances (e.g. Technology)
 
     Args:
         otoole_stems (dict): Dict of mapping otoole names to RunSpec names
         attribute (str): attribute name to write to CSVs
-        comparison_directory (str): path to comparison_directory
+        comparison_directory (str, optional): path to comparison_directory
         root_column (str, optional): Missing column to add (e.g. TECHNOLOGY). Defaults to None.
+        write_csv (bool, optional): Flag to indicate if data should be written to CSVs
 
     """
 
@@ -250,11 +253,8 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
             output_dfs = add_instance_data_to_output_dfs(
                 instance, output_dfs, otoole_stems, root_column
             )
-        (
-            pd.DataFrame(id_list, columns=["VALUE"]).to_csv(
-                os.path.join(comparison_directory, root_column + ".csv"), index=False
-            )
-        )
+        output_dfs[root_column] = pd.DataFrame(id_list, columns=["VALUE"])
+
     # Add data to output dfs once for single instance attributes (eg. time_definition)
     else:
         output_dfs = add_instance_data_to_output_dfs(
@@ -262,8 +262,12 @@ def to_csv_helper(self, otoole_stems, attribute, comparison_directory, root_colu
         )
 
     # Write output csv files
-    for file in list(output_dfs):
-        output_dfs[file].to_csv(os.path.join(comparison_directory, file + ".csv"), index=False)
+    if write_csv:
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(comparison_directory, file + ".csv"), index=False)
+    # Return dict of dataframes
+    else:
+        return output_dfs
 
 
 def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
