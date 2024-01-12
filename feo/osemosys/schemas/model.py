@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import pandas as pd
+import xarray as xr
 import yaml
 
 from feo.osemosys.schemas.base import OSeMOSYSBase
@@ -49,28 +50,59 @@ class RunSpec(OSeMOSYSBase):
           self: this RunSpec
 
         Returns:
-          xr.Dataset: An XArray dataset
+          xr.Dataset: An XArray dataset containing all data from the RunSpec
         """
 
-        coords = {
-            "REGION": [region.id for region in self.regions],
-            "_REGION": [region.id for region in self.regions],
-            "TIMESLICE": [timeslice for timeslice in self.time_definition.timeslice],
-            "DAYTYPE": [daytype for daytype in self.time_definition.day_type],
-            "DAILYTIMEBRACKET": [
-                timebracket for timebracket in self.time_definition.daily_time_bracket
-            ],
-            "SEASON": [season for season in self.time_definition.season],
-            "YEAR": [year for year in self.time_definition.years],
-            "STORAGE": [],
-            "MODE_OF_OPERATION": [],
-            "EMISSION": [],
-            "COMMODITY": [],
-            "TECHNOLOGY": [],
+        # Create dataframes for params and sets
+        time_definition = to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition")
+        other_params = to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters")
+        region = to_csv_helper(self, Region.otoole_stems, "regions", root_column="REGION")
+        commodities = to_csv_helper(self, Commodity.otoole_stems, "commodities", root_column="FUEL")
+        impacts = to_csv_helper(self, Impact.otoole_stems, "impacts", root_column="EMISSION")
+        technologies = to_csv_helper(
+            self, Technology.otoole_stems, "technologies", root_column="TECHNOLOGY"
+        )
+        if self.storage_technologies:
+            storage_technologies = to_csv_helper(
+                self,
+                TechnologyStorage.otoole_stems,
+                "storage_technologies",
+                root_column="STORAGE",
+            )
+            technologies = {**technologies, **storage_technologies}
+
+        # Combine dataframes
+        data_dfs = {
+            **time_definition,
+            **other_params,
+            **region,
+            **commodities,
+            **impacts,
+            **technologies,
         }
 
-        print("coords")
-        print(coords)
+        # Set index to non-VALUE columns for parameters
+        for df_name, df in data_dfs.items():
+            if not df_name.isupper():
+                index = list(df.columns)
+                index.remove("VALUE")
+                data_dfs[df_name] = df.set_index(index)
+        # Convert params to data arrays
+        data_arrays = {
+            x: xr.DataArray.from_series(y["VALUE"]) for x, y in data_dfs.items() if not x.isupper()
+        }
+        # Create dataset
+        ds = xr.Dataset(data_vars=data_arrays)
+
+        # Replace any nan values with default values for corrsponding param
+        default_values = self.default_values.values
+        # Add default values as attribute of each data array
+        for name, data in default_values.items():
+            if name in list(ds.data_vars.keys()):
+                ds[name].attrs["default"] = data["default"]
+                ds[name] = ds[name].fillna(data["default"])
+
+        return ds
 
     def to_otoole(self, comparison_directory):
         """
@@ -89,23 +121,51 @@ class RunSpec(OSeMOSYSBase):
         # Write output CSVs
 
         # time_definition
-        to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
+        to_csv_helper(
+            self,
+            TimeDefinition.otoole_stems,
+            "time_definition",
+            comparison_directory,
+            write_csv=True,
+        )
 
         # other_parameters
-        to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters", comparison_directory)
+        to_csv_helper(
+            self,
+            OtherParameters.otoole_stems,
+            "other_parameters",
+            comparison_directory,
+            write_csv=True,
+        )
 
         # regions
-        to_csv_helper(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
+        to_csv_helper(
+            self, Region.otoole_stems, "regions", comparison_directory, "REGION", write_csv=True
+        )
 
         # commodities
-        to_csv_helper(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
+        to_csv_helper(
+            self,
+            Commodity.otoole_stems,
+            "commodities",
+            comparison_directory,
+            "FUEL",
+            write_csv=True,
+        )
 
         # impacts
-        to_csv_helper(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
+        to_csv_helper(
+            self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION", write_csv=True
+        )
 
         # technologies
         to_csv_helper(
-            self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY"
+            self,
+            Technology.otoole_stems,
+            "technologies",
+            comparison_directory,
+            "TECHNOLOGY",
+            write_csv=True,
         )
 
         # storage_technologies
@@ -128,6 +188,7 @@ class RunSpec(OSeMOSYSBase):
                 "storage_technologies",
                 comparison_directory,
                 "STORAGE",
+                write_csv=True,
             )
 
         # write config yaml
