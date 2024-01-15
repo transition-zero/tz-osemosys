@@ -81,16 +81,12 @@ class RunSpec(OSeMOSYSBase):
             **technologies,
         }
 
-        # Set index to non-VALUE columns for parameters
+        # Set index to columns other than "VALUE" (only for parameter dataframes)
         for df_name, df in data_dfs.items():
             if not df_name.isupper():
-                index = list(df.columns)
-                index.remove("VALUE")
-                data_dfs[df_name] = df.set_index(index)
+                data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
         # Convert params to data arrays
-        data_arrays = {
-            x: xr.DataArray.from_series(y["VALUE"]) for x, y in data_dfs.items() if not x.isupper()
-        }
+        data_arrays = {x: y.to_xarray()["VALUE"] for x, y in data_dfs.items() if not x.isupper()}
         # Create dataset
         ds = xr.Dataset(data_vars=data_arrays)
 
