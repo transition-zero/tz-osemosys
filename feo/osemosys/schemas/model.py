@@ -100,19 +100,19 @@ class RunSpec(OSeMOSYSBase):
 
         return ds
 
-    def to_otoole(self, comparison_directory):
+    def to_otoole(self, output_directory):
         """
         Convert Runspec to otoole style output CSVs and config.yaml
 
         Parameters
         ----------
-        comparison_directory: str
+        output_directory: str
             Path to the output directory for CSV files to be placed
         """
 
         # Clear comparison directory
-        for file in os.listdir(comparison_directory):
-            os.remove(os.path.join(comparison_directory, file))
+        for file in os.listdir(output_directory):
+            os.remove(os.path.join(output_directory, file))
 
         # Write output CSVs
 
@@ -121,7 +121,7 @@ class RunSpec(OSeMOSYSBase):
             self,
             TimeDefinition.otoole_stems,
             "time_definition",
-            comparison_directory,
+            output_directory,
             write_csv=True,
         )
 
@@ -130,13 +130,13 @@ class RunSpec(OSeMOSYSBase):
             self,
             OtherParameters.otoole_stems,
             "other_parameters",
-            comparison_directory,
+            output_directory,
             write_csv=True,
         )
 
         # regions
         to_csv_helper(
-            self, Region.otoole_stems, "regions", comparison_directory, "REGION", write_csv=True
+            self, Region.otoole_stems, "regions", output_directory, "REGION", write_csv=True
         )
 
         # commodities
@@ -144,14 +144,14 @@ class RunSpec(OSeMOSYSBase):
             self,
             Commodity.otoole_stems,
             "commodities",
-            comparison_directory,
+            output_directory,
             "FUEL",
             write_csv=True,
         )
 
         # impacts
         to_csv_helper(
-            self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION", write_csv=True
+            self, Impact.otoole_stems, "impacts", output_directory, "EMISSION", write_csv=True
         )
 
         # technologies
@@ -159,7 +159,7 @@ class RunSpec(OSeMOSYSBase):
             self,
             Technology.otoole_stems,
             "technologies",
-            comparison_directory,
+            output_directory,
             "TECHNOLOGY",
             write_csv=True,
         )
@@ -171,24 +171,24 @@ class RunSpec(OSeMOSYSBase):
             for file in list(storage_csv_dict):
                 (
                     pd.DataFrame(columns=storage_csv_dict[file]["column_structure"]).to_csv(
-                        os.path.join(comparison_directory, file + ".csv"), index=False
+                        os.path.join(output_directory, file + ".csv"), index=False
                     )
                 )
                 pd.DataFrame(columns=["VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "STORAGE.csv"), index=False
+                    os.path.join(output_directory, "STORAGE.csv"), index=False
                 )
         else:
             to_csv_helper(
                 self,
                 TechnologyStorage.otoole_stems,
                 "storage_technologies",
-                comparison_directory,
+                output_directory,
                 "STORAGE",
                 write_csv=True,
             )
 
         # write config yaml
-        yaml_file_path = os.path.join(comparison_directory, "config.yaml")
+        yaml_file_path = os.path.join(output_directory, "config.yaml")
         with open(yaml_file_path, "w") as yaml_file:
             yaml.dump(self.default_values.values, yaml_file, default_flow_style=False)
 

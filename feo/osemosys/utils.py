@@ -224,7 +224,7 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
 
 
 def to_csv_helper(
-    self, otoole_stems, attribute, comparison_directory=None, root_column=None, write_csv=False
+    self, otoole_stems, attribute, output_directory=None, root_column=None, write_csv=False
 ):
     """Function to iteratively add data to output dfs and write the output CSVs
     Used for attributes consisting of several class instances (e.g. Technology)
@@ -232,7 +232,7 @@ def to_csv_helper(
     Args:
         otoole_stems (dict): Dict of mapping otoole names to RunSpec names
         attribute (str): attribute name to write to CSVs
-        comparison_directory (str, optional): path to comparison_directory
+        output_directory (str, optional): path to output_directory
         root_column (str, optional): Missing column to add (e.g. TECHNOLOGY). Defaults to None.
         write_csv (bool, optional): Flag to indicate if data should be written to CSVs
 
@@ -264,7 +264,7 @@ def to_csv_helper(
     # Write output csv files
     if write_csv:
         for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(comparison_directory, file + ".csv"), index=False)
+            output_dfs[file].to_csv(os.path.join(output_directory, file + ".csv"), index=False)
     # Return dict of dataframes
     else:
         return output_dfs
