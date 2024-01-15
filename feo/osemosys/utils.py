@@ -223,51 +223,68 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
     return output_dfs
 
 
-def to_csv_helper(
-    self, otoole_stems, attribute, output_directory=None, root_column=None, write_csv=False
-):
-    """Function to iteratively add data to output dfs and write the output CSVs
-    Used for attributes consisting of several class instances (e.g. Technology)
+def to_df_helper(self):
+    """Function to convert Runspec to a dict of dfs, corrsponding to otoole style output CSVs
 
     Args:
-        otoole_stems (dict): Dict of mapping otoole names to RunSpec names
-        attribute (str): attribute name to write to CSVs
-        output_directory (str, optional): path to output_directory
-        root_column (str, optional): Missing column to add (e.g. TECHNOLOGY). Defaults to None.
-        write_csv (bool, optional): Flag to indicate if data should be written to CSVs
+        self: An instance of the Runspec class
 
+    Returns:
+        output_dfs (dict{str:df}): a dict of output CSV name and associated df
     """
+    # Attribute and root column names
+    attributes = {
+        "time_definition": {"otoole_stems": self.time_definition.otoole_stems, "root_column": None},
+        "other_parameters": {
+            "otoole_stems": self.other_parameters.otoole_stems,
+            "root_column": None,
+        },
+        "regions": {"otoole_stems": self.regions[0].otoole_stems, "root_column": "REGION"},
+        "commodities": {"otoole_stems": self.commodities[0].otoole_stems, "root_column": "FUEL"},
+        "impacts": {"otoole_stems": self.impacts[0].otoole_stems, "root_column": "EMISSION"},
+        "technologies": {
+            "otoole_stems": self.technologies[0].otoole_stems,
+            "root_column": "TECHNOLOGY",
+        },
+    }
+    # Add storage technologies to attributes dict if present
+    if self.storage_technologies:
+        attributes["storage_technologies"] = {
+            "otoole_stems": self.storage_technologies[0].otoole_stems,
+            "root_column": "STORAGE",
+        }
 
-    # Create output dfs, adding to dict with filename as key
     output_dfs = {}
-    for file in list(otoole_stems):
-        output_dfs[file] = pd.DataFrame(columns=otoole_stems[file]["column_structure"])
+    for attribute, values in attributes.items():
+        otoole_stems = values["otoole_stems"]
+        root_column = values["root_column"]
 
-    # Add data to output dfs iteratively for attributes with multiple instances (eg. technologies)
-    if isinstance(getattr(self, f"{attribute}"), list):
-        if root_column is None:
-            raise ValueError("root_column is required for attributes with multiple instances")
-        id_list = []
-        for instance in getattr(self, f"{attribute}"):
-            id_list.append(instance.id)
-            output_dfs = add_instance_data_to_output_dfs(
-                instance, output_dfs, otoole_stems, root_column
+        # Create output dfs, adding to dict with filename as key
+        attribute_dfs = {}
+        for file in list(otoole_stems):
+            attribute_dfs[file] = pd.DataFrame(columns=otoole_stems[file]["column_structure"])
+
+        # Add data to output dfs iteratively for attributes with multiple instances (eg. impacts)
+        if isinstance(getattr(self, f"{attribute}"), list):
+            if root_column is None:
+                raise ValueError("root_column is required for attributes with multiple instances")
+            id_list = []
+            for instance in getattr(self, f"{attribute}"):
+                id_list.append(instance.id)
+                attribute_dfs = add_instance_data_to_output_dfs(
+                    instance, attribute_dfs, otoole_stems, root_column
+                )
+            attribute_dfs[root_column] = pd.DataFrame(id_list, columns=["VALUE"])
+
+        # Add data to output dfs once for single instance attributes (eg. time_definition)
+        else:
+            attribute_dfs = add_instance_data_to_output_dfs(
+                getattr(self, f"{attribute}"), attribute_dfs, otoole_stems
             )
-        output_dfs[root_column] = pd.DataFrame(id_list, columns=["VALUE"])
 
-    # Add data to output dfs once for single instance attributes (eg. time_definition)
-    else:
-        output_dfs = add_instance_data_to_output_dfs(
-            getattr(self, f"{attribute}"), output_dfs, otoole_stems
-        )
+        output_dfs = {**output_dfs, **attribute_dfs}
 
-    # Write output csv files
-    if write_csv:
-        for file in list(output_dfs):
-            output_dfs[file].to_csv(os.path.join(output_directory, file + ".csv"), index=False)
-    # Return dict of dataframes
-    else:
-        return output_dfs
+    return output_dfs
 
 
 def check_min_vals_lower_max(min_data, max_data, columns, error_msg):

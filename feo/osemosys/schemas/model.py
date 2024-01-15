@@ -13,7 +13,7 @@ from feo.osemosys.schemas.other_parameters import OtherParameters
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import to_csv_helper
+from feo.osemosys.utils import to_df_helper
 
 
 class RunSpec(OSeMOSYSBase):
@@ -47,39 +47,14 @@ class RunSpec(OSeMOSYSBase):
         Return the current RunSpec as an xarray dataset
 
         Args:
-          self: this RunSpec
+          self: this RunSpec instance
 
         Returns:
           xr.Dataset: An XArray dataset containing all data from the RunSpec
         """
 
-        # Create dataframes for params and sets
-        time_definition = to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition")
-        other_params = to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters")
-        region = to_csv_helper(self, Region.otoole_stems, "regions", root_column="REGION")
-        commodities = to_csv_helper(self, Commodity.otoole_stems, "commodities", root_column="FUEL")
-        impacts = to_csv_helper(self, Impact.otoole_stems, "impacts", root_column="EMISSION")
-        technologies = to_csv_helper(
-            self, Technology.otoole_stems, "technologies", root_column="TECHNOLOGY"
-        )
-        if self.storage_technologies:
-            storage_technologies = to_csv_helper(
-                self,
-                TechnologyStorage.otoole_stems,
-                "storage_technologies",
-                root_column="STORAGE",
-            )
-            technologies = {**technologies, **storage_technologies}
-
-        # Combine dataframes
-        data_dfs = {
-            **time_definition,
-            **other_params,
-            **region,
-            **commodities,
-            **impacts,
-            **technologies,
-        }
+        # Convert Runspec data to dfs
+        data_dfs = to_df_helper(self)
 
         # Set index to columns other than "VALUE" (only for parameter dataframes)
         for df_name, df in data_dfs.items():
@@ -90,7 +65,7 @@ class RunSpec(OSeMOSYSBase):
         # Create dataset
         ds = xr.Dataset(data_vars=data_arrays)
 
-        # Replace any nan values with default values for corrsponding param
+        # Replace any nan values with default values for corresponding param
         default_values = self.default_values.values
         # Add default values as attribute of each data array
         for name, data in default_values.items():
@@ -114,59 +89,15 @@ class RunSpec(OSeMOSYSBase):
         for file in os.listdir(output_directory):
             os.remove(os.path.join(output_directory, file))
 
+        # Convert Runspec data to dfs
+        output_dfs = to_df_helper(self)
+
         # Write output CSVs
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(output_directory, file + ".csv"), index=False)
 
-        # time_definition
-        to_csv_helper(
-            self,
-            TimeDefinition.otoole_stems,
-            "time_definition",
-            output_directory,
-            write_csv=True,
-        )
-
-        # other_parameters
-        to_csv_helper(
-            self,
-            OtherParameters.otoole_stems,
-            "other_parameters",
-            output_directory,
-            write_csv=True,
-        )
-
-        # regions
-        to_csv_helper(
-            self, Region.otoole_stems, "regions", output_directory, "REGION", write_csv=True
-        )
-
-        # commodities
-        to_csv_helper(
-            self,
-            Commodity.otoole_stems,
-            "commodities",
-            output_directory,
-            "FUEL",
-            write_csv=True,
-        )
-
-        # impacts
-        to_csv_helper(
-            self, Impact.otoole_stems, "impacts", output_directory, "EMISSION", write_csv=True
-        )
-
-        # technologies
-        to_csv_helper(
-            self,
-            Technology.otoole_stems,
-            "technologies",
-            output_directory,
-            "TECHNOLOGY",
-            write_csv=True,
-        )
-
-        # storage_technologies
-        if not self.storage_technologies:  # If no storage technologies
-            # Create empty output CSVs
+        # Write empty storage CSVs if no storage technologies present
+        if not self.storage_technologies:
             storage_csv_dict = TechnologyStorage.otoole_stems
             for file in list(storage_csv_dict):
                 (
@@ -177,15 +108,6 @@ class RunSpec(OSeMOSYSBase):
                 pd.DataFrame(columns=["VALUE"]).to_csv(
                     os.path.join(output_directory, "STORAGE.csv"), index=False
                 )
-        else:
-            to_csv_helper(
-                self,
-                TechnologyStorage.otoole_stems,
-                "storage_technologies",
-                output_directory,
-                "STORAGE",
-                write_csv=True,
-            )
 
         # write config yaml
         yaml_file_path = os.path.join(output_directory, "config.yaml")
