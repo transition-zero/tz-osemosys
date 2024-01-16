@@ -7,17 +7,19 @@ import pandas as pd
 from feo.osemosys.schemas import RunSpec
 
 root_dir = "data/model_three_edited/"
-comparison_directory = "otoole_compare/model_three_edited/"
+output_directory = "otoole_compare/model_three_edited/"
 
-(Path.cwd() / comparison_directory).mkdir(parents=True, exist_ok=True)
+(Path.cwd() / output_directory).mkdir(parents=True, exist_ok=True)
 
 # uses the class method on the base class to instantiate itself
 run_spec_object = RunSpec.from_otoole(root_dir=root_dir)
 
-# type(run_spec_object) == <class RunSpec>
-run_spec_object.to_otoole(comparison_directory=comparison_directory)
+run_spec_dataset = run_spec_object.to_xr_ds()
 
-comparison_files = glob.glob(comparison_directory + "*.csv")
+# type(run_spec_object) == <class RunSpec>
+run_spec_object.to_otoole(output_directory=output_directory)
+
+comparison_files = glob.glob(output_directory + "*.csv")
 comparison_files = {Path(f).stem: f for f in comparison_files}
 
 original_files = glob.glob(root_dir + "*.csv")

@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import pandas as pd
+import xarray as xr
 import yaml
 
 from feo.osemosys.schemas.base import OSeMOSYSBase
@@ -12,7 +13,7 @@ from feo.osemosys.schemas.other_parameters import OtherParameters
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import to_csv_helper
+from feo.osemosys.utils import to_df_helper
 
 
 class RunSpec(OSeMOSYSBase):
@@ -46,92 +47,70 @@ class RunSpec(OSeMOSYSBase):
         Return the current RunSpec as an xarray dataset
 
         Args:
-          self: this RunSpec
+          self: this RunSpec instance
 
         Returns:
-          xr.Dataset: An XArray dataset
+          xr.Dataset: An XArray dataset containing all data from the RunSpec
         """
 
-        coords = {
-            "REGION": [region.id for region in self.regions],
-            "_REGION": [region.id for region in self.regions],
-            "TIMESLICE": [timeslice for timeslice in self.time_definition.timeslice],
-            "DAYTYPE": [daytype for daytype in self.time_definition.day_type],
-            "DAILYTIMEBRACKET": [
-                timebracket for timebracket in self.time_definition.daily_time_bracket
-            ],
-            "SEASON": [season for season in self.time_definition.season],
-            "YEAR": [year for year in self.time_definition.years],
-            "STORAGE": [],
-            "MODE_OF_OPERATION": [],
-            "EMISSION": [],
-            "COMMODITY": [],
-            "TECHNOLOGY": [],
-        }
+        # Convert Runspec data to dfs
+        data_dfs = to_df_helper(self)
 
-        print("coords")
-        print(coords)
+        # Set index to columns other than "VALUE" (only for parameter dataframes)
+        for df_name, df in data_dfs.items():
+            if not df_name.isupper():
+                data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
+        # Convert params to data arrays
+        data_arrays = {x: y.to_xarray()["VALUE"] for x, y in data_dfs.items() if not x.isupper()}
+        # Create dataset
+        ds = xr.Dataset(data_vars=data_arrays)
 
-    def to_otoole(self, comparison_directory):
+        # Replace any nan values with default values for corresponding param
+        default_values = self.default_values.values
+        # Add default values as attribute of each data array
+        for name, data in default_values.items():
+            if name in list(ds.data_vars.keys()):
+                ds[name].attrs["default"] = data["default"]
+                ds[name] = ds[name].fillna(data["default"])
+
+        return ds
+
+    def to_otoole(self, output_directory):
         """
         Convert Runspec to otoole style output CSVs and config.yaml
 
         Parameters
         ----------
-        comparison_directory: str
+        output_directory: str
             Path to the output directory for CSV files to be placed
         """
 
         # Clear comparison directory
-        for file in os.listdir(comparison_directory):
-            os.remove(os.path.join(comparison_directory, file))
+        for file in os.listdir(output_directory):
+            os.remove(os.path.join(output_directory, file))
+
+        # Convert Runspec data to dfs
+        output_dfs = to_df_helper(self)
 
         # Write output CSVs
+        for file in list(output_dfs):
+            output_dfs[file].to_csv(os.path.join(output_directory, file + ".csv"), index=False)
 
-        # time_definition
-        to_csv_helper(self, TimeDefinition.otoole_stems, "time_definition", comparison_directory)
-
-        # other_parameters
-        to_csv_helper(self, OtherParameters.otoole_stems, "other_parameters", comparison_directory)
-
-        # regions
-        to_csv_helper(self, Region.otoole_stems, "regions", comparison_directory, "REGION")
-
-        # commodities
-        to_csv_helper(self, Commodity.otoole_stems, "commodities", comparison_directory, "FUEL")
-
-        # impacts
-        to_csv_helper(self, Impact.otoole_stems, "impacts", comparison_directory, "EMISSION")
-
-        # technologies
-        to_csv_helper(
-            self, Technology.otoole_stems, "technologies", comparison_directory, "TECHNOLOGY"
-        )
-
-        # storage_technologies
-        if not self.storage_technologies:  # If no storage technologies
-            # Create empty output CSVs
+        # Write empty storage CSVs if no storage technologies present
+        if not self.storage_technologies:
             storage_csv_dict = TechnologyStorage.otoole_stems
             for file in list(storage_csv_dict):
                 (
                     pd.DataFrame(columns=storage_csv_dict[file]["column_structure"]).to_csv(
-                        os.path.join(comparison_directory, file + ".csv"), index=False
+                        os.path.join(output_directory, file + ".csv"), index=False
                     )
                 )
                 pd.DataFrame(columns=["VALUE"]).to_csv(
-                    os.path.join(comparison_directory, "STORAGE.csv"), index=False
+                    os.path.join(output_directory, "STORAGE.csv"), index=False
                 )
-        else:
-            to_csv_helper(
-                self,
-                TechnologyStorage.otoole_stems,
-                "storage_technologies",
-                comparison_directory,
-                "STORAGE",
-            )
 
         # write config yaml
-        yaml_file_path = os.path.join(comparison_directory, "config.yaml")
+        yaml_file_path = os.path.join(output_directory, "config.yaml")
         with open(yaml_file_path, "w") as yaml_file:
             yaml.dump(self.default_values.values, yaml_file, default_flow_style=False)
 
