@@ -8,7 +8,7 @@ from pydantic import BaseModel, root_validator
 
 from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
 
-from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
+from .base import OSeMOSYSBase, OSeMOSYSData
 
 
 class OtooleCfg(BaseModel):
@@ -20,10 +20,6 @@ class OtooleCfg(BaseModel):
 
 
 class Commodity(OSeMOSYSBase):
-    """
-    Class to contain data related to commodities (fuels in osemosys)
-    """
-
     # either demand (region:year:timeslice:value)
     # or annual_demand (region:year:value) must be specified;
     # demand_profile may be optionally specified with annual_demand
@@ -31,7 +27,6 @@ class Commodity(OSeMOSYSBase):
     demand_profile: OSeMOSYSData | None
     accumulated_demand: OSeMOSYSData | None
     is_renewable: OSeMOSYSData | None  # why would this change over time??
-    reserve_margin_tag_com: OSeMOSYSDataInt | None
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
@@ -51,10 +46,6 @@ class Commodity(OSeMOSYSBase):
             "attribute": "is_renewable",
             "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
         },
-        "ReserveMarginTagFuel": {
-            "attribute": "reserve_margin_tag_com",
-            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
-        },
     }
 
     @root_validator(pre=True)
@@ -64,7 +55,6 @@ class Commodity(OSeMOSYSBase):
         demand_profile = values.get("demand_profile")
         values.get("accumulated_demand")
         values.get("is_renewable")
-        values.get("reserve_margin_tag_com")
 
         # Check demand_profile sums to one, within leniency
         if demand_profile is not None:
@@ -180,17 +170,6 @@ class Commodity(OSeMOSYSBase):
                             )
                         )
                         if commodity in dfs["RETagFuel"]["FUEL"].values
-                        else None
-                    ),
-                    reserve_margin_tag_com=(
-                        OSeMOSYSDataInt(
-                            data=group_to_json(
-                                g=dfs["ReserveMarginTagFuel"],
-                                data_columns=["REGION", "FUEL", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
                         else None
                     ),
                 )

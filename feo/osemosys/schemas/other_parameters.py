@@ -27,6 +27,7 @@ class OtherParameters(OSeMOSYSBase):
     discount_rate_idv: OSeMOSYSData | None
     discount_rate_storage: OSeMOSYSData | None
     reserve_margin: OSeMOSYSData | None
+    reserve_margin_tag_fuel: OSeMOSYSDataInt | None
     reserve_margin_tag_technology: OSeMOSYSDataInt | None
     renewable_production_target: OSeMOSYSData | None
 
@@ -49,6 +50,10 @@ class OtherParameters(OSeMOSYSBase):
             "attribute": "reserve_margin",
             "column_structure": ["REGION", "YEAR", "VALUE"],
         },
+        "ReserveMarginTagFuel": {
+            "attribute": "reserve_margin_tag_fuel",
+            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
+        },
         "ReserveMarginTagTechnology": {
             "attribute": "reserve_margin_tag_technology",
             "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
@@ -66,10 +71,13 @@ class OtherParameters(OSeMOSYSBase):
         discount_rate_idv = values.get("discount_rate_idv")
         discount_rate_storage = values.get("discount_rate_storage")
         reserve_margin = values.get("reserve_margin")
+        reserve_margin_tag_fuel = values.get("reserve_margin_tag_fuel")
         reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
         values.get("renewable_production_target")
 
         # Failed to fully describe reserve_margin
+        if reserve_margin is not None and reserve_margin_tag_fuel is None:
+            raise ValueError("If defining reserve_margin, reserve_margin_tag_fuel must be defined")
         if reserve_margin is not None and reserve_margin_tag_technology is None:
             raise ValueError(
                 "If defining reserve_margin, reserve_margin_tag_technology must be defined"
@@ -185,6 +193,17 @@ class OtherParameters(OSeMOSYSBase):
                     )
                 )
                 if "ReserveMargin" not in otoole_cfg.empty_dfs
+                else None
+            ),
+            reserve_margin_tag_fuel=(
+                OSeMOSYSDataInt(
+                    data=group_to_json(
+                        g=dfs["ReserveMarginTagFuel"],
+                        data_columns=["REGION", "FUEL", "YEAR"],
+                        target_column="VALUE",
+                    )
+                )
+                if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
                 else None
             ),
             reserve_margin_tag_technology=(
