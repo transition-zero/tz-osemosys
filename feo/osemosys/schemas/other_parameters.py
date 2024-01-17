@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, conlist, root_validator
+from pydantic import BaseModel, root_validator
 
 from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
 
@@ -22,7 +22,6 @@ class OtherParameters(OSeMOSYSBase):
     Class to contain all other parameters
     """
 
-    mode_of_operation: conlist(int, min_length=1)
     depreciation_method: OSeMOSYSDataInt | None
     discount_rate: OSeMOSYSData | None
     discount_rate_idv: OSeMOSYSData | None
@@ -34,7 +33,6 @@ class OtherParameters(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "MODE_OF_OPERATION": {"attribute": "mode_of_operation", "column_structure": ["VALUE"]},
         "DepreciationMethod": {
             "attribute": "depreciation_method",
             "column_structure": ["REGION", "VALUE"],
@@ -68,7 +66,6 @@ class OtherParameters(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validator(cls, values):
-        mode_of_operation = values.get("mode_of_operation")
         values.get("depreciation_method")
         discount_rate = values.get("discount_rate")
         discount_rate_idv = values.get("discount_rate_idv")
@@ -77,10 +74,6 @@ class OtherParameters(OSeMOSYSBase):
         reserve_margin_tag_fuel = values.get("reserve_margin_tag_fuel")
         reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
         values.get("renewable_production_target")
-
-        # Failed to specify mode_of_operation
-        if not mode_of_operation:
-            raise ValueError("mode_of_operation (List[int]) must be specified.")
 
         # Failed to fully describe reserve_margin
         if reserve_margin is not None and reserve_margin_tag_fuel is None:
@@ -136,12 +129,6 @@ class OtherParameters(OSeMOSYSBase):
         # ###################
         # Basic Data Checks #
         #####################
-        if "MODE_OF_OPERATION" in dfs:
-            mode_of_operation = dfs["MODE_OF_OPERATION"]["VALUE"].values.tolist()
-        else:
-            raise FileNotFoundError(
-                "MODE_OF_OPERATION.csv not read in, likely missing from root_dir"
-            )
 
         # #######################
         # Define class instance #
@@ -153,7 +140,6 @@ class OtherParameters(OSeMOSYSBase):
             long_name=None,
             description=None,
             otoole_cfg=otoole_cfg,
-            mode_of_operation=mode_of_operation,
             depreciation_method=(
                 OSeMOSYSDataInt(
                     data=group_to_json(
