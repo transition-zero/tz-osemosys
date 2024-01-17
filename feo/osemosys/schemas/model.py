@@ -9,7 +9,6 @@ from feo.osemosys.schemas.base import OSeMOSYSBase
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.default_values import DefaultValues
 from feo.osemosys.schemas.impact import Impact
-from feo.osemosys.schemas.other_parameters import OtherParameters
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
@@ -17,9 +16,6 @@ from feo.osemosys.utils import to_df_helper
 
 
 class RunSpec(OSeMOSYSBase):
-    # Other parameters
-    other_parameters: OtherParameters
-
     # time definition
     time_definition: TimeDefinition
 
@@ -129,7 +125,6 @@ class RunSpec(OSeMOSYSBase):
             # transmission_technologies=TechnologyTransmission.from_otoole_csv(root_dir=root_dir),
             commodities=Commodity.from_otoole_csv(root_dir=root_dir),
             time_definition=TimeDefinition.from_otoole_csv(root_dir=root_dir),
-            other_parameters=OtherParameters.from_otoole_csv(root_dir=root_dir),
             default_values=DefaultValues.from_otoole_yaml(root_dir=root_dir),
         )
 
