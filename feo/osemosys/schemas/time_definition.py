@@ -29,6 +29,7 @@ class TimeAdjacency(BaseModel):
 class TimeDefinition(OSeMOSYSBase):
     """
     Class to contain all temporal information, including years and timeslices.
+    As well as the mode_of_operation set
     """
 
     # always required
@@ -39,6 +40,7 @@ class TimeDefinition(OSeMOSYSBase):
     timeslices: conlist(int | str, min_length=1)
     day_types: conlist(int | str, min_length=1)
     daily_time_brackets: conlist(int | str, min_length=1)
+    mode_of_operation: conlist(int, min_length=1)
     year_split: OSeMOSYSData
     day_split: OSeMOSYSData
     days_in_day_type: OSeMOSYSData
@@ -55,10 +57,8 @@ class TimeDefinition(OSeMOSYSBase):
         "SEASON": {"attribute": "seasons", "column_structure": ["VALUE"]},
         "TIMESLICE": {"attribute": "timeslices", "column_structure": ["VALUE"]},
         "DAYTYPE": {"attribute": "day_types", "column_structure": ["VALUE"]},
-        "DAILYTIMEBRACKET": {
-            "attribute": "daily_time_brackets",
-            "column_structure": ["VALUE"],
-        },
+        "DAILYTIMEBRACKET": {"attribute": "daily_time_brackets", "column_structure": ["VALUE"]},
+        "MODE_OF_OPERATION": {"attribute": "mode_of_operation", "column_structure": ["VALUE"]},
         "YearSplit": {
             "attribute": "year_split",
             "column_structure": ["TIMESLICE", "YEAR", "VALUE"],
@@ -94,6 +94,7 @@ class TimeDefinition(OSeMOSYSBase):
         timeslices = values.get("timeslices")
         day_types = values.get("day_types")
         daily_time_brackets = values.get("daily_time_brackets")
+        mode_of_operation = values.get("mode_of_operation")
         year_split = values.get("year_split")
         day_split = values.get("day_split")
         days_in_day_type = values.get("days_in_day_type")
@@ -106,6 +107,10 @@ class TimeDefinition(OSeMOSYSBase):
         # failed to specify years
         if not years:
             raise ValueError("years (List[int]) must be specified.")
+
+        # Failed to specify mode_of_operation
+        if not mode_of_operation:
+            raise ValueError("mode_of_operation (List[int]) must be specified.")
 
         # maybe get timeslices from 'in' constructs or directly
         if timeslices is not None:
@@ -521,6 +526,12 @@ class TimeDefinition(OSeMOSYSBase):
             years = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
         else:
             raise FileNotFoundError("YEAR.csv not read in, likely missing from root_dir")
+        if "MODE_OF_OPERATION" in dfs:
+            mode_of_operation = dfs["MODE_OF_OPERATION"]["VALUE"].astype(str).values.tolist()
+        else:
+            raise FileNotFoundError(
+                "MODE_OF_OPERATION.csv not read in, likely missing from root_dir"
+            )
         seasons = (
             dfs["SEASON"]["VALUE"].astype(str).values.tolist()
             if "SEASON" not in otoole_cfg.empty_dfs
@@ -552,6 +563,7 @@ class TimeDefinition(OSeMOSYSBase):
             day_types=day_types,
             otoole_cfg=otoole_cfg,
             daily_time_brackets=daily_time_brackets,
+            mode_of_operation=mode_of_operation,
             year_split=(
                 OSeMOSYSData(
                     data=group_to_json(

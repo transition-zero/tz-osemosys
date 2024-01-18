@@ -235,10 +235,6 @@ def to_df_helper(self):
     # Attribute and root column names
     attributes = {
         "time_definition": {"otoole_stems": self.time_definition.otoole_stems, "root_column": None},
-        "other_parameters": {
-            "otoole_stems": self.other_parameters.otoole_stems,
-            "root_column": None,
-        },
         "regions": {"otoole_stems": self.regions[0].otoole_stems, "root_column": "REGION"},
         "commodities": {"otoole_stems": self.commodities[0].otoole_stems, "root_column": "FUEL"},
         "impacts": {"otoole_stems": self.impacts[0].otoole_stems, "root_column": "EMISSION"},
