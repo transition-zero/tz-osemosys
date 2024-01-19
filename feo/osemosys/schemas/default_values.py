@@ -8,30 +8,57 @@ from pydantic_settings import BaseSettings
 from .base import OSeMOSYSBase, OSeMOSYSData
 
 
-class Defaults(BaseSettings):
-    discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
-    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data=2))
+class DefaultsLinopy(BaseSettings):
+    """
+    Class to contain hard coded default values, for use with xarray/Linopy
+    """
+
     availability_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
     capacity_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
     capacity_activity_unit_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
-    reserve_margin: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
+    timeslice_in_timebracket: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    timeslice_in_daytype: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    timeslice_in_season: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data=2))
+    discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
+    input_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    output_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     residual_capacity: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    storage_initial_level: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    demand_annual: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    demand_profile: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+
+    otoole_name_defaults: Dict = Field(
+        default={
+            "AvailabilityFactor": 1,
+            "CapacityFactor": 1,
+            "CapacityToActivityUnit": 1,
+            "Conversionld": 0,
+            "Conversionlh": 0,
+            "Conversionls": 0,
+            "DepreciationMethod": "straight-line",
+            "DiscountRate": 0.1,
+            "InputActivityRatio": 0,
+            "OutputActivityRatio": 0,
+            "ResidualCapacity": 0,
+            "SpecifiedAnnualDemand": 0,
+            "SpecifiedDemandProfile": 0,
+        }
+    )
 
 
-defaults = Defaults()
+defaults = DefaultsLinopy()
 
 
-class DefaultValues(OSeMOSYSBase):
+class DefaultsOtoole(OSeMOSYSBase):
     """
-    Class to contain all default values
+    Class to contain all data from from otoole config yaml, including default values
     """
 
     values: Dict[str, Dict[str, Union[str, int, float, List]]]
 
     @classmethod
-    def from_otoole_yaml(cls, root_dir) -> "DefaultValues":
-        """Instantiate a single DefaultValues dict from config.yaml file
+    def from_otoole_yaml(cls, root_dir):
+        """Instantiate a single DefaultsOtoole dict from config.yaml file
 
         Contains information for each parameter on:
         indices - column names
@@ -48,7 +75,7 @@ class DefaultValues(OSeMOSYSBase):
             root_dir (str): Path to the root of the otoole csv directory
 
         Returns:
-            DefaultValues: A single DefaultValues instance
+            DefaultsOtoole: A single DefaultsOtoole instance
         """
 
         # ###########
@@ -60,8 +87,7 @@ class DefaultValues(OSeMOSYSBase):
             file for file in os.listdir(root_dir) if file.endswith(".yaml") or file.endswith(".yml")
         ]
         if len(yaml_files) == 0:
-            raise FileNotFoundError("No otoole config YAML file found in the directory")
-        # TODO: include hardcoded default values here if none given?
+            return None
         elif len(yaml_files) > 1:
             raise ValueError(">1 otoole config YAML files found in the directory, only 1 required")
         yaml_file = yaml_files[0]
