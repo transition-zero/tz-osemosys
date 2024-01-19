@@ -2,8 +2,24 @@ import os
 from typing import Dict, List, Union
 
 import yaml
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
-from .base import OSeMOSYSBase
+from .base import OSeMOSYSBase, OSeMOSYSData
+
+
+class Defaults(BaseSettings):
+    discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
+    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data=2))
+    availability_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
+    capacity_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
+    capacity_activity_unit_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
+    reserve_margin: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
+    residual_capacity: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+    storage_initial_level: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
+
+
+defaults = Defaults()
 
 
 class DefaultValues(OSeMOSYSBase):
