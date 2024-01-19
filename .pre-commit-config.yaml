@@ -58,5 +58,5 @@ repos:
   - id: flake8
     additional_dependencies: [flake8-bugbear]
     args:
-    - --ignore=B008,W503
+    - --ignore=B008
     - --max-line-length=100
