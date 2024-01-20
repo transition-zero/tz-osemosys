@@ -5,9 +5,9 @@ import pandas as pd
 import xarray as xr
 import yaml
 
+from feo.osemosys.defaults import DefaultsOtoole, defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase
 from feo.osemosys.schemas.commodity import Commodity
-from feo.osemosys.schemas.default_values import DefaultsOtoole, defaults
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage

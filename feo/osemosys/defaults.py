@@ -5,7 +5,7 @@ import yaml
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from .base import OSeMOSYSBase, OSeMOSYSData
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 
 
 class DefaultsLinopy(BaseSettings):
