@@ -16,32 +16,35 @@ class DefaultsLinopy(BaseSettings):
     availability_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
     capacity_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
     capacity_activity_unit_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
-    timeslice_in_timebracket: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    timeslice_in_daytype: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    timeslice_in_season: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data="straight-line"))
     discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
-    input_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    output_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     residual_capacity: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     demand_annual: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    demand_profile: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
 
     otoole_name_defaults: Dict = Field(
         default={
             "AvailabilityFactor": OSeMOSYSData(data=1),
             "CapacityFactor": OSeMOSYSData(data=1),
             "CapacityToActivityUnit": OSeMOSYSData(data=1),
-            "Conversionld": OSeMOSYSData(data=0),
-            "Conversionlh": OSeMOSYSData(data=0),
-            "Conversionls": OSeMOSYSData(data=0),
             "DepreciationMethod": OSeMOSYSData(data="straight-line"),
             "DiscountRate": OSeMOSYSData(data=0.1),
-            "InputActivityRatio": OSeMOSYSData(data=0),
-            "OutputActivityRatio": OSeMOSYSData(data=0),
             "ResidualCapacity": OSeMOSYSData(data=0),
             "SpecifiedAnnualDemand": OSeMOSYSData(data=0),
-            "SpecifiedDemandProfile": OSeMOSYSData(data=0),
+        }
+    )
+
+    otoole_name_defaults_with_storage: Dict = Field(
+        default={
+            "AvailabilityFactor": OSeMOSYSData(data=1),
+            "CapacityFactor": OSeMOSYSData(data=1),
+            "CapacityToActivityUnit": OSeMOSYSData(data=1),
+            "DepreciationMethod": OSeMOSYSData(data="straight-line"),
+            "DiscountRate": OSeMOSYSData(data=0.1),
+            "ResidualCapacity": OSeMOSYSData(data=0),
+            "SpecifiedAnnualDemand": OSeMOSYSData(data=0),
+            "DiscountRateStorage": OSeMOSYSData(data=0.1),
+            "ResidualStorageCapacity": OSeMOSYSData(data=0),
+            "StorageLevelStart": OSeMOSYSData(data=0),
         }
     )
 
