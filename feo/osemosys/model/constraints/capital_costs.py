@@ -2,8 +2,14 @@ import xarray as xr
 from linopy import Model
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
-    """Add demand constraint to the model
+def add_capital_costs_constraints(
+    ds: xr.Dataset,
+    m: Model,
+    capital_recovery_factor: float,
+    pv_annuity: float,
+    discount_factor: float,
+) -> Model:
+    """Add Capital Costs constraint to the model
 
     Arguments
     ---------
@@ -20,16 +26,24 @@ def add(ds: xr.Dataset, m: Model) -> Model:
     Notes
     -----
     ```ampl
-    s.t. EQ_SpecifiedDemand{r in REGION, l in TIMESLICE, f in FUEL, y in YEAR:
-        SpecifiedAnnualDemand[r,f,y] <> 0}:
-    SpecifiedAnnualDemand[r,f,y] * SpecifiedDemandProfile[r,f,l,y] / YearSplit[l,y]
-    =
-    RateOfDemand[r,l,f,y];
+    s.t. CC1_UndiscountedCapitalInvestment{
+        r in REGION, t in TECHNOLOGY, y in YEAR}:
+        CapitalCost[r,t,y] * NewCapacity[r,t,y] * CapitalRecoveryFactor[r,t] * PvAnnuity[r,t]
+        =
+        CapitalInvestment[r,t,y];
+
+    s.t. CC2_DiscountingCapitalInvestment{
+        r in REGION, t in TECHNOLOGY, y in YEAR}:
+        CapitalInvestment[r,t,y]  / DiscountFactor[r,y] = DiscountedCapitalInvestment[r,t,y];
     ```
     """
-    mask = ds["SpecifiedAnnualDemand"].notnull()
-    con = m["RateOfDemand"] == (
-        ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"] / ds["YearSplit"]
+    con = (
+        ds["CapitalCost"].fillna(0) * m["NewCapacity"] * capital_recovery_factor * pv_annuity
+        - m["CapitalInvestment"]
+        == 0
     )
-    m.add_constraints(con, name="EQ_SpecifiedDemand", mask=mask)
+    m.add_constraints(con, name="CC1_UndiscountedCapitalInvestment")
+
+    con = (m["CapitalInvestment"] / discount_factor) - m["DiscountedCapitalInvestment"] == 0
+    m.add_constraints(con, name="CC2_DiscountingCapitalInvestment")
     return m
