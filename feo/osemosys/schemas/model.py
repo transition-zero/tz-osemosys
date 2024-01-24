@@ -64,6 +64,8 @@ class RunSpec(OSeMOSYSBase):
         # If runspec not generated using otoole config yaml, use linopy defaults
         if self.defaults_otoole is None:
             default_values = defaults.otoole_name_defaults
+            for name, osemosys_data in default_values.items():
+                default_values[name] = osemosys_data.data
         # Otherwise take defaults from otoole config yaml file
         else:
             default_values = {}

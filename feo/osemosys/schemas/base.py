@@ -1,23 +1,6 @@
-"""
-Why?
--> put documentation/descirptions where the action is.
--> consolidate input files
--> do validation early, using pydantic
--> JSONify for IO
--> some renaming to make more explicit
-"""
-
-"""
-extras:
-  - parse basic python expressions (dict+list comps + expressions)
-  - use yaml links *&
-  - wildcard str classes, e.g. *
-  - inequality for year, e.g. >=2030
-"""
-
 from typing import Dict, Union
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 # ####################
 # ### BASE CLASSES ###
@@ -30,7 +13,7 @@ class OSeMOSYSBase(BaseModel):
     description: str | None
 
 
-DataVar = float | int
+DataVar = float | int | str
 IdxVar = str | int
 
 
@@ -40,18 +23,17 @@ class OSeMOSYSData(BaseModel):
         Dict[IdxVar, DataVar],
         Dict[IdxVar, Dict[IdxVar, DataVar]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]],
-        Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]],
-        Dict[IdxVar,Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
     ]
 
 
-#OSeMOSYUSData_sum1= wraps(OSeMOSYSData, validotr)
+# OSeMOSYUSData_sum1= wraps(OSeMOSYSData, validotr)
 
-#@field_validator
-#def rnsure_profiles_sum_to_1(cls, valeus):
+# @field_validator
+# def rnsure_profiles_sum_to_1(cls, valeus):
 #    # validate
 #    None
-
 
 
 class OSeMOSYSDataInt(BaseModel):
@@ -60,8 +42,8 @@ class OSeMOSYSDataInt(BaseModel):
         Dict[IdxVar, int],
         Dict[IdxVar, Dict[IdxVar, int]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
-        Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
-        Dict[IdxVar,Dict[IdxVar,Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
     ]
 
 
@@ -92,16 +74,19 @@ class RegionData(BaseModel):
     #  - a dict of region:value
     data: Union[float, Dict[str, float]]
 
+
 class StringInt(BaseModel):
     # can be expressed as:
     #  - one integer
     #  - a dict of string:integer
     data: Union[int, Dict[str, int]]
 
+
 class StringData(BaseModel):
     # can be expressed as:
     #  - a dict of string:float or string:int
-    data: Dict[str, Union[float,int]]
+    data: Dict[str, Union[float, int]]
+
 
 class RegionYearData(BaseModel):
     # can be expressed as:
@@ -211,6 +196,7 @@ class StringStringIntIntData(BaseModel):
         Dict[str, Dict[str, Dict[int, Union[int, float]]]],
     ]
 
+
 # TODO temporary class for TradeRoute
 class TradeRoute(BaseModel):
-    data:Dict[str, Dict[str, Dict[str, Union[int, float]]]]
+    data: Dict[str, Dict[str, Dict[str, Union[int, float]]]]

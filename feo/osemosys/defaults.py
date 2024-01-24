@@ -19,7 +19,7 @@ class DefaultsLinopy(BaseSettings):
     timeslice_in_timebracket: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     timeslice_in_daytype: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     timeslice_in_season: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data=2))
+    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data="straight-line"))
     discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
     input_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
     output_activity_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
@@ -29,19 +29,19 @@ class DefaultsLinopy(BaseSettings):
 
     otoole_name_defaults: Dict = Field(
         default={
-            "AvailabilityFactor": 1,
-            "CapacityFactor": 1,
-            "CapacityToActivityUnit": 1,
-            "Conversionld": 0,
-            "Conversionlh": 0,
-            "Conversionls": 0,
-            "DepreciationMethod": "straight-line",
-            "DiscountRate": 0.1,
-            "InputActivityRatio": 0,
-            "OutputActivityRatio": 0,
-            "ResidualCapacity": 0,
-            "SpecifiedAnnualDemand": 0,
-            "SpecifiedDemandProfile": 0,
+            "AvailabilityFactor": OSeMOSYSData(data=1),
+            "CapacityFactor": OSeMOSYSData(data=1),
+            "CapacityToActivityUnit": OSeMOSYSData(data=1),
+            "Conversionld": OSeMOSYSData(data=0),
+            "Conversionlh": OSeMOSYSData(data=0),
+            "Conversionls": OSeMOSYSData(data=0),
+            "DepreciationMethod": OSeMOSYSData(data="straight-line"),
+            "DiscountRate": OSeMOSYSData(data=0.1),
+            "InputActivityRatio": OSeMOSYSData(data=0),
+            "OutputActivityRatio": OSeMOSYSData(data=0),
+            "ResidualCapacity": OSeMOSYSData(data=0),
+            "SpecifiedAnnualDemand": OSeMOSYSData(data=0),
+            "SpecifiedDemandProfile": OSeMOSYSData(data=0),
         }
     )
 
