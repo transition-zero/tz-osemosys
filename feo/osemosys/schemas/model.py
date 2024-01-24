@@ -81,9 +81,10 @@ class RunSpec(OSeMOSYSBase):
                 ds[name].attrs["default"] = default_values[name]
                 ds[name] = ds[name].fillna(default_values[name])
             # Replace all other nan values with None
-            else:
-                ds[name].attrs["default"] = None
-                ds[name] = ds[name].fillna(None)
+            # TODO: remove this code if nan values wanted in the ds
+            # else:
+            #    ds[name].attrs["default"] = None
+            #    ds[name] = ds[name].fillna(None)
 
         return ds
 
