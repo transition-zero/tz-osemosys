@@ -200,7 +200,9 @@ class Region(OSeMOSYSBase):
                     depreciation_method=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["DepreciationMethod"],
+                                g=dfs["DepreciationMethod"].loc[
+                                    dfs["DepreciationMethod"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 target_column="VALUE",
                             )
@@ -211,7 +213,9 @@ class Region(OSeMOSYSBase):
                     discount_rate=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRate"],
+                                g=dfs["DiscountRate"].loc[
+                                    dfs["DiscountRate"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 target_column="VALUE",
                             )
@@ -222,7 +226,9 @@ class Region(OSeMOSYSBase):
                     discount_rate_idv=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRateIdv"],
+                                g=dfs["DiscountRateIdv"].loc[
+                                    dfs["DiscountRateIdv"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["TECHNOLOGY"],
                                 target_column="VALUE",
@@ -234,7 +240,9 @@ class Region(OSeMOSYSBase):
                     discount_rate_storage=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRateStorage"],
+                                g=dfs["DiscountRateStorage"].loc[
+                                    dfs["DiscountRateStorage"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["STORAGE"],
                                 target_column="VALUE",
@@ -246,7 +254,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["ReserveMargin"],
+                                g=dfs["ReserveMargin"].loc[
+                                    dfs["ReserveMargin"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["YEAR"],
                                 target_column="VALUE",
@@ -258,7 +268,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin_tag_fuel=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["ReserveMarginTagFuel"],
+                                g=dfs["ReserveMarginTagFuel"].loc[
+                                    dfs["ReserveMarginTagFuel"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["FUEL", "YEAR"],
                                 target_column="VALUE",
@@ -270,7 +282,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin_tag_technology=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["ReserveMarginTagTechnology"],
+                                g=dfs["ReserveMarginTagTechnology"].loc[
+                                    dfs["ReserveMarginTagTechnology"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["TECHNOLOGY", "YEAR"],
                                 target_column="VALUE",
@@ -282,7 +296,9 @@ class Region(OSeMOSYSBase):
                     renewable_production_target=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["REMinProductionTarget"],
+                                g=dfs["REMinProductionTarget"].loc[
+                                    dfs["REMinProductionTarget"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["YEAR"],
                                 target_column="VALUE",
