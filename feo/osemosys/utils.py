@@ -118,14 +118,14 @@ def _fill_d(d, target_column, data_columns, t):
 def group_to_json(
     g: pd.DataFrame,
     root_column: Optional[str] = None,
-    target_column: str = "value",
+    target_column: str = "VALUE",
     data_columns: Optional[List[str]] = None,
     default_nodes: List[str] = None,
     fill_zero: bool = True,
 ):
-    # non-mutable default
-    if data_columns is None:
-        data_columns = ["node_id", "commodity", "technology"]
+    # Return single value rather than dict if there's no nested structure to data
+    if data_columns is None and root_column is not None:
+        return g["VALUE"].values[0]
 
     if default_nodes is not None:
         d = {n: makehash() for n in default_nodes}
