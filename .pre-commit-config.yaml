@@ -37,6 +37,7 @@ repos:
   - id: isort
     args:
     - --honor-noqa
+    - --line-length=100
 
 - repo: https://github.com/psf/black
   rev: 23.1.0
@@ -58,5 +59,5 @@ repos:
   - id: flake8
     additional_dependencies: [flake8-bugbear]
     args:
-    - --ignore=B008,W503
+    - --ignore=B008,W503,E203
     - --max-line-length=100
