@@ -54,27 +54,27 @@ REGIONAL-WON-POTENTIAL: &REGIONAL-WON-POTENTIAL
     "*": 100 # GW
 
 REGIONAL-CCG-RESIDUAL: &REGIONAL-CCG-RESIDUAL # GW
-  US-CA: "{y:20*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
-  US-TX: "{y:42*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-CA: "{y:20*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
+  US-TX: "{y:42*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
 REGIONAL-COA-RESIDUAL: &REGIONAL-COA-RESIDUAL # GW
-  US-CA: "{y:5*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
-  US-TX: "{y:18*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-CA: "{y:5*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
+  US-TX: "{y:18*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
 REGIONAL-BAT-RESIDUAL: &REGIONAL-BAT-RESIDUAL # GW
   0.
 REGIONAL-WON-RESIDUAL: &REGIONAL-WON-RESIDUAL # GW
-  US-CA: "{y:7*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
-  US-TX: "{y:34*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-CA: "{y:7*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
+  US-TX: "{y:34*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
 REGIONAL-SPV-RESIDUAL: &REGIONAL-SPV-RESIDUAL # GW
-  US-CA: "{y:14*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
-  US-TX: "{y:8*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-CA: "{y:14*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
+  US-TX: "{y:8*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
 REGIONAL-EXT-COA-RESIDUAL: &REGIONAL-EXT-COA-RESIDUAL
   US-CA: null
-  US-TX: "{y:0.5*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-TX: "{y:0.5*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
   ATLANTIC-MARKET: inf
   PACIFIC-MARKET: inf
 REGIONAL-EXT-GAS-RESIDUAL: &REGIONAL-EXT-GAS-RESIDUAL
   US-CA: null
-  US-TX: "{y:12*(2041-y)/(2041-2022) for y in {{$time_definition.years}}}"
+  US-TX: "{y:12*(2041-y)/(2041-2022) for y in ${time_definition.years}}"
   ATLANTIC-MARKET: inf
   PACIFIC-MARKET: inf
 
@@ -132,7 +132,7 @@ production_technologies:
     exclude_regions:
       - ATLANTIC-MARKET
       - PACIFIC-MARKET
-    capex: "{y:700 - 100*(max({{$time_definition.years}})-y)/(max({{$time_definition.years}}) - min({{$time_definition.years}})) for y in {{$time_definition.years}}}"
+    capex: "{y:700 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years}) - min(${time_definition.years})) for y in ${time_definition.years}}"
     opex_fixed: 10
     operating_modes:
       - id: GEN
@@ -224,7 +224,7 @@ production_technologies:
     exclude_regions:
       - ATLANTIC-MARKET
       - PACIFIC-MARKET
-    capex: "{y:1500 - 100*(max({{$time_definition.years}})-y)/(max({{$time_definition.years}})-min({{$time_definition.years}})) for y in {{$time_definition.years}}}"
+    capex: "{y:1500 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years})-min(${time_definition.years})) for y in ${time_definition.years}}"
     opex_fixed: 38
     operating_modes:
       - id: GEN
