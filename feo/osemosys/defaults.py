@@ -13,14 +13,6 @@ class DefaultsLinopy(BaseSettings):
     Class to contain hard coded default values, for use with xarray/Linopy
     """
 
-    availability_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
-    capacity_factor: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
-    capacity_activity_unit_ratio: OSeMOSYSData = Field(default=OSeMOSYSData(data=1))
-    depreciation_method: OSeMOSYSData = Field(default=OSeMOSYSData(data="straight-line"))
-    discount_rate: OSeMOSYSData = Field(default=OSeMOSYSData(data=0.1))
-    residual_capacity: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-    demand_annual: OSeMOSYSData = Field(default=OSeMOSYSData(data=0))
-
     otoole_name_defaults: Dict = Field(
         default={
             "AvailabilityFactor": OSeMOSYSData(data=1),
