@@ -25,15 +25,8 @@ class DefaultsLinopy(BaseSettings):
         }
     )
 
-    otoole_name_defaults_with_storage: Dict = Field(
+    otoole_name_storage_defaults: Dict = Field(
         default={
-            "AvailabilityFactor": OSeMOSYSData(data=1),
-            "CapacityFactor": OSeMOSYSData(data=1),
-            "CapacityToActivityUnit": OSeMOSYSData(data=1),
-            "DepreciationMethod": OSeMOSYSData(data="straight-line"),
-            "DiscountRate": OSeMOSYSData(data=0.1),
-            "ResidualCapacity": OSeMOSYSData(data=0),
-            "SpecifiedAnnualDemand": OSeMOSYSData(data=0),
             "DiscountRateStorage": OSeMOSYSData(data=0.1),
             "ResidualStorageCapacity": OSeMOSYSData(data=0),
             "StorageLevelStart": OSeMOSYSData(data=0),

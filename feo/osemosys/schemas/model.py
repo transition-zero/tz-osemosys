@@ -63,11 +63,11 @@ class RunSpec(OSeMOSYSBase):
 
         # If runspec not generated using otoole config yaml, use linopy defaults
         if self.defaults_otoole is None:
-            if not self.storage_technologies:
-                default_values = defaults.otoole_name_defaults
+            default_values = defaults.otoole_name_defaults
             # If storage technologies present, use additional relevant default values
-            else:
-                default_values = defaults.otoole_name_defaults_with_storage
+            if self.storage_technologies:
+                default_values = {**default_values, **defaults.otoole_name_storage_defaults}
+            # Extract defaults data from OSeMOSYSData objects
             for name, osemosys_data in default_values.items():
                 default_values[name] = osemosys_data.data
         # Otherwise take defaults from otoole config yaml file
