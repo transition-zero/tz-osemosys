@@ -166,3 +166,6 @@ feo/.DS_Store
 feo/osemosys/.DS_Store
 notebooks/.DS_Store
 tests/.DS_Store
+
+# Results folder for tests
+results/
