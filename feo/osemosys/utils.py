@@ -123,6 +123,25 @@ def group_to_json(
     default_nodes: List[str] = None,
     fill_zero: bool = True,
 ):
+    """
+    Converts a DataFrame to a nested JSON-like structure.
+
+    Args:
+        g (pd.DataFrame): The input DataFrame to be converted.
+        root_column (Optional[str]): The column to be excluded from the structure (eg. TECHNOLOGY).
+        target_column (str): The column containing data values to be nested.
+        data_columns (Optional[List[str]]): List of columns representing the nested structure.
+        default_nodes (List[str]): List of default nodes to initialize the structure.
+        fill_zero (bool): Flag to exclude rows with target_column value of 0.
+
+    Returns:
+        Dict: A nested JSON-like Dict representing the DataFrame.
+
+    Note:
+        If there's no nested structure (data_columns is None and root_column is not None),
+        the function returns a single value instead of a dictionary.
+    """
+
     # Return single value rather than dict if there's no nested structure to data
     if data_columns is None and root_column is not None:
         return g["VALUE"].values[0]
