@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 from typing import ClassVar, List, Union
 
-import numpy as np
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
+from feo.osemosys.schemas.validation.common_validation import check_sums_one
+from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
 
@@ -50,7 +50,7 @@ class Commodity(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        id = values.get("id")
+        values.get("id")
         values.get("demand_annual")
         demand_profile = values.get("demand_profile")
         values.get("accumulated_demand")
@@ -58,15 +58,11 @@ class Commodity(OSeMOSYSBase):
 
         # Check demand_profile sums to one, within leniency
         if demand_profile is not None:
-            # TODO: determine if leniency of 0.05 is acceptable
-            leniency = 0.05
-            demand_profile_df = json_dict_to_dataframe(demand_profile.data)
-            demand_profile_df.columns = ["REGION", "TIMESLICE", "YEAR", "VALUE"]
-            assert np.allclose(
-                demand_profile_df.groupby(["REGION", "YEAR"])["VALUE"].sum(), 1, atol=leniency
-            ), (
-                f"demand_profile must sum to one (within {leniency}) for all REGION,"
-                f" YEAR, and commodity; commodity {id} does not"
+            check_sums_one(
+                data=demand_profile.data,
+                leniency=0.01,
+                cols=["REGION", "TIMESLICE", "YEAR", "VALUE"],
+                cols_to_groupby=["REGION", "YEAR"],
             )
 
         return values
