@@ -5,7 +5,7 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.schemas.validation.common_validation import check_sums_one
+from feo.osemosys.schemas.validation.commodity_validation import commodity_validation
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
@@ -50,22 +50,7 @@ class Commodity(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        values.get("id")
-        values.get("demand_annual")
-        demand_profile = values.get("demand_profile")
-        values.get("accumulated_demand")
-        values.get("is_renewable")
-
-        # Check demand_profile sums to one, within leniency
-        if demand_profile is not None:
-            check_sums_one(
-                data=demand_profile.data,
-                leniency=0.01,
-                cols=["REGION", "TIMESLICE", "YEAR", "VALUE"],
-                cols_to_groupby=["REGION", "YEAR"],
-            )
-
-        return values
+        return commodity_validation(values)
 
     @classmethod
     def from_otoole_csv(cls, root_dir):
