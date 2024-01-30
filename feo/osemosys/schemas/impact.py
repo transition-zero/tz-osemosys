@@ -5,7 +5,8 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.utils import check_min_vals_lower_max, group_to_json
+from feo.osemosys.schemas.validation.common_validation import check_min_vals_lower_max
+from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
 
