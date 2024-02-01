@@ -6,7 +6,7 @@ import pandas as pd
 
 from feo.osemosys.schemas import RunSpec
 
-root_dir = "data/model_three_edited/"
+root_dir = "../examples/otoole_csvs/model_three_edited/"
 output_directory = "otoole_compare/model_three_edited/"
 
 (Path.cwd() / output_directory).mkdir(parents=True, exist_ok=True)
