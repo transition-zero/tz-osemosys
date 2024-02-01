@@ -1,4 +1,4 @@
-from feo.osemosys.schemas.validation.common_validation import check_min_vals_lower_max
+from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
 
 def technology_validation(values):

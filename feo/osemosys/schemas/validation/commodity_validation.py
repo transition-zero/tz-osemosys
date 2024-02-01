@@ -1,4 +1,4 @@
-from feo.osemosys.schemas.validation.common_validation import check_sums_one
+from feo.osemosys.schemas.validation.validation_utils import check_sums_one
 
 
 def commodity_validation(values):
