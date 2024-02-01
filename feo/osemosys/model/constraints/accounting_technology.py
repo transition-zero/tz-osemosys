@@ -3,7 +3,9 @@ from linopy import Model
 
 
 def add_accounting_technology_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add accounting_technology constraints to the model
+    """Add accounting_technology constraints to the model.
+    Creates intermediate results variables that are not strictly needed for the optimisation but
+    are useful when analysing results. E.g. 'ProductionByTechnology' and 'UseByTechnology'.
 
     Arguments
     ---------
@@ -54,7 +56,6 @@ def add_accounting_technology_constraints(ds: xr.Dataset, m: Model) -> Model:
     con = (m["RateOfActivity"] * ds["YearSplit"]).sum("TIMESLICE") - m[
         "TotalAnnualTechnologyActivityByMode"
     ] == 0
-    # mask = ds['OutputActivityRatio'].sum('FUEL') != 0
     m.add_constraints(con, name="Acc3_AverageAnnualRateOfActivity")
 
     con = m["TotalDiscountedCost"].sum("YEAR") - m["ModelPeriodCostByRegion"] == 0

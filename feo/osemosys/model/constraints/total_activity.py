@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_total_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Total Activity constraints to the model
+    """Add Total Activity constraints to the model.
+    Constrains model period activity of a technology based on user-defined lower and upper limits.
 
     Arguments
     ---------

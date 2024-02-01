@@ -3,7 +3,9 @@ from linopy import Model
 
 
 def add_total_capacity_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Total Capacity constraints to the model
+    """Add Total Capacity constraints to the model.
+    Constrains capacity (new and existing) of a technology based on user-defined lower and upper
+    limits.
 
     Arguments
     ---------
@@ -31,6 +33,7 @@ def add_total_capacity_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalCapacityAnnual[r,t,y] >= TotalAnnualMinCapacity[r,t,y];
     ```
     """
+
     con = m["TotalCapacityAnnual"] <= ds["TotalAnnualMaxCapacity"]
     mask = ds["TotalAnnualMaxCapacity"] >= 0
     m.add_constraints(con, name="TCC1_TotalAnnualMaxCapacityConstraint", mask=mask)

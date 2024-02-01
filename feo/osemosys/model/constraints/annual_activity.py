@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_annual_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Annual Activity constraints to the model
+    """Add Annual Activity constraints to the model.
+    Constrains annual activity of a technology based on user-defined lower and upper limits.
 
     Arguments
     ---------

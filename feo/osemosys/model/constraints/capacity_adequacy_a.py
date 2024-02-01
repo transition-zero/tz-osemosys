@@ -4,6 +4,7 @@ from linopy import Model
 
 def add_capacity_adequacy_a_constraints(ds: xr.Dataset, m: Model) -> Model:
     """Add Capacity Adequacy A constraints to the model
+    Ensures that there is sufficient capacity of technologies to meet demand(s) in each timeslice.
 
     Arguments
     ---------

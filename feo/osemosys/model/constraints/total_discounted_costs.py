@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_total_discounted_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Total Discounted Costs constraints to the model
+    """Add Total Discounted Costs constraints to the model.
+    Calculates the total discounted costs of the entire system across the entire model period.
 
     Arguments
     ---------
@@ -55,4 +56,5 @@ def add_total_discounted_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
         con = m["TotalDiscountedCostByTechnology"].sum("TECHNOLOGY") - m["TotalDiscountedCost"] == 0
     finally:
         m.add_constraints(con, name="TDC2_TotalDiscountedCost")
+
     return m

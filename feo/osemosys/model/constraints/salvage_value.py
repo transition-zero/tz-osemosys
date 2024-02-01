@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Salvage Value constraints to the model
+    """Add Salvage Value constraints to the model.
+    Calculates the value of a technology if it's retired before the end of its operational life.
 
     Arguments
     ---------

@@ -3,7 +3,9 @@ from linopy import Model
 
 
 def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Reserve Margin constraints to the model
+    """Add Reserve Margin constraints to the model.
+    Ensures that adequate additional capacity, i.e. reserve margin, is available for relevant
+    technologies.
 
     Arguments
     ---------

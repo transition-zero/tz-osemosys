@@ -3,7 +3,9 @@ from linopy import Model
 
 
 def add_capacity_adequacy_b_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Capacity Adequacy B constraints to the model
+    """Add Capacity Adequacy B constraints to the model.
+    Ensures that there is sufficient capacity of technologies to meet demand(s) in each year,
+    taking planned maintainence into consideration.
 
     Arguments
     ---------

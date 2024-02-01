@@ -3,23 +3,26 @@ from linopy import Model
 
 
 def add_emissions_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: float) -> Model:
-    """Add Emissions constraints to the model
+    """Add Emissions constraints to the model.
+    Applies (1) user-defined emission limits annually and for the entire model period,
+    (2) Emission penalities, and
+    (3) Calculates emissions by technology and year
 
-        Arguments
-        ---------
-        ds: xarray.Dataset
-            The parameters dataset
-        m: linopy.Model
-            A linopy model
+    Arguments
+    ---------
+    ds: xarray.Dataset
+        The parameters dataset
+    m: linopy.Model
+        A linopy model
 
-        Returns
-        -------
-        linopy.Model
+    Returns
+    -------
+    linopy.Model
 
 
-        Notes
-        -----
-        ```ampl
+    Notes
+    -----
+    ```ampl
     s.t. E1_AnnualEmissionProductionByMode{
         r in REGION, t in TECHNOLOGY, e in EMISSION, m in MODE_OF_OPERATION, y in YEAR:
         EmissionActivityRatio[r,t,e,m,y] <> 0}:

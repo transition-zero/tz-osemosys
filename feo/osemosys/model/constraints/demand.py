@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_demand_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add demand constraint to the model
+    """Add demand constraint to the model.
+    Sets user-defined demand(s) for all relevant commodities in each timeslice and year.
 
     Arguments
     ---------

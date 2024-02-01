@@ -2,8 +2,11 @@ import xarray as xr
 from linopy import Model
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
-    """Add demand constraint to the model
+def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
+    """Add Storage constraints to the model.
+    Representation of storage technologies, ensuring that storage levels, charge/discharge rates
+    are maintained for each daily time bracket, day type, and season.
+
 
     Arguments
     ---------

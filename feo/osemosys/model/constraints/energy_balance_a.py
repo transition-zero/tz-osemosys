@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Energy Balance A constraints to the model
+    """Add Energy Balance A constraints to the model.
+    Ensures that energy balances of all commodities are maintained for each timeslice.
 
     Arguments
     ---------

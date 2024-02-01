@@ -9,7 +9,9 @@ def add_capital_costs_constraints(
     pv_annuity: float,
     discount_factor: float,
 ) -> Model:
-    """Add Capital Costs constraint to the model
+    """Add Capital Costs constraint to the model.
+    Calculates the total capital expenditure - both discounted and undiscounted - of new technology
+    capacity.
 
     Arguments
     ---------

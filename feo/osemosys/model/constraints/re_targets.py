@@ -3,7 +3,8 @@ from linopy import Model
 
 
 def add_re_targets_constraints(ds: xr.Dataset, m: Model) -> Model:
-    """Add Renewable Energy target constraints to the model
+    """Add Renewable Energy target constraints to the model.
+    Sets user-defined renewable energy constraints for specific years and technologies.
 
     Arguments
     ---------

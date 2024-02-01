@@ -3,7 +3,9 @@ from linopy import Model
 
 
 def add_operating_costs_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: float) -> Model:
-    """Add Operating Costs constraint to the model
+    """Add Operating Costs constraint to the model.
+    Calculates the total operating expenditure - both discounted and undiscounted - of total (new
+    and existing) capacity.
 
     Arguments
     ---------
