@@ -1,10 +1,12 @@
 from feo.osemosys.schemas.validation.validation_utils import check_sums_one
 
 
-def commodity_validation(values):
+def demand_profile_sums_one(values):
+    """
+    Check that demand_profile sums to one, within allowed leniency
+    """
     demand_profile = values.get("demand_profile")
 
-    # Check demand_profile sums to one, within leniency
     if demand_profile is not None:
         check_sums_one(
             data=demand_profile.data,

@@ -5,7 +5,7 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.schemas.validation.commodity_validation import commodity_validation
+from feo.osemosys.schemas.validation.commodity_validation import demand_profile_sums_one
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
@@ -50,7 +50,8 @@ class Commodity(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        return commodity_validation(values)
+        values = demand_profile_sums_one(values)
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir):

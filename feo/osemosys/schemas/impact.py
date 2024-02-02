@@ -5,10 +5,14 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.schemas.validation.impact_validation import impact_validation
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
+
+from feo.osemosys.schemas.validation.impact_validation import (  # noqa
+    exogenous_annual_within_constraint,
+    exogenous_total_within_constraint,
+)
 
 
 class OtooleCfg(BaseModel):
@@ -65,7 +69,9 @@ class Impact(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validator(cls, values):
-        return impact_validation(values)
+        values = exogenous_annual_within_constraint(values)
+        values = exogenous_total_within_constraint(values)
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["Impact"]:
