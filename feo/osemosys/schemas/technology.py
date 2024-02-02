@@ -5,15 +5,14 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
+from feo.osemosys.schemas.validation.technology_validation import (
+    min_activity_lower_than_max,
+    min_capacity_lower_than_max,
+    technology_storage_validation,
+)
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
-
-from feo.osemosys.schemas.validation.technology_validation import (  # noqa
-    technology_storage_validation,
-    technology_validation,
-)
-
 
 # ##################
 # ### TECHNOLOGY ###
@@ -230,7 +229,9 @@ class Technology(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validator(cls, values):
-        return technology_validation(values)
+        values = min_activity_lower_than_max(values)
+        values = min_capacity_lower_than_max(values)
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["Technology"]:
@@ -441,7 +442,8 @@ class TechnologyStorage(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validator(cls, values):
-        return technology_storage_validation(values)
+        values = technology_storage_validation(values)
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["TechnologyStorage"]:

@@ -1,33 +1,15 @@
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
 
-def technology_validation(values):
-    id = values.get("id")
-    values.get("capacity_activity_unit_ratio")
-    values.get("capacity_one_tech_unit")
-    values.get("availability_factor")
-    values.get("capacity_factor")
-    values.get("operating_life")
-    values.get("capex")
-    values.get("opex_fixed")
-    values.get("opex_variable")
-    values.get("residual_capacity")
-    capacity_gross_max = values.get("capacity_gross_max")
-    capacity_gross_min = values.get("capacity_gross_min")
-    capacity_additional_max = values.get("capacity_additional_max")
-    capacity_additional_min = values.get("capacity_additional_min")
+def min_activity_lower_than_max(values):
+    """
+    Check minimum activity constraints are lower than maximum activity constraints
+    """
     activity_annual_max = values.get("activity_annual_max")
     activity_annual_min = values.get("activity_annual_min")
     activity_total_max = values.get("activity_total_max")
     activity_total_min = values.get("activity_total_min")
-    values.get("emission_activity_ratio")
-    values.get("input_activity_ratio")
-    values.get("output_activity_ratio")
-    values.get("to_storage")
-    values.get("from_storage")
-    values.get("is_renewable")
 
-    # Check minimum activity constraints are lower than maximum activity constraints
     if activity_annual_min is not None and activity_annual_max is not None:
         check_min_vals_lower_max(
             activity_annual_min,
@@ -49,7 +31,18 @@ def technology_validation(values):
             ),
         )
 
-    # Check minimum capacity constraints are lower than maximum capacity constraints
+    return values
+
+
+def min_capacity_lower_than_max(values):
+    """
+    Check minimum capacity constraints are lower than maximum capacity constraints
+    """
+    capacity_gross_max = values.get("capacity_gross_max")
+    capacity_gross_min = values.get("capacity_gross_min")
+    capacity_additional_max = values.get("capacity_additional_max")
+    capacity_additional_min = values.get("capacity_additional_min")
+
     if capacity_additional_min is not None and capacity_additional_max is not None:
         check_min_vals_lower_max(
             capacity_additional_min,
@@ -75,6 +68,7 @@ def technology_validation(values):
 
 
 def technology_storage_validation(values):
+    # TODO:
     values.get("capex")
     values.get("operating_life")
     values.get("minimum_charge")
