@@ -5,14 +5,13 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, root_validator
 
-from feo.osemosys.utils import group_to_json
-
-from .base import OSeMOSYSBase, OSeMOSYSData
-
-from feo.osemosys.schemas.validation.impact_validation import (  # noqa
+from feo.osemosys.schemas.validation.impact_validation import (
     exogenous_annual_within_constraint,
     exogenous_total_within_constraint,
 )
+from feo.osemosys.utils import group_to_json
+
+from .base import OSeMOSYSBase, OSeMOSYSData
 
 
 class OtooleCfg(BaseModel):

@@ -5,15 +5,13 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 
-from feo.osemosys.utils import group_to_json
-
-from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
-
-from feo.osemosys.schemas.validation.region_validation import (  # noqa
+from feo.osemosys.schemas.validation.region_validation import (
     discount_rate_as_decimals,
     reserve_margin_fully_defined,
 )
+from feo.osemosys.utils import group_to_json
 
+from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
 
 ##########
 # REGION #
