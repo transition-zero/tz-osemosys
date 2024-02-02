@@ -5,10 +5,15 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 
-from feo.osemosys.schemas.validation.region_validation import region_validation
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
+
+from feo.osemosys.schemas.validation.region_validation import (  # noqa
+    discount_rate_as_decimals,
+    reserve_margin_fully_defined,
+)
+
 
 ##########
 # REGION #
@@ -82,7 +87,9 @@ class Region(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        return region_validation(values)
+        values = reserve_margin_fully_defined(values)
+        values = discount_rate_as_decimals(values)
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["Region"]:
