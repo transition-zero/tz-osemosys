@@ -5,6 +5,7 @@ def min_activity_lower_than_max(values):
     """
     Check minimum activity constraints are lower than maximum activity constraints
     """
+    id = values.get("id")
     activity_annual_max = values.get("activity_annual_max")
     activity_annual_min = values.get("activity_annual_min")
     activity_total_max = values.get("activity_total_max")
@@ -38,6 +39,7 @@ def min_capacity_lower_than_max(values):
     """
     Check minimum capacity constraints are lower than maximum capacity constraints
     """
+    id = values.get("id")
     capacity_gross_max = values.get("capacity_gross_max")
     capacity_gross_min = values.get("capacity_gross_min")
     capacity_additional_max = values.get("capacity_additional_max")
