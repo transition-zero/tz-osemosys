@@ -6,6 +6,239 @@ import pandas as pd
 from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.utils import flatten, group_to_json, json_dict_to_dataframe, makehash
 
+# ######################################
+# Validation if timeslices are defined #
+# ######################################
+
+
+def timeslice_match_timeslice_in_timebracket(values):
+    """
+    Check that provided timeslices match keys of provided timeslice_in_timebracket
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+
+    if timeslices is not None and timeslice_in_timebracket is not None:
+        if set(timeslices) != set(timeslice_in_timebracket.keys()):
+            raise ValueError(
+                "provided 'timeslices' do not match keys of 'timeslice_in_timebracket'"
+            )
+    return values
+
+
+def timeslice_in_timebracket_match_daily_time_brackets(values):
+    """
+    Check that provided timeslice_in_timebracket match keys of provided daily_time_brackets
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+    daily_time_brackets = values.get("daily_time_brackets")
+
+    if timeslices is not None and timeslice_in_timebracket is not None:
+        if daily_time_brackets is not None:
+            if set(daily_time_brackets) != set(
+                flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+            ):
+                raise ValueError(
+                    "provided 'timeslice_in_timebracket' keys do not match " "'daily_time_brackets'"
+                )
+    return values
+
+
+def timeslice_in_timebracket_provided(values):
+    """
+    Check timeslice_in_timebracket is provided, if both 'timeslices' and 'time_brackets' are
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+    daily_time_brackets = values.get("daily_time_brackets")
+    if timeslices is not None and daily_time_brackets is not None:
+        if timeslice_in_timebracket is None:
+            raise ValueError(
+                "if providing 'timeslices' and 'time_brackets', the joining "
+                "'timeslice_in_timebracket' must be provided"
+            )
+    return values
+
+
+def construct_timebracket(values):
+    """
+    If timeslices defined, but daily_time_brackets nor timeslice_in_timebracket is,
+    construct them from timeslices, assuming a single daily_time_brackets
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+    daily_time_brackets = values.get("daily_time_brackets")
+    if timeslices is not None:
+        if daily_time_brackets is None and timeslice_in_timebracket is None:
+            # TODO: potentially remove this osemosys global specific check and ValueError
+            for item in timeslices:
+                if "H2" in item:
+                    raise ValueError(
+                        "More than one daily time bracket specified in timeslices, "
+                        "daily_time_brackets and timeslice_in_timebracket must be provided"
+                    )
+            # Construct daily_time_brackets assuming a single timebracket
+            values["daily_time_brackets"] = [1]
+            # Construct timeslice_in_timebracket assuming a single timebracket
+            timeslice_in_timebracket = pd.DataFrame({"TIMESLICE": timeslices})
+            timeslice_in_timebracket["DAILYTIMEBRACKET"] = 1
+            timeslice_in_timebracket["VALUE"] = 1
+            timeslice_in_timebracket = group_to_json(
+                g=timeslice_in_timebracket,
+                data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
+                target_column="VALUE",
+            )
+            values["timeslice_in_timebracket"] = timeslice_in_timebracket
+    return values
+
+
+def timeslice_match_timeslice_in_daytype(values):
+    """
+    Check provided timeslices match the keys of timeslice_in_daytype
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_daytype = values.get("timeslice_in_daytype")
+    if timeslices is not None and timeslice_in_daytype is not None:
+        if set(timeslices) != set(timeslice_in_daytype.keys()):
+            raise ValueError("provided 'timeslices' do not match keys of 'timeslice_in_daytype'")
+    return values
+
+
+def timeslice_in_daytype_match_day_types(values):
+    """
+    Check provided 'timeslice_in_daytype' keys match 'day_types'
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_daytype = values.get("timeslice_in_daytype")
+    day_types = values.get("day_types")
+    if timeslices is not None and timeslice_in_daytype is not None:
+        if day_types is not None:
+            if set(day_types) != set(
+                flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
+            ):
+                raise ValueError("provided 'timeslice_in_daytype' keys do not match 'day_types'")
+    return values
+
+
+def timeslice_in_daytype_provided(values):
+    """
+    Check timeslice_in_daytype is provided, if both 'timeslices' and 'day_types' are
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_daytype = values.get("timeslice_in_daytype")
+    day_types = values.get("day_types")
+    if timeslices is not None and day_types is not None:
+        if timeslice_in_daytype is None:
+            raise ValueError(
+                "if providing 'timeslices' and 'day_types', the joining "
+                "'timeslice_in_daytype' must be provided"
+            )
+    return values
+
+
+def construct_daytype(values):
+    """
+    If timeslices defined, but day_types nor timeslice_in_daytype is,
+    construct them from timeslices, assuming a single daytype
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_daytype = values.get("timeslice_in_daytype")
+    day_types = values.get("day_types")
+    if timeslices is not None:
+        if timeslice_in_daytype is None and day_types is None:
+            for item in timeslices:
+                # TODO: this is osemosys global specific, needs to be generalised
+                if "D2" in item:
+                    raise ValueError(
+                        "More than one day type specified in timeslices, day_types and "
+                        "timeslice_in_daytype must be provided"
+                    )
+            # Construct day_types assuming a single daytype
+            values["day_types"] = [1]
+            # Construct timeslice_in_daytype assuming a single daytype
+            timeslice_in_daytype = pd.DataFrame({"TIMESLICE": timeslices})
+            timeslice_in_daytype["DAYTYPE"] = 1
+            timeslice_in_daytype["VALUE"] = 1
+            timeslice_in_daytype = group_to_json(
+                g=timeslice_in_daytype,
+                data_columns=["TIMESLICE", "DAYTYPE"],
+                target_column="VALUE",
+            )
+            values["timeslice_in_daytype"] = timeslice_in_daytype
+    return values
+
+
+def timeslice_match_timeslice_in_season(values):
+    """
+    Check provided timeslices match the keys of timeslice_in_season
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    if timeslices is not None and timeslice_in_season is not None:
+        if set(timeslices) != set(timeslice_in_season.keys()):
+            raise ValueError("provided 'timeslices' do not match keys of 'timeslice_in_season'")
+    return values
+
+
+def timeslice_in_season_match_seasons(values):
+    """
+    Check provided 'timeslice_in_season' keys match 'season'
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    seasons = values.get("seasons")
+    if timeslices is not None and timeslice_in_season is not None:
+        if set(seasons) != set(flatten([list(v.keys()) for k, v in timeslice_in_season.items()])):
+            raise ValueError("provided 'timeslice_in_season' keys do not match 'seasons'")
+    return values
+
+
+def timeslice_in_season_provided(values):
+    """
+    Check timeslice_in_season is provided, if both 'timeslices' and 'season' are
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    seasons = values.get("seasons")
+    if timeslices is not None and seasons is not None:
+        if timeslice_in_season is None:
+            raise ValueError(
+                "if providing 'timeslices' and 'seasons', the joining "
+                "'timeslice_in_season' must be provided"
+            )
+    return values
+
+
+def construct_season(values):
+    """
+    If timeslices defined, but day_types nor timeslice_in_daytype is,
+    construct them from timeslices, assuming a single daytype
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    seasons = values.get("seasons")
+    if timeslices is not None:
+        if seasons is None and timeslice_in_season is None:
+            for item in timeslices:
+                if "S2" in item:
+                    raise ValueError(
+                        "More than one season specified in timeslices, seasons and "
+                        "timeslice_in_season must be provided"
+                    )
+            # default to a single season
+            values["seasons"] = [1]
+            timeslice_in_season = pd.DataFrame({"TIMESLICE": timeslices})
+            timeslice_in_season["SEASON"] = 1
+            timeslice_in_season["VALUE"] = 1
+            timeslice_in_season = group_to_json(
+                g=timeslice_in_season,
+                data_columns=["TIMESLICE", "SEASON"],
+                target_column="VALUE",
+            )
+            values["timeslice_in_season"] = timeslice_in_season
+    return values
+
 
 def timedefinition_validation(values):
     years = values.get("years")
@@ -13,7 +246,7 @@ def timedefinition_validation(values):
     timeslices = values.get("timeslices")
     day_types = values.get("day_types")
     daily_time_brackets = values.get("daily_time_brackets")
-    mode_of_operation = values.get("mode_of_operation")
+    values.get("mode_of_operation")
     year_split = values.get("year_split")
     day_split = values.get("day_split")
     days_in_day_type = values.get("days_in_day_type")
@@ -23,191 +256,66 @@ def timedefinition_validation(values):
     adj = values.get("adj")
     adj_inv = values.get("adj_inv")
 
-    # failed to specify years
-    if not years:
-        raise ValueError("years (List[int]) must be specified.")
+    # ##########################################
+    # Validation if timeslices are not defined #
+    # ##########################################
 
-    # Failed to specify mode_of_operation
-    if not mode_of_operation:
-        raise ValueError("mode_of_operation (List[int]) must be specified.")
+    # timeslices not defined
+    if timeslices is None and timeslice_in_daytype is not None:
+        timeslices = timeslice_in_daytype.keys()
+        if day_types is not None:
+            if set(day_types) != set(
+                flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
+            ):
+                raise ValueError("provided 'timeslice_in_daytype' keys do not match 'day_types'")
+        else:
+            day_types = sorted(flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()]))
+    if timeslices is None and timeslice_in_daytype is None:
+        if day_types is None:
+            day_types = [1]
 
-    # maybe get timeslices from 'in' constructs or directly
-    if timeslices is not None:
-        # make sure it's index matchs the 'in' constructs
-        # timebrackets:
-        if timeslice_in_timebracket is not None:
+    if timeslices is None and timeslice_in_timebracket is not None:
+        if timeslices is None:
+            timeslices = timeslice_in_timebracket.keys()
+        else:
             if set(timeslices) != set(timeslice_in_timebracket.keys()):
                 raise ValueError(
-                    "provided 'timeslices' do not match keys of 'timeslice_in_timebracket'"
+                    "provided 'timeslice_in_timebracket' keys do not match other "
+                    "timeslice joins."
                 )
-            if daily_time_brackets is not None:
-                if set(daily_time_brackets) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
-                ):
-                    raise ValueError(
-                        "provided 'timeslice_in_timebracket' keys do not match "
-                        "'daily_time_brackets'"
-                    )
+        if daily_time_brackets is not None:
+            if set(daily_time_brackets) != set(
+                flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+            ):
+                raise ValueError(
+                    "provided 'timeslice_in_timebracket' keys do not match " "'daily_time_brackets'"
+                )
         else:
-            if daily_time_brackets is not None:
-                raise ValueError(
-                    "if providing 'timeslices' and 'time_brackets', the joining "
-                    "'timeslice_in_timebracket' must be provided"
-                )
-            # If timeslices defined, but daily_time_brackets nor timeslice_in_timebracket is
-            else:
-                for item in timeslices:
-                    if "H2" in item:
-                        raise ValueError(
-                            "More than one daily time bracket specified in timeslices, "
-                            "daily_time_brackets and timeslice_in_timebracket must be provided"
-                        )
-                # default to a single timebracket
-                daily_time_brackets = [1]
-                timeslice_in_timebracket = pd.DataFrame({"TIMESLICE": timeslices})
-                timeslice_in_timebracket["DAILYTIMEBRACKET"] = 1
-                timeslice_in_timebracket["VALUE"] = 1
-                timeslice_in_timebracket = group_to_json(
-                    g=timeslice_in_timebracket,
-                    data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
-                    target_column="VALUE",
-                )
+            daily_time_brackets = sorted(
+                flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
+            )
+    if timeslices is None and timeslice_in_timebracket is None:
+        if daily_time_brackets is None:
+            daily_time_brackets = [1]
 
-        # daytype
-        if timeslice_in_daytype is not None:
-            if set(timeslices) != set(timeslice_in_daytype.keys()):
-                raise ValueError(
-                    "provided 'timeslices' do not match keys of 'timeslice_in_daytype'"
-                )
-            if timeslice_in_daytype is not None:
-                if set(day_types) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
-                ):
-                    raise ValueError(
-                        "provided 'timeslice_in_daytype' keys do not match 'day_types'"
-                    )
+    if timeslices is None and timeslice_in_season is not None:
+        if timeslices is None:
+            timeslices = timeslice_in_season.keys()
         else:
-            if day_types is not None:
-                raise ValueError(
-                    "if providing 'timeslices' and 'day_types', the joining "
-                    "'timeslice_in_daytype' must be provided"
-                )
-            # If timeslices defined, but neither day_types nor timeslice_in_daytype is
-            else:
-                for item in timeslices:
-                    if "D2" in item:
-                        raise ValueError(
-                            "More than one day type specified in timeslices, day_types and "
-                            "timeslice_in_daytype must be provided"
-                        )
-                # default to a single daytype
-                day_types = [1]
-                timeslice_in_daytype = pd.DataFrame({"TIMESLICE": timeslices})
-                timeslice_in_daytype["DAYTYPE"] = 1
-                timeslice_in_daytype["VALUE"] = 1
-                timeslice_in_daytype = group_to_json(
-                    g=timeslice_in_daytype,
-                    data_columns=["TIMESLICE", "DAYTYPE"],
-                    target_column="VALUE",
-                )
-
-        # seasons
-        if timeslice_in_season is not None:
             if set(timeslices) != set(timeslice_in_season.keys()):
-                raise ValueError("provided 'timeslices' do not match keys of 'timeslice_in_season'")
-            if timeslice_in_season is not None:
-                if set(seasons) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
-                ):
-                    raise ValueError("provided 'timeslice_in_season' keys do not match 'seasons'")
-        else:
-            if seasons is not None:
                 raise ValueError(
-                    "if providing 'timeslices' and 'seasons', the joining "
-                    "'timeslice_in_season' must be provided"
+                    "provided 'timeslice_in_season' keys do not match other " "timeslice joins."
                 )
-            # If timeslices defined, but neither seasons nor timeslice_in_season is
-            else:
-                for item in timeslices:
-                    if "S2" in item:
-                        raise ValueError(
-                            "More than one season specified in timeslices, seasons and "
-                            "timeslice_in_season must be provided"
-                        )
-                # default to a single season
-                seasons = [1]
-                timeslice_in_season = pd.DataFrame({"TIMESLICE": timeslices})
-                timeslice_in_season["SEASON"] = 1
-                timeslice_in_season["VALUE"] = 1
-                timeslice_in_season = group_to_json(
-                    g=timeslice_in_season,
-                    data_columns=["TIMESLICE", "SEASON"],
-                    target_column="VALUE",
-                )
-
-    else:
-        # timeslices not defined
-
-        if timeslice_in_daytype is not None:
-            timeslices = timeslice_in_daytype.keys()
-            if day_types is not None:
-                if set(day_types) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
-                ):
-                    raise ValueError(
-                        "provided 'timeslice_in_daytype' keys do not match 'day_types'"
-                    )
-            else:
-                day_types = sorted(
-                    flatten([list(v.keys()) for k, v in timeslice_in_daytype.items()])
-                )
+        if seasons is not None:
+            if set(seasons) != set(
+                flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
+            ):
+                raise ValueError("provided 'timeslice_in_season' keys do not match 'seasons'")
         else:
-            if day_types is None:
-                day_types = [1]
-
-        if timeslice_in_timebracket is not None:
-            if timeslices is None:
-                timeslices = timeslice_in_timebracket.keys()
-            else:
-                if set(timeslices) != set(timeslice_in_timebracket.keys()):
-                    raise ValueError(
-                        "provided 'timeslice_in_timebracket' keys do not match other "
-                        "timeslice joins."
-                    )
-            if daily_time_brackets is not None:
-                if set(daily_time_brackets) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
-                ):
-                    raise ValueError(
-                        "provided 'timeslice_in_timebracket' keys do not match "
-                        "'daily_time_brackets'"
-                    )
-            else:
-                daily_time_brackets = sorted(
-                    flatten([list(v.keys()) for k, v in timeslice_in_timebracket.items()])
-                )
-        else:
-            if daily_time_brackets is None:
-                daily_time_brackets = [1]
-
-        if timeslice_in_season is not None:
-            if timeslices is None:
-                timeslices = timeslice_in_season.keys()
-            else:
-                if set(timeslices) != set(timeslice_in_season.keys()):
-                    raise ValueError(
-                        "provided 'timeslice_in_season' keys do not match other " "timeslice joins."
-                    )
-            if seasons is not None:
-                if set(seasons) != set(
-                    flatten([list(v.keys()) for k, v in timeslice_in_season.items()])
-                ):
-                    raise ValueError("provided 'timeslice_in_season' keys do not match 'seasons'")
-            else:
-                seasons = sorted(flatten([list(v.keys()) for k, v in timeslice_in_season.items()]))
-        else:
-            if seasons is None:
-                seasons = [1]
+            seasons = sorted(flatten([list(v.keys()) for k, v in timeslice_in_season.items()]))
+    if timeslices is None and timeslice_in_season is None:
+        if seasons is None:
+            seasons = [1]
 
     if timeslices is None:
         # timeslices is _still_ None: join our time_brackets, day_types, and SEASON

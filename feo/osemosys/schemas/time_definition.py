@@ -4,7 +4,20 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 
-from feo.osemosys.schemas.validation.timedefinition_validation import timedefinition_validation
+from feo.osemosys.schemas.validation.timedefinition_validation import (
+    construct_daytype,
+    construct_season,
+    construct_timebracket,
+    timedefinition_validation,
+    timeslice_in_daytype_match_day_types,
+    timeslice_in_daytype_provided,
+    timeslice_in_season_match_seasons,
+    timeslice_in_season_provided,
+    timeslice_in_timebracket_match_daily_time_brackets,
+    timeslice_match_timeslice_in_daytype,
+    timeslice_match_timeslice_in_season,
+    timeslice_match_timeslice_in_timebracket,
+)
 from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData
@@ -88,6 +101,17 @@ class TimeDefinition(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
+        values = timeslice_match_timeslice_in_timebracket(values)
+        values = timeslice_in_timebracket_match_daily_time_brackets(values)
+        values = construct_timebracket(values)
+        values = timeslice_match_timeslice_in_daytype(values)
+        values = timeslice_in_daytype_match_day_types(values)
+        values = timeslice_in_daytype_provided(values)
+        values = construct_daytype(values)
+        values = timeslice_match_timeslice_in_season(values)
+        values = timeslice_in_season_match_seasons(values)
+        values = timeslice_in_season_provided(values)
+        values = construct_season(values)
         return timedefinition_validation(values)
 
     @classmethod
