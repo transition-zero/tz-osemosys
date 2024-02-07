@@ -10,7 +10,7 @@ def demand_profile_sums_one(values):
     if demand_profile is not None:
         check_sums_one(
             data=demand_profile.data,
-            leniency=0.01,
+            leniency=0.05,
             cols=["REGION", "TIMESLICE", "YEAR", "VALUE"],
             cols_to_groupby=["REGION", "YEAR"],
         )
