@@ -5,10 +5,14 @@ import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 
 from feo.osemosys.schemas.validation.timedefinition_validation import (
+    construct_adjacency_matrices,
+    construct_dailytimebracket_no_timeslice,
     construct_daytype,
+    construct_daytypes_no_timeslice,
     construct_season,
+    construct_season_no_timeslice,
     construct_timebracket,
-    timedefinition_validation,
+    construct_timeslice,
     timeslice_in_daytype_match_day_types,
     timeslice_in_daytype_provided,
     timeslice_in_season_match_seasons,
@@ -17,6 +21,9 @@ from feo.osemosys.schemas.validation.timedefinition_validation import (
     timeslice_match_timeslice_in_daytype,
     timeslice_match_timeslice_in_season,
     timeslice_match_timeslice_in_timebracket,
+    validate_construct_day_split,
+    validate_construct_days_in_day_type,
+    validate_construct_year_split,
 )
 from feo.osemosys.utils import group_to_json
 
@@ -112,7 +119,30 @@ class TimeDefinition(OSeMOSYSBase):
         values = timeslice_in_season_match_seasons(values)
         values = timeslice_in_season_provided(values)
         values = construct_season(values)
-        return timedefinition_validation(values)
+        values = construct_daytypes_no_timeslice(values)
+        values = construct_dailytimebracket_no_timeslice(values)
+        values = construct_season_no_timeslice(values)
+        values = construct_timeslice(values)
+        values = validate_construct_year_split(values)
+        values = validate_construct_day_split(values)
+        values = validate_construct_days_in_day_type(values)
+        values = construct_adjacency_matrices(values)
+
+        # TODO: determine why this final assigning of values is required to avoid validation errors
+        year_split = values.get("year_split")
+        day_split = values.get("year_split")
+        days_in_day_type = values.get("days_in_day_type")
+        timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+        timeslice_in_daytype = values.get("timeslice_in_daytype")
+        timeslice_in_season = values.get("timeslice_in_season")
+        values["year_split"] = OSeMOSYSData(data=year_split)
+        values["day_split"] = OSeMOSYSData(data=day_split)
+        values["days_in_day_type"] = OSeMOSYSData(data=days_in_day_type)
+        values["timeslice_in_timebracket"] = OSeMOSYSData(data=timeslice_in_timebracket)
+        values["timeslice_in_daytype"] = OSeMOSYSData(data=timeslice_in_daytype)
+        values["timeslice_in_season"] = OSeMOSYSData(data=timeslice_in_season)
+
+        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> "TimeDefinition":

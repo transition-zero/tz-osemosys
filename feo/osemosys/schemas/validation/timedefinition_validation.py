@@ -240,27 +240,18 @@ def construct_season(values):
     return values
 
 
-def timedefinition_validation(values):
-    years = values.get("years")
-    seasons = values.get("seasons")
+# ##########################################
+# Validation if timeslices are not defined #
+# ##########################################
+
+
+def construct_daytypes_no_timeslice(values):
+    """
+    If timeslices not defined, construct day types if necessary
+    """
     timeslices = values.get("timeslices")
-    day_types = values.get("day_types")
-    daily_time_brackets = values.get("daily_time_brackets")
-    values.get("mode_of_operation")
-    year_split = values.get("year_split")
-    day_split = values.get("day_split")
-    days_in_day_type = values.get("days_in_day_type")
-    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
     timeslice_in_daytype = values.get("timeslice_in_daytype")
-    timeslice_in_season = values.get("timeslice_in_season")
-    adj = values.get("adj")
-    adj_inv = values.get("adj_inv")
-
-    # ##########################################
-    # Validation if timeslices are not defined #
-    # ##########################################
-
-    # timeslices not defined
+    day_types = values.get("day_types")
     if timeslices is None and timeslice_in_daytype is not None:
         timeslices = timeslice_in_daytype.keys()
         if day_types is not None:
@@ -273,7 +264,18 @@ def timedefinition_validation(values):
     if timeslices is None and timeslice_in_daytype is None:
         if day_types is None:
             day_types = [1]
+    values["daytype"] = day_types
+    values["timeslices"] = timeslices
+    return values
 
+
+def construct_dailytimebracket_no_timeslice(values):
+    """
+    If timeslices not defined, construct daily_time_brackets if necessary
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+    daily_time_brackets = values.get("daily_time_brackets")
     if timeslices is None and timeslice_in_timebracket is not None:
         if timeslices is None:
             timeslices = timeslice_in_timebracket.keys()
@@ -297,6 +299,18 @@ def timedefinition_validation(values):
     if timeslices is None and timeslice_in_timebracket is None:
         if daily_time_brackets is None:
             daily_time_brackets = [1]
+    values["daily_time_brackets"] = daily_time_brackets
+    values["timeslices"] = timeslices
+    return values
+
+
+def construct_season_no_timeslice(values):
+    """
+    If timeslices not defined, construct seasons if necessary
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    seasons = values.get("seasons")
 
     if timeslices is None and timeslice_in_season is not None:
         if timeslices is None:
@@ -316,11 +330,25 @@ def timedefinition_validation(values):
     if timeslices is None and timeslice_in_season is None:
         if seasons is None:
             seasons = [1]
+    values["season"] = seasons
+    values["timeslices"] = timeslices
+    return values
+
+
+def construct_timeslice(values):
+    """
+    if timeslices is _still_ None: join our time_brackets, day_types, and SEASON
+    our timeslice_in_<object> constructs are also empty, let's build all
+    """
+    timeslices = values.get("timeslices")
+    timeslice_in_season = values.get("timeslice_in_season")
+    timeslice_in_timebracket = values.get("timeslice_in_timebracket")
+    timeslice_in_daytype = values.get("timeslice_in_daytype")
+    seasons = values.get("seasons")
+    daily_time_brackets = values.get("daily_time_brackets")
+    day_types = values.get("day_types")
 
     if timeslices is None:
-        # timeslices is _still_ None: join our time_brackets, day_types, and SEASON
-        # our timeslice_in_<object> constructs are also empty, let's build all
-
         timeslice_in_season, timeslice_in_daytype, timeslice_in_timebracket = (
             makehash(),
             makehash(),
@@ -334,10 +362,27 @@ def timedefinition_validation(values):
             timeslice_in_daytype[f"S{season}D{day_type}H{time_bracket}"][day_type] = 1
             timeslice_in_timebracket[f"S{season}D{day_type}H{time_bracket}"][time_bracket] = 1
 
-    # For year_split/day_split/days_in_day_type:
-    # check that they have the correct keys, or if they're None build from scratch
+        values["timeslices"] = timeslices
+        values["timeslice_in_season"] = timeslice_in_season
+        values["timeslice_in_timebracket"] = timeslice_in_timebracket
+        values["timeslice_in_daytype"] = timeslice_in_daytype
+    return values
 
-    # year_split
+
+# ###################################################################
+# Validation/construction for year_split/day_split/days_in_day_type #
+# ###################################################################
+
+
+def validate_construct_year_split(values):
+    """
+    If year_split provided, check it's keys match those in timeslice, and that it sums to one
+    Otherwise construct year_split from timeslices
+    """
+    year_split = values.get("year_split")
+    timeslices = values.get("timeslices")
+    years = values.get("years")
+
     if year_split is not None:
         # Check year_split keys match timeslices
         if set(year_split.keys()) != set(timeslices):
@@ -352,6 +397,7 @@ def timedefinition_validation(values):
             year_split_df.groupby(["YEAR"])["VALUE"].sum(), 1, atol=leniency
         ), f"year_split must sum to one (within {leniency}) for all years"
 
+    # Construct year_split if not provided
     else:
         # Assume each timeslice of same length
         year_split_length = 1 / len(timeslices)
@@ -383,8 +429,20 @@ def timedefinition_validation(values):
             data_columns=["TIMESLICE", "YEAR"],
             target_column="VALUE",
         )
+        values["year_split"] = OSeMOSYSData(data=year_split)
 
-    # day_split
+    return values
+
+
+def validate_construct_day_split(values):
+    """
+    Check day_split keys match those in daily_time_brackets
+    If day_split not provided, construct it from daily_time_brackets
+    """
+    day_split = values.get("day_split")
+    daily_time_brackets = values.get("daily_time_brackets")
+    years = values.get("years")
+
     if day_split is not None:
         if set(day_split.keys()) != set(daily_time_brackets):
             raise ValueError("'day_split' keys do not match daily_time_brackets.")
@@ -418,8 +476,21 @@ def timedefinition_validation(values):
             data_columns=["DAILYTIMEBRACKET", "YEAR"],
             target_column="VALUE",
         )
+        values["day_split"] = day_split
 
-    # days_in_day_type
+    return values
+
+
+def validate_construct_days_in_day_type(values):
+    """
+    If provided, check days_in_day_type keys match day_types
+    Otherwise construct days_in_day_type
+    """
+    days_in_day_type = values.get("days_in_day_type")
+    seasons = values.get("seasons")
+    years = values.get("years")
+    day_types = values.get("day_types")
+
     if days_in_day_type is not None:
         # Get daytypes from 2nd level of nested keys
         daytype_keys = []
@@ -436,6 +507,7 @@ def timedefinition_validation(values):
                 )
         else:
             day_types = [1]
+            values["day_types"] = day_types
 
         days_in_day_type_df = pd.DataFrame(
             {
@@ -457,6 +529,26 @@ def timedefinition_validation(values):
             data_columns=["SEASON", "DAYTYPE", "YEAR"],
             target_column="VALUE",
         )
+        values["days_in_day_type"] = days_in_day_type
+
+    return values
+
+
+# ###################################
+# Construction of adjaceny matrices #
+# ###################################
+
+
+def construct_adjacency_matrices(values):
+    """
+    Constructs the adjaceny matrices for years, seasons, day_types, and time_brackets
+    """
+    years = values.get("years")
+    seasons = values.get("seasons")
+    day_types = values.get("day_types")
+    daily_time_brackets = values.get("daily_time_brackets")
+    adj = values.get("adj")
+    adj_inv = values.get("adj_inv")
 
     if adj is None or adj_inv is None:
         year_adjacency = dict(zip(sorted(years)[:-1], sorted(years)[1:]))
@@ -486,17 +578,7 @@ def timedefinition_validation(values):
             time_brackets=time_brackets_adjacency_inv,
         )
 
-    values["year_split"] = OSeMOSYSData(data=year_split)
-    values["day_split"] = OSeMOSYSData(data=day_split)
-    values["days_in_day_type"] = OSeMOSYSData(data=days_in_day_type)
-    values["timeslice_in_timebracket"] = OSeMOSYSData(data=timeslice_in_timebracket)
-    values["timeslice_in_daytype"] = OSeMOSYSData(data=timeslice_in_daytype)
-    values["timeslice_in_season"] = OSeMOSYSData(data=timeslice_in_season)
-    values["seasons"] = seasons
-    values["timeslices"] = timeslices
-    values["day_types"] = day_types
-    values["daily_time_brackets"] = daily_time_brackets
-    values["adj"] = adj
-    values["adj_inv"] = adj_inv
+        values["adj"] = adj
+        values["adj_inv"] = adj_inv
 
     return values
