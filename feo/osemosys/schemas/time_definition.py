@@ -13,14 +13,9 @@ from feo.osemosys.schemas.validation.timedefinition_validation import (
     construct_season_no_timeslice,
     construct_timebracket,
     construct_timeslice,
-    timeslice_in_daytype_match_day_types,
-    timeslice_in_daytype_provided,
-    timeslice_in_season_match_seasons,
-    timeslice_in_season_provided,
-    timeslice_in_timebracket_match_daily_time_brackets,
-    timeslice_match_timeslice_in_daytype,
-    timeslice_match_timeslice_in_season,
-    timeslice_match_timeslice_in_timebracket,
+    timeslice_in_set_match_set,
+    timeslice_in_set_provided,
+    timeslice_match_timeslice_in_set,
     validate_construct_day_split,
     validate_construct_days_in_day_type,
     validate_construct_year_split,
@@ -108,24 +103,23 @@ class TimeDefinition(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        values = timeslice_match_timeslice_in_timebracket(values)
-        values = timeslice_in_timebracket_match_daily_time_brackets(values)
+        # Validation if timeslice is provided
+        values = timeslice_match_timeslice_in_set(values)
+        values = timeslice_in_set_match_set(values)
+        values = timeslice_in_set_provided(values)
         values = construct_timebracket(values)
-        values = timeslice_match_timeslice_in_daytype(values)
-        values = timeslice_in_daytype_match_day_types(values)
-        values = timeslice_in_daytype_provided(values)
         values = construct_daytype(values)
-        values = timeslice_match_timeslice_in_season(values)
-        values = timeslice_in_season_match_seasons(values)
-        values = timeslice_in_season_provided(values)
         values = construct_season(values)
+        # Validation if timeslice is not provided
         values = construct_daytypes_no_timeslice(values)
         values = construct_dailytimebracket_no_timeslice(values)
         values = construct_season_no_timeslice(values)
         values = construct_timeslice(values)
+        # Validation/construction for year_split/day_split/days_in_day_type
         values = validate_construct_year_split(values)
         values = validate_construct_day_split(values)
         values = validate_construct_days_in_day_type(values)
+        # Construction of adjaceny matrices
         values = construct_adjacency_matrices(values)
 
         # TODO: determine why this final assigning of values is required to avoid validation errors
