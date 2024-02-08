@@ -26,19 +26,58 @@ def load_model(*spec_files):
 
     ## Composition
 
-    load_model will compose yaml data and directories of yaml, overwriting data from left to write.
+    `load_model` will load yaml data, merging multiple yaml files together.
 
-    run_spec = load_model("base_technologies/", "my_model/solar_pv.yaml")
+        run_spec = load_model("my_model/technologies.yaml", "my_model/solar_pv.yaml")
+
+    Directories will be automatically searched for yaml files to parse.
+
+        run_spec = load_model("base/technologies.yaml", "my_model/solar_pv.yaml")
 
     ## Environment Variable Parsing
 
+    Environment variables will be automatically parsed in yaml files.
+    They should be denoted with `$ENV{<MYVAR>}`.
+
+        # my_model.yaml
+        discount_rate: $ENV{DISCOUNT_RATE}
+
     ## Variable cross-referencing
+
+    Fields in the yaml composition can be cross-referenced.
+    Fields should be denoted with `${<my.field>}`.
+    Fields can be nested with dot-notation.
+
+        technologies:
+          gas:
+            capacity_factor: 1.
+          coal:
+            capacity_factor: ${technologies.gas.capacity_factor}
+
+    Fields can even be even across files.
+
+        # gas.yaml
+        technologies:
+          gas:
+            capacity_factor: 1.
+
+        # coal.yaml
+        technologies:
+          coal:
+            capacity_factory: ${technologies.gas.capacity_factor}
 
     ## Simple python expressions
 
-    ## Wildcards
+    Simple python expressions can be parsed in data fields.
+    List and dict comprehensions can be used, as well as simple mathematical operators (+-*/^),
+    and basic built-in functions (zip,sum,min,max,range).
 
-    ##
+        regions: "[f'REGION-{char}' for char in ['abcd']]"
+
+    Expressions can be combined with  environment variables and cross-referencing.
+
+        years: "range(2020, $ENV{END_YEAR})"
+        capex: "{yr:1*1.04^(yr - min(${years})) for yr in ${years}}"
 
 
     Examples
