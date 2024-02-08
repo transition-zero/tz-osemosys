@@ -77,11 +77,21 @@ def recursive_keys(keys, input):
         yield keys
 
 
+def maybe_numeric(txt):
+    try:
+        return int(txt)
+    except ValueError:
+        try:
+            return float(txt)
+        except ValueError:
+            return txt
+
+
 def substitute_factory(cfg: dict):
     def _inner(key, val):
         def f(txt):
             if isinstance(txt, str):
-                return txt.replace(f"${{{key}}}", str(val))
+                return maybe_numeric(txt.replace(f"${{{key}}}", str(val)))
             else:
                 return txt
 

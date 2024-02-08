@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 from collections.abc import MutableMapping
 from itertools import chain
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import orjson
 import pandas as pd
@@ -75,14 +75,31 @@ def nested_dict_get(obj, list_of_attrs, original_list_of_vars):
         return nested_dict_get(obj, list_of_attrs[1:], original_list_of_vars)
 
 
-def maybe_eval_string(expr):
-    # TODO: check if we actually want to eval expression?
+evaluator = EvalWithCompoundTypes(
+    functions={"sum": sum, "range": range, "max": max, "min": min, "zip": zip}
+)
 
-    evaluator = EvalWithCompoundTypes(
-        functions={"sum": sum, "range": range, "max": max, "min": min}
-    )
 
-    return evaluator.eval(expr)
+def maybe_eval_string(expr: Any):
+    # if it's not a string, pass it through.
+    if not isinstance(expr, str):
+        return expr
+
+    # check for trigger functions
+    for func in ["sum(", "range(", "max(", "min("]:
+        if func in expr:
+            return evaluator.eval(expr)
+
+    # check if is a dict compr
+    if expr[0] == "{" and expr[-1] == "}":
+        return evaluator.eval(expr)
+
+    # check if is a list compr
+    if expr[0] == "[" and expr[-1] == "]":
+        return evaluator.eval(expr)
+
+    # else
+    return expr
 
 
 def makehash():
