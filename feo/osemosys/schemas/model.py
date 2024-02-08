@@ -1,13 +1,13 @@
 import os
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import xarray as xr
 import yaml
 
+from feo.osemosys.defaults import DefaultsOtoole, defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase
 from feo.osemosys.schemas.commodity import Commodity
-from feo.osemosys.schemas.default_values import DefaultValues
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
@@ -36,7 +36,7 @@ class RunSpec(OSeMOSYSBase):
     # transmission_technologies: List[TechnologyTransmission]
 
     # Default values
-    default_values: DefaultValues
+    defaults_otoole: Optional[DefaultsOtoole] = None
 
     def to_xr_ds(self):
         """
@@ -61,13 +61,34 @@ class RunSpec(OSeMOSYSBase):
         # Create dataset
         ds = xr.Dataset(data_vars=data_arrays)
 
-        # Replace any nan values with default values for corresponding param
-        default_values = self.default_values.values
-        # Add default values as attribute of each data array
-        for name, data in default_values.items():
-            if name in list(ds.data_vars.keys()):
-                ds[name].attrs["default"] = data["default"]
-                ds[name] = ds[name].fillna(data["default"])
+        # If runspec not generated using otoole config yaml, use linopy defaults
+        if self.defaults_otoole is None:
+            default_values = defaults.otoole_name_defaults
+            # If storage technologies present, use additional relevant default values
+            if self.storage_technologies:
+                default_values = {**default_values, **defaults.otoole_name_storage_defaults}
+            # Extract defaults data from OSeMOSYSData objects
+            for name, osemosys_data in default_values.items():
+                default_values[name] = osemosys_data.data
+        # Otherwise take defaults from otoole config yaml file
+        else:
+            default_values = {}
+            for name, data in self.defaults_otoole.values.items():
+                if data["type"] == "param":
+                    default_values[name] = data["default"]
+
+        # Replace any nan values in ds with default values (or None) for corresponding param,
+        # adding default values as attribute of each data array
+        for name in ds.data_vars.keys():
+            # Replace nan values with default values if available
+            if name in default_values.keys():
+                ds[name].attrs["default"] = default_values[name]
+                ds[name] = ds[name].fillna(default_values[name])
+            # Replace all other nan values with None
+            # TODO: remove this code if nan values wanted in the ds
+            # else:
+            #    ds[name].attrs["default"] = None
+            #    ds[name] = ds[name].fillna(None)
 
         return ds
 
@@ -105,10 +126,11 @@ class RunSpec(OSeMOSYSBase):
                     os.path.join(output_directory, "STORAGE.csv"), index=False
                 )
 
-        # write config yaml
-        yaml_file_path = os.path.join(output_directory, "config.yaml")
-        with open(yaml_file_path, "w") as yaml_file:
-            yaml.dump(self.default_values.values, yaml_file, default_flow_style=False)
+        # write config yaml if used to generate Runspec
+        if self.defaults_otoole:
+            yaml_file_path = os.path.join(output_directory, "config.yaml")
+            with open(yaml_file_path, "w") as yaml_file:
+                yaml.dump(self.defaults_otoole.values, yaml_file, default_flow_style=False)
 
     @classmethod
     def from_otoole(cls, root_dir):
@@ -125,7 +147,7 @@ class RunSpec(OSeMOSYSBase):
             # transmission_technologies=TechnologyTransmission.from_otoole_csv(root_dir=root_dir),
             commodities=Commodity.from_otoole_csv(root_dir=root_dir),
             time_definition=TimeDefinition.from_otoole_csv(root_dir=root_dir),
-            default_values=DefaultValues.from_otoole_yaml(root_dir=root_dir),
+            defaults_otoole=DefaultsOtoole.from_otoole_yaml(root_dir=root_dir),
         )
 
     def to_osemosys_data_file(self, root_dir):

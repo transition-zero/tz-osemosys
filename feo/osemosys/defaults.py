@@ -2,20 +2,51 @@ import os
 from typing import Dict, List, Union
 
 import yaml
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
-from .base import OSeMOSYSBase
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 
 
-class DefaultValues(OSeMOSYSBase):
+class DefaultsLinopy(BaseSettings):
     """
-    Class to contain all default values
+    Class to contain hard coded default values, for use with xarray/Linopy
+    """
+
+    otoole_name_defaults: Dict = Field(
+        default={
+            "AvailabilityFactor": OSeMOSYSData(data=1),
+            "CapacityFactor": OSeMOSYSData(data=1),
+            "CapacityToActivityUnit": OSeMOSYSData(data=1),
+            "DepreciationMethod": OSeMOSYSData(data="straight-line"),
+            "DiscountRate": OSeMOSYSData(data=0.1),
+            "ResidualCapacity": OSeMOSYSData(data=0),
+            "SpecifiedAnnualDemand": OSeMOSYSData(data=0),
+        }
+    )
+
+    otoole_name_storage_defaults: Dict = Field(
+        default={
+            "DiscountRateStorage": OSeMOSYSData(data=0.1),
+            "ResidualStorageCapacity": OSeMOSYSData(data=0),
+            "StorageLevelStart": OSeMOSYSData(data=0),
+        }
+    )
+
+
+defaults = DefaultsLinopy()
+
+
+class DefaultsOtoole(OSeMOSYSBase):
+    """
+    Class to contain all data from from otoole config yaml, including default values
     """
 
     values: Dict[str, Dict[str, Union[str, int, float, List]]]
 
     @classmethod
-    def from_otoole_yaml(cls, root_dir) -> "DefaultValues":
-        """Instantiate a single DefaultValues dict from config.yaml file
+    def from_otoole_yaml(cls, root_dir):
+        """Instantiate a single DefaultsOtoole dict from config.yaml file
 
         Contains information for each parameter on:
         indices - column names
@@ -32,7 +63,7 @@ class DefaultValues(OSeMOSYSBase):
             root_dir (str): Path to the root of the otoole csv directory
 
         Returns:
-            DefaultValues: A single DefaultValues instance
+            DefaultsOtoole: A single DefaultsOtoole instance
         """
 
         # ###########
@@ -44,8 +75,7 @@ class DefaultValues(OSeMOSYSBase):
             file for file in os.listdir(root_dir) if file.endswith(".yaml") or file.endswith(".yml")
         ]
         if len(yaml_files) == 0:
-            raise FileNotFoundError("No otoole config YAML file found in the directory")
-        # TODO: include hardcoded default values here if none given?
+            return None
         elif len(yaml_files) > 1:
             raise ValueError(">1 otoole config YAML files found in the directory, only 1 required")
         yaml_file = yaml_files[0]
