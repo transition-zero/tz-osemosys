@@ -65,7 +65,7 @@ commodities:
     description: Electricity
     demand_annual: # EJ/yr
       US-CA: "{y:(0.7*1.1**(y-2022)) for y in ${time_definition.years}}"
-      US-TX: "{y:(1.73*1.1**(y-2022)) for y in ${time_definition.years}}}"
+      US-TX: "{y:(1.73*1.1**(y-2022)) for y in ${time_definition.years}}"
     demand_profile:
       "*":                           # region
         "*":                         # year
