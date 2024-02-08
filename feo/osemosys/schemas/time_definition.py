@@ -130,7 +130,7 @@ class TimeDefinition(OSeMOSYSBase):
 
         # TODO: determine why this final assigning of values is required to avoid validation errors
         year_split = values.get("year_split")
-        day_split = values.get("year_split")
+        day_split = values.get("day_split")
         days_in_day_type = values.get("days_in_day_type")
         timeslice_in_timebracket = values.get("timeslice_in_timebracket")
         timeslice_in_daytype = values.get("timeslice_in_daytype")
