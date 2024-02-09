@@ -4,6 +4,7 @@ from typing import List, Optional
 import pandas as pd
 import xarray as xr
 import yaml
+from pydantic import root_validator
 
 from feo.osemosys.defaults import DefaultsOtoole, defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase
@@ -12,6 +13,11 @@ from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
+from feo.osemosys.schemas.validation.model_validation import (
+    check_tech_consuming_commodity,
+    check_tech_producing_commodity,
+    check_tech_producing_impact,
+)
 from feo.osemosys.utils import to_df_helper
 
 
@@ -37,6 +43,14 @@ class RunSpec(OSeMOSYSBase):
 
     # Default values
     defaults_otoole: Optional[DefaultsOtoole] = None
+
+    @root_validator(pre=True)
+    def validation(cls, values):
+        values = check_tech_producing_commodity(values)
+        values = check_tech_producing_impact(values)
+        values = check_tech_consuming_commodity(values)
+
+        return values
 
     def to_xr_ds(self):
         """
