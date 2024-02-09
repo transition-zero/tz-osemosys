@@ -51,3 +51,43 @@ def check_tech_consuming_commodity(values):
                 )
 
     return values
+
+
+def check_capacity_to_meet_demand(values):
+    """
+    For each commodity, check there is enough allowed capacity to meet demands
+    (based on techs that directly produce the final demand)
+    """
+    # TODO:
+
+    # Possibly identify the branches of technology/commodity which lead to the final demand,
+    # then for every possible route, find the maximum allowed production,
+    # then check the sum of each route meets demand
+
+    # Constraints
+    # activity upper limit, yearly, model period
+    # emission limit
+
+    # Identify final demands
+    final_demands = []
+    for commodity in values["commodities"]:
+        if commodity.demand_annual is not None or commodity.accumulated_demand is not None:
+            final_demands.append(commodity.id)
+    """
+    # Define each possible route for each final demand
+    route = {"ELEC":{"TECH1":{"ratio1":"TECH3"},
+                     "TECH2":{"ratio2":["TECH4",
+                                       "TECH5"]}}}
+
+    route = ["ELEC", "TECH1", "FUEL2", "TECH3"]
+    # Calculate maximum possible production from each route
+    routes_and_demands = {"ROUTE1":100.
+                          "ROUTE2":200}
+
+
+    for demand in final_demands:
+        for technology in values["technologies"]:
+            if technology.output_activity_ratio is not None:
+                None
+    """
+    return values
