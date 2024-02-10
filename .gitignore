@@ -161,12 +161,9 @@ cython_debug/
 
 # MacOS stuff
 .DS_Store
-examples/.DS_Store
-feo/.DS_Store
-feo/osemosys/.DS_Store
-notebooks/.DS_Store
-tests/.DS_Store
-feo/osemosys/model/.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
 
 # Results folder for tests
 results/
