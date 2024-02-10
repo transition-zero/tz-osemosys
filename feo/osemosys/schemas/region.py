@@ -5,7 +5,11 @@ from typing import ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, conlist, root_validator
 
-from feo.osemosys.utils import group_to_json, json_dict_to_dataframe
+from feo.osemosys.schemas.validation.region_validation import (
+    discount_rate_as_decimals,
+    reserve_margin_fully_defined,
+)
+from feo.osemosys.utils import group_to_json
 
 from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
 
@@ -81,36 +85,8 @@ class Region(OSeMOSYSBase):
 
     @root_validator(pre=True)
     def validation(cls, values):
-        values.get("neighbours")
-        values.get("trade_route")
-        values.get("depreciation_method")
-        discount_rate = values.get("discount_rate")
-        discount_rate_idv = values.get("discount_rate_idv")
-        discount_rate_storage = values.get("discount_rate_storage")
-        reserve_margin = values.get("reserve_margin")
-        reserve_margin_tag_fuel = values.get("reserve_margin_tag_fuel")
-        reserve_margin_tag_technology = values.get("reserve_margin_tag_technology")
-        values.get("renewable_production_target")
-
-        # Failed to fully describe reserve_margin
-        if reserve_margin is not None and reserve_margin_tag_fuel is None:
-            raise ValueError("If defining reserve_margin, reserve_margin_tag_fuel must be defined")
-        if reserve_margin is not None and reserve_margin_tag_technology is None:
-            raise ValueError(
-                "If defining reserve_margin, reserve_margin_tag_technology must be defined"
-            )
-
-        # Check discount rates are in decimals
-        if discount_rate is not None:
-            df = json_dict_to_dataframe(discount_rate.data).iloc[:, -1]
-            assert (df.abs() < 1).all(), "discount_rate should take decimal values"
-        if discount_rate_idv is not None:
-            df = json_dict_to_dataframe(discount_rate_idv.data).iloc[:, -1]
-            assert (df.abs() < 1).all(), "discount_rate_idv should take decimal values"
-        if discount_rate_storage is not None:
-            df = json_dict_to_dataframe(discount_rate_storage.data).iloc[:, -1]
-            assert (df.abs() < 1).all(), "discount_rate_storage should take decimal values"
-
+        values = reserve_margin_fully_defined(values)
+        values = discount_rate_as_decimals(values)
         return values
 
     @classmethod
@@ -200,7 +176,9 @@ class Region(OSeMOSYSBase):
                     depreciation_method=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["DepreciationMethod"],
+                                g=dfs["DepreciationMethod"].loc[
+                                    dfs["DepreciationMethod"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 target_column="VALUE",
                             )
@@ -211,7 +189,9 @@ class Region(OSeMOSYSBase):
                     discount_rate=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRate"],
+                                g=dfs["DiscountRate"].loc[
+                                    dfs["DiscountRate"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 target_column="VALUE",
                             )
@@ -222,7 +202,9 @@ class Region(OSeMOSYSBase):
                     discount_rate_idv=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRateIdv"],
+                                g=dfs["DiscountRateIdv"].loc[
+                                    dfs["DiscountRateIdv"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["TECHNOLOGY"],
                                 target_column="VALUE",
@@ -234,7 +216,9 @@ class Region(OSeMOSYSBase):
                     discount_rate_storage=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["DiscountRateStorage"],
+                                g=dfs["DiscountRateStorage"].loc[
+                                    dfs["DiscountRateStorage"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["STORAGE"],
                                 target_column="VALUE",
@@ -246,7 +230,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["ReserveMargin"],
+                                g=dfs["ReserveMargin"].loc[
+                                    dfs["ReserveMargin"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["YEAR"],
                                 target_column="VALUE",
@@ -258,7 +244,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin_tag_fuel=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["ReserveMarginTagFuel"],
+                                g=dfs["ReserveMarginTagFuel"].loc[
+                                    dfs["ReserveMarginTagFuel"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["FUEL", "YEAR"],
                                 target_column="VALUE",
@@ -270,7 +258,9 @@ class Region(OSeMOSYSBase):
                     reserve_margin_tag_technology=(
                         OSeMOSYSDataInt(
                             data=group_to_json(
-                                g=dfs["ReserveMarginTagTechnology"],
+                                g=dfs["ReserveMarginTagTechnology"].loc[
+                                    dfs["ReserveMarginTagTechnology"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["TECHNOLOGY", "YEAR"],
                                 target_column="VALUE",
@@ -282,7 +272,9 @@ class Region(OSeMOSYSBase):
                     renewable_production_target=(
                         OSeMOSYSData(
                             data=group_to_json(
-                                g=dfs["REMinProductionTarget"],
+                                g=dfs["REMinProductionTarget"].loc[
+                                    dfs["REMinProductionTarget"]["REGION"] == region["VALUE"]
+                                ],
                                 root_column="REGION",
                                 data_columns=["YEAR"],
                                 target_column="VALUE",

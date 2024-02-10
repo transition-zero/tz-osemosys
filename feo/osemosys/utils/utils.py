@@ -137,14 +137,33 @@ def _fill_d(d, target_column, data_columns, t):
 def group_to_json(
     g: pd.DataFrame,
     root_column: Optional[str] = None,
-    target_column: str = "value",
+    target_column: str = "VALUE",
     data_columns: Optional[List[str]] = None,
     default_nodes: List[str] = None,
     fill_zero: bool = True,
 ):
-    # non-mutable default
-    if data_columns is None:
-        data_columns = ["node_id", "commodity", "technology"]
+    """
+    Converts a DataFrame to a nested JSON-like structure.
+
+    Args:
+        g (pd.DataFrame): The input DataFrame to be converted.
+        root_column (Optional[str]): The column to be excluded from the structure (eg. TECHNOLOGY).
+        target_column (str): The column containing data values to be nested.
+        data_columns (Optional[List[str]]): List of columns representing the nested structure.
+        default_nodes (List[str]): List of default nodes to initialize the structure.
+        fill_zero (bool): Flag to exclude rows with target_column value of 0.
+
+    Returns:
+        Dict: A nested JSON-like Dict representing the DataFrame.
+
+    Note:
+        If there's no nested structure (data_columns is None and root_column is not None),
+        the function returns a single value instead of a dictionary.
+    """
+
+    # Return single value rather than dict if there's no nested structure to data
+    if data_columns is None and root_column is not None:
+        return g["VALUE"].values[0]
 
     if default_nodes is not None:
         d = {n: makehash() for n in default_nodes}
@@ -300,28 +319,3 @@ def to_df_helper(self):
         output_dfs = {**output_dfs, **attribute_dfs}
 
     return output_dfs
-
-
-def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
-    """Check that values in min_data are lower than corresponding values in max_data
-
-    Args:
-        min_data (data instance): data instance with min values
-        max_data (data instance): data instance with max values
-        columns (list[str]): list of column names
-        error_msg (str): error message to display
-    """
-    # Convert JSON style data to dataframes
-    min_df = json_dict_to_dataframe(min_data.data)
-    min_df.columns = columns
-    max_df = json_dict_to_dataframe(max_data.data)
-    max_df.columns = columns
-
-    # Combine dataframes
-    columns.remove("VALUE")
-    merged_df = pd.merge(
-        min_df, max_df, on=columns, suffixes=("_min", "_max"), how="outer"
-    ).dropna()
-
-    # Check that values in min_data are lower than those in max_data
-    assert (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all(), f"{error_msg}"
