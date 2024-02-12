@@ -88,6 +88,12 @@ Install the `pre-commit` hooks. Pre-commit does a bunch of useful things like de
 
     pre-commit install
 
+#### Testing
+
+Features must be associated with an appropriate test; tests must pass before being merged. Run tests using `pytest`.
+
+    pytest
+
 #### Pre-commit
 
 On each commit, pre-commit will clean your commited files and raise any errors it finds.

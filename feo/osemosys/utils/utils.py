@@ -1,17 +1,44 @@
-import functools
 import importlib
 import os
 import re
 from collections import defaultdict
+from collections.abc import MutableMapping
 from itertools import chain
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import orjson
 import pandas as pd
+from pydantic import BaseModel
 
-from feo.osemosys.simpleeval import EvalWithCompoundTypes
+from feo.osemosys import exceptions
+from feo.osemosys.io.simpleeval import EvalWithCompoundTypes
 
 from datetime import datetime, timedelta  # noqa
+
+
+def merge(d: MutableMapping, v: MutableMapping):
+    """
+    Merge two dictionaries.
+
+    Merge dict-like `v` into dict-like `d`. In case keys between them
+    are the same, merge their sub-dictionaries. Otherwise, values in
+    `v` overwrite `d`.
+    """
+    for key in v:
+        if (
+            key in d
+            and isinstance(d[key], MutableMapping)  # noqa: W503
+            and isinstance(v[key], MutableMapping)  # noqa: W503
+        ):
+            d[key] = merge(d[key], v[key])
+        else:
+            d[key] = v[key]
+    return d
+
+
+class BaseResponse(BaseModel):
+    status_code: int
+    msg: str
 
 
 def flatten(list_of_lists):
@@ -25,28 +52,6 @@ def _indirect_cls(path):
     return _cls
 
 
-def rsetattr(obj, attrs, val):
-    pre = attrs[0:-1]
-    post = attrs[-1]
-    (rgetattr(obj, pre) if pre else obj)[post] = val
-    return None
-
-
-def rgetattr(obj, attrs, *args):
-    def _getattr(obj, attr):
-        return obj.get(attr)
-
-    return functools.reduce(_getattr, [obj] + attrs)
-
-
-def recursive_keys(keys, dictionary):
-    for key, value in dictionary.items():
-        if isinstance(value, dict):
-            yield from recursive_keys(keys + [key], value)
-        else:
-            yield keys + [key]
-
-
 def maybe_parse_environ(v):
     if isinstance(v, str):
         if "ENVIRON" in v:
@@ -58,29 +63,43 @@ def maybe_parse_environ(v):
         return v
 
 
-def maybe_subsitute_variables(txt, cfg):
-    # TODO: Substitute {{$key.subkey}} here
-    pass
+def nested_dict_get(obj, list_of_attrs, original_list_of_vars):
+    if len(list_of_attrs) == 1:
+        try:
+            obj[list_of_attrs[0]]
+        except KeyError:
+            raise exceptions.MissingVar(f"Missing var: {'.'.join(original_list_of_vars)}")
+        except Exception as e:
+            raise e
+    else:
+        return nested_dict_get(obj, list_of_attrs[1:], original_list_of_vars)
 
 
-def maybe_eval_string(expr):
-    # TODO: check if we actually want to eval expression?
-
-    evaluator = EvalWithCompoundTypes(
-        functions={"sum": sum, "range": range, "max": max, "min": min}
-    )
-
-    return evaluator.eval(expr)
+evaluator = EvalWithCompoundTypes(
+    functions={"sum": sum, "range": range, "max": max, "min": min, "zip": zip}
+)
 
 
-def walk_dict(d, f, *args):
-    list_of_keys = recursive_keys([], d)
+def maybe_eval_string(expr: Any):
+    # if it's not a string, pass it through.
+    if not isinstance(expr, str):
+        return expr
 
-    for sublist in list_of_keys:
-        val = rgetattr(d, sublist)
-        rsetattr(d, sublist, f(val, *args))
+    # check for trigger functions
+    for func in ["sum(", "range(", "max(", "min("]:
+        if func in expr:
+            return evaluator.eval(expr)
 
-    return d
+    # check if is a dict compr
+    if expr[0] == "{" and expr[-1] == "}":
+        return evaluator.eval(expr)
+
+    # check if is a list compr
+    if expr[0] == "[" and expr[-1] == "]":
+        return evaluator.eval(expr)
+
+    # else
+    return expr
 
 
 def makehash():

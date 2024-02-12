@@ -64,8 +64,8 @@ commodities:
     long_name: Electricity
     description: Electricity
     demand_annual: # EJ/yr
-      US-CA: "{y:(0.7*1.1**(y-2022)) for y in {{$time_definition.years}}}"
-      US-TX: "{y:(1.73*1.1**(y-2022)) for y in {{$time_definition.years}}}"
+      US-CA: "{y:(0.7*1.1**(y-2022)) for y in ${time_definition.years}}"
+      US-TX: "{y:(1.73*1.1**(y-2022)) for y in ${time_definition.years}}"
     demand_profile:
       "*":                           # region
         "*":                         # year
@@ -80,12 +80,12 @@ impacts:
       US-CA: 20.
       US-TX: 10.
     exogenous: 0.
-    constraint: "{y:225*((2041-y)/(2041-2022)) for y in {{$time_definition.years}}}"
+    constraint: "{y:225*((2041-y)/(2041-2022)) for y in ${time_definition.years}}"
 
 # RENEWABLE TARGETS
 renewable_targets:
-  US-CA: "{y:0.1*((2041-y)/(2041-2022))+0.4 for y in {{$time_definition.years}}}"
-  US-TX: "{y:0.1*((2041-y)/(2041-2022))+0.2 for y in {{$time_definition.years}}}"
+  US-CA: "{y:0.1*((2041-y)/(2041-2022))+0.4 for y in ${time_definition.years}}"
+  US-TX: "{y:0.1*((2041-y)/(2041-2022))+0.2 for y in ${time_definition.years}}"
 
 # RESERVE MARGINS
 reserve_margins_commodity: null
