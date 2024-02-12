@@ -1,3 +1,8 @@
+import xarray as xr
+from linopy import Model
+from numpy import inf
+
+
 def add_emission_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add emisison variables to the model
 
