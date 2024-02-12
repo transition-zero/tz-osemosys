@@ -6,6 +6,7 @@ from feo.osemosys.utils.utils import (
     makehash,
     maybe_eval_string,
     merge,
+    to_df_helper,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "makehash",
     "group_to_json",
     "json_dict_to_dataframe",
+    "to_df_helper",
 ]
