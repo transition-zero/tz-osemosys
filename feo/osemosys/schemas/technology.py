@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 
 from feo.osemosys.schemas.validation.technology_validation import (
     min_activity_lower_than_max,
@@ -227,7 +227,7 @@ class Technology(OSeMOSYSBase):
         },
     }
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validator(cls, values):
         values = min_activity_lower_than_max(values)
         values = min_capacity_lower_than_max(values)
@@ -440,7 +440,7 @@ class TechnologyStorage(OSeMOSYSBase):
         },
     }
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validator(cls, values):
         values = technology_storage_validation(values)
         return values
