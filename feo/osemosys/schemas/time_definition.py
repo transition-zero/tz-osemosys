@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, conlist, root_validator
+from pydantic import BaseModel, conlist, model_validator
 
 from feo.osemosys.schemas.validation.timedefinition_validation import (
     construct_adjacency_matrices,
@@ -101,7 +101,7 @@ class TimeDefinition(OSeMOSYSBase):
 
     # TODO: post-validation that everything has the right keys and sums,etc.
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validation(cls, values):
         # Validation if timeslice is provided
         values = timeslice_match_timeslice_in_set(values)
