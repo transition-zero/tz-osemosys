@@ -14,6 +14,7 @@ from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.schemas.validation.model_validation import (
+    check_able_to_meet_demands,
     check_tech_consuming_commodity,
     check_tech_producing_commodity,
     check_tech_producing_impact,
@@ -49,6 +50,7 @@ class RunSpec(OSeMOSYSBase):
         values = check_tech_producing_commodity(values)
         values = check_tech_producing_impact(values)
         values = check_tech_consuming_commodity(values)
+        values = check_able_to_meet_demands(values)
 
         return values
 
