@@ -57,12 +57,18 @@ def check_able_to_meet_demands(values):
     """
     For each commodity, check there is enough allowed capacity and allowed activity to meet demands
     (for technologies that directly produce the final demand)
+
+    This check is ignored if storage technologies are present
     """
 
     # Constraints on technologies:
     #   activity upper limit, annual and model period
     #   capacity limit
     #   emission limit
+
+    # Skip checks if storage technologies are defined
+    if values["storage_technologies"]:
+        return values
 
     for commodity in values["commodities"]:
         # #########################
