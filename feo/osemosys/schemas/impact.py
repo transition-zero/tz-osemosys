@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 
 from feo.osemosys.schemas.validation.impact_validation import (
     exogenous_annual_within_constraint,
@@ -66,7 +66,7 @@ class Impact(OSeMOSYSBase):
         },
     }
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validator(cls, values):
         values = exogenous_annual_within_constraint(values)
         values = exogenous_total_within_constraint(values)

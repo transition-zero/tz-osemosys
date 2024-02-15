@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, conlist, root_validator
+from pydantic import BaseModel, conlist, model_validator
 
 from feo.osemosys.schemas.validation.region_validation import (
     discount_rate_as_decimals,
@@ -83,7 +83,7 @@ class Region(OSeMOSYSBase):
         },
     }
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validation(cls, values):
         values = reserve_margin_fully_defined(values)
         values = discount_rate_as_decimals(values)

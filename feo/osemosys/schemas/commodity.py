@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 
 from feo.osemosys.schemas.validation.commodity_validation import demand_profile_sums_one
 from feo.osemosys.utils import group_to_json
@@ -48,7 +48,7 @@ class Commodity(OSeMOSYSBase):
         },
     }
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validation(cls, values):
         values = demand_profile_sums_one(values)
         return values
