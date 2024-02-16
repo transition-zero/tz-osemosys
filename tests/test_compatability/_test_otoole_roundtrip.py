@@ -6,8 +6,8 @@ import pandas as pd
 
 from feo.osemosys.schemas import RunSpec
 
-root_dir = "../examples/otoole_csvs/simple_model_43_technologies/"
-output_directory = "otoole_compare/simple_model_43_technologies/"
+root_dir = "examples/otoole_csvs/otoole-full-electricity/"
+output_directory = "tests/otoole_compare/otoole-full-electricity/"
 
 (Path.cwd() / output_directory).mkdir(parents=True, exist_ok=True)
 
