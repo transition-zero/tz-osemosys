@@ -11,12 +11,12 @@ It contains the following subfolders:
 - otoole_config_files - otoole config files, which can optionally be used in the from_csv route to set one's own default values
 - otoole_csvs - 2 sets of CSV files, which can be used to run TZ osemosys via the from_csv route
 
-Within otoole_config_files and otoole_csvs sit 2 different models, simple_model_3_technologies and simple_model_43_technologies which are explained in more detail below.
+Within otoole_config_files and otoole_csvs sit 2 different models, otoole-simple-hydro and otoole-full-electricity, which are explained in more detail below.
 
 
-## simple_model_3_technologies
+## otoole-simple-hydro
 
-This is the super simple osemosys model contains only 3 technologies:
+This is a simple osemosys model of hydropower and contains only 3 technologies:
 
 - MINE_WATER - which produces the WATER resource used as an input to...
 - HYDRO - a modelled hydropower plant, taking WATER as an input and outputtting electricity
@@ -26,7 +26,7 @@ The model runs from 2020 to 2070, with 8 timeslices.
 
 Due to it's simplicity, this model is only used in testing of TZ osemosys workflows.
 
-## simple_model_43_technologies
+## otoole-full-electricity
 
 This model has only one final electricity demand like the previous, but contains several more pathways to meet the demand, including fossil fuel and renewable technologies.
 
