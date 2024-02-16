@@ -56,7 +56,9 @@ def check_tech_consuming_commodity(values):
 def check_able_to_meet_demands(values):
     """
     For each commodity, check there is enough allowed capacity and allowed activity to meet demands
-    (for technologies that directly produce the final demand)
+    for each region and year, for technologies that directly produce the final demand
+
+    This check only considers annual activity and capacity limits, not whole model period limits
 
     This check is ignored if storage technologies are present
     """
@@ -162,29 +164,37 @@ def check_able_to_meet_demands(values):
                                     ][str(year)]
                                 )
 
-                                # Account for capacity factors
+                                # Account for capacity factors and year_split
                                 if technology.capacity_factor is not None:
                                     try:
                                         # production_by_ts = production_limit * capacity_factor
+                                        # * year_split
                                         prod_limit_capacity_per_ts = {
                                             key: prod_limit_capacity
                                             * technology.capacity_factor[region][technology.id][
                                                 key
                                             ][year]
+                                            * values["time_definition"].year_split.data[timeslice][
+                                                str(year)
+                                            ]
                                             for key in values["time_definition"].timeslices
                                         }
                                     except KeyError:
-                                        # Assign equal production by timeslice
+                                        # Assign production by timeslice by year_split
                                         prod_limit_capacity_per_ts = {
                                             key: prod_limit_capacity
-                                            / len(values["time_definition"].timeslices)
+                                            * values["time_definition"].year_split.data[timeslice][
+                                                str(year)
+                                            ]
                                             for key in values["time_definition"].timeslices
                                         }
                                 else:
-                                    # Assign equal production by timeslice
+                                    # Assign production by timeslice by year_split
                                     prod_limit_capacity_per_ts = {
                                         key: prod_limit_capacity
-                                        / len(values["time_definition"].timeslices)
+                                        * values["time_definition"].year_split.data[timeslice][
+                                            str(year)
+                                        ]
                                         for key in values["time_definition"].timeslices
                                     }
 
