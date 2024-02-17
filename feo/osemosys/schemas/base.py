@@ -9,6 +9,7 @@ from pydantic import AfterValidator, BaseModel, model_validator
 
 def values_sum_one(values: Mapping) -> bool:
     assert sum(values.values()) == 1.0, "Mapping values must sum to 1.0."
+    return values
 
 
 MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]

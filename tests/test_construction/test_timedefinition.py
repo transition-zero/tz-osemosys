@@ -24,21 +24,20 @@ PASSING_TIME_DEFINITIONS = dict(
         seasons=["winter", "summer"],
         day_types=["weekday", "weekend"],
     ),
-    # yearparts_dayparts_inferred = dict( # infer timeslices from yearparts and time_brackets
-    #     years=range(2020,2051),
-    #     seasons=["winter","summer"],
-    #     time_brackets=["morning","day","evening","night"]
-    # ),
-    # yearparts_dayparts_list_of_int = dict(
-    #     years=range(2020,2051),
-    #     seasons = [1,2],
-    #     daily_timebrackets = [1,2]
-    # ),
-    # yearparts_dayparts_int = dict(
-    #     years=range(2020,2051),
-    #     seasons = 12,
-    #     daily_timebrackets = 6
-    # ),
+    yearparts_dayparts_inferred=dict(  # infer timeslices from yearparts and time_brackets
+        years=range(2020, 2051),
+        seasons=["winter", "summer"],
+        time_brackets=["morning", "day", "evening", "night"],
+    ),
+    yearparts_dayparts_list_of_int=dict(
+        years=range(2020, 2051), seasons=[1, 2], daily_timebrackets=[1, 2]
+    ),
+    yearparts_dayparts_list_of_str=dict(
+        years=range(2020, 2051),
+        seasons=["winter", "spring", "summer", "autumn"],
+        day_types=["weekday", "weekend"],
+    ),
+    yearparts_dayparts_int=dict(years=range(2020, 2051), seasons=12, daily_timebrackets=6),
 )
 
 FAILING_TIME_DEFINITIONS = dict(

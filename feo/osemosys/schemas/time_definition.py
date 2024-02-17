@@ -1,3 +1,4 @@
+from itertools import product
 from pathlib import Path
 from typing import Any, ClassVar, List, Mapping, Union
 
@@ -6,6 +7,7 @@ from pydantic import BaseModel, Field, ValidationInfo, conlist, field_validator,
 
 from feo.osemosys.schemas.validation.timedefinition_validation import (
     build_adjacency,
+    build_timeslices_from_parts,
     get_timeslices_from_sets,
     maybe_get_parts_from_timeslice_mappings,
     timeslice_match_timeslice_in_set,
@@ -71,7 +73,6 @@ def construction_from_timeslices(values: Any):
 
     # validate timeslice keys against timeslice_mappings
     timeslice_match_timeslice_in_set(timeslices, values)
-    print("IMESLICES", timeslices)
 
     # get parts from any timeslice_mappings and validate keys
     (
@@ -82,17 +83,14 @@ def construction_from_timeslices(values: Any):
         timeslice_in_daytype,
         timeslice_in_timebracket,
     ) = maybe_get_parts_from_timeslice_mappings(timeslices, values)
-    print(f"{seasons=}, {timeslices=}, {day_types=}, {time_brackets=}")
 
     # validate adjacency or check underconstraint
     # if adjacency is given, validate keys
     adj = values.get("adj")
     if adj is not None:
-        print("adj not nonde")
         validate_adjacency_keys(adj, timeslices, years, seasons, day_types, time_brackets)
     # elif adjacency is not given, check for underconstraint then build adjacency
     else:
-        print("adj is None")
         # if only timeslices are given, then assume adjacency from timeslice order
         if all([seasons, day_types, time_brackets]):
             adj = dict(
@@ -100,12 +98,10 @@ def construction_from_timeslices(values: Any):
                 timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
             )
         else:
-            print("check and build")
             # validate adjacency is fully constrained
             validate_adjacency_fullyconstrained(
                 timeslices, timeslice_in_season, timeslice_in_daytype, timeslice_in_timebracket
             )
-            print("valid hellp")
             adj = build_adjacency(
                 years,
                 timeslices,
@@ -120,9 +116,8 @@ def construction_from_timeslices(values: Any):
 
     # validate parts keys against any splits AND/OR get assume equal
     year_split, days_in_day_type, day_split = validate_parts_from_splits(
-        seasons, day_types, time_brackets, values
+        timeslices, day_types, time_brackets, values
     )
-    print(f"{seasons=}, {timeslices=}, {day_types=}, {time_brackets=}, {adj=}, {day_split=}")
 
     values["year_split"] = year_split
     values["day_split"] = day_split
@@ -150,6 +145,35 @@ def construction_from_parts(values: Any):
           - if ordered yearparts, daytypes, and dayparts given, assume adjacency
           - else: raise error for required parameter
     """
+    years = values.get("years")
+    seasons = values.get("seasons")
+    day_types = values.get("day_types")
+    time_brackets = values.get("daily_time_brackets")
+
+    # build timeslices from parts
+    timeslices = build_timeslices_from_parts(seasons, day_types, time_brackets)
+    values["timeslices"] = timeslices
+
+    # validate keys on splits, if any, or maybe get parts
+    year_split, days_in_day_type, day_split = validate_parts_from_splits(
+        timeslices, day_types, time_brackets, values
+    )
+    values["year_split"] = year_split
+    values["day_split"] = day_split
+    values["days_in_day_type"] = days_in_day_type
+
+    # if adjacency is given, validate keys
+    adj = values.get("adj")
+    if adj is not None:
+        validate_adjacency_keys(adj, timeslices, years, seasons, day_types, time_brackets)
+    else:
+        adj = TimeAdjacency(
+            years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
+            timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
+        )
+        values["adj"] = adj
+
+    return values
 
 
 def construction_from_years_only(values: Any):
@@ -251,35 +275,34 @@ class TimeDefinition(OSeMOSYSBase):
 
     otoole_cfg: OtooleCfg | None = Field(default=None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "YEAR": {"attribute": "years", "column_structure": ["VALUE"]},
-        "SEASON": {"attribute": "seasons", "column_structure": ["VALUE"]},
-        "TIMESLICE": {"attribute": "timeslices", "column_structure": ["VALUE"]},
-        "DAYTYPE": {"attribute": "day_types", "column_structure": ["VALUE"]},
-        "DAILYTIMEBRACKET": {"attribute": "daily_time_brackets", "column_structure": ["VALUE"]},
-        "MODE_OF_OPERATION": {"attribute": "mode_of_operation", "column_structure": ["VALUE"]},
+        "YEAR": {"attribute": "years", "columns": ["VALUE"]},
+        "SEASON": {"attribute": "seasons", "columns": ["VALUE"]},
+        "TIMESLICE": {"attribute": "timeslices", "columns": ["VALUE"]},
+        "DAYTYPE": {"attribute": "day_types", "columns": ["VALUE"]},
+        "DAILYTIMEBRACKET": {"attribute": "daily_time_brackets", "columns": ["VALUE"]},
         "YearSplit": {
             "attribute": "year_split",
-            "column_structure": ["TIMESLICE", "YEAR", "VALUE"],
+            "columns": ["TIMESLICE", "YEAR", "VALUE"],
         },
         "DaySplit": {
             "attribute": "day_split",
-            "column_structure": ["DAILYTIMEBRACKET", "YEAR", "VALUE"],
+            "columns": ["DAILYTIMEBRACKET", "YEAR", "VALUE"],
         },
         "DaysInDayType": {
             "attribute": "days_in_day_type",
-            "column_structure": ["SEASON", "DAYTYPE", "YEAR", "VALUE"],
+            "columns": ["SEASON", "DAYTYPE", "YEAR", "VALUE"],
         },
         "Conversionlh": {
             "attribute": "timeslice_in_timebracket",
-            "column_structure": ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"],
+            "columns": ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"],
         },
         "Conversionld": {
             "attribute": "timeslice_in_daytype",
-            "column_structure": ["TIMESLICE", "DAYTYPE", "VALUE"],
+            "columns": ["TIMESLICE", "DAYTYPE", "VALUE"],
         },
         "Conversionls": {
             "attribute": "timeslice_in_season",
-            "column_structure": ["TIMESLICE", "SEASON", "VALUE"],
+            "columns": ["TIMESLICE", "SEASON", "VALUE"],
         },
     }
 
@@ -340,55 +363,6 @@ class TimeDefinition(OSeMOSYSBase):
 
         return values
 
-    # @field_validator('adj_inv')
-    # @classmethod
-    # def convert_from_range(cls, v: Any, info: ValidationInfo) -> Any:
-    #     print ('ADJ_INV validator',v)
-    #     if v is None:
-    #         if isinstance(info.data.adj, TimeAdjacency):
-    #             return info.data.adj.inv()
-    #         elif isinstance(info.data.adj, dict):
-    #             return TimeAdjacency(**info.data.adj).inv()
-    #     return v
-
-    # @root_validator(pre=True)
-    # def validation(cls, values):
-    #     # Validation if timeslice is provided
-    #     values = timeslice_match_timeslice_in_set(values)
-    #     values = timeslice_in_set_match_set(values)
-    #     values = timeslice_in_set_provided(values)
-    #     values = construct_timebracket(values)
-    #     values = construct_daytype(values)
-    #     values = construct_season(values)
-    #     # Validation if timeslice is not provided
-    #     values = construct_daytypes_no_timeslice(values)
-    #     values = construct_dailytimebracket_no_timeslice(values)
-    #     values = construct_season_no_timeslice(values)
-    #     values = construct_timeslice(values)
-    #     # Validation/construction for year_split/day_split/days_in_day_type
-    #     values = validate_construct_year_split(values)
-    #     values = validate_construct_day_split(values)
-    #     values = validate_construct_days_in_day_type(values)
-    #     # Construction of adjaceny matrices
-    #     values = construct_adjacency_matrices(values)
-
-    #     # TODO: determine why this final assigning of values is required to avoid
-    #     validation errors
-    #     year_split = values.get("year_split")
-    #     day_split = values.get("day_split")
-    #     days_in_day_type = values.get("days_in_day_type")
-    #     timeslice_in_timebracket = values.get("timeslice_in_timebracket")
-    #     timeslice_in_daytype = values.get("timeslice_in_daytype")
-    #     timeslice_in_season = values.get("timeslice_in_season")
-    #     values["year_split"] = OSeMOSYSData(data=year_split)
-    #     values["day_split"] = OSeMOSYSData(data=day_split)
-    #     values["days_in_day_type"] = OSeMOSYSData(data=days_in_day_type)
-    #     values["timeslice_in_timebracket"] = OSeMOSYSData(data=timeslice_in_timebracket)
-    #     values["timeslice_in_daytype"] = OSeMOSYSData(data=timeslice_in_daytype)
-    #     values["timeslice_in_season"] = OSeMOSYSData(data=timeslice_in_season)
-
-    #     return values
-
     @classmethod
     def from_otoole_csv(cls, root_dir) -> "TimeDefinition":
         """
@@ -432,12 +406,6 @@ class TimeDefinition(OSeMOSYSBase):
             years = dfs["YEAR"]["VALUE"].astype(str).values.tolist()
         else:
             raise FileNotFoundError("YEAR.csv not read in, likely missing from root_dir")
-        if "MODE_OF_OPERATION" in dfs:
-            mode_of_operation = dfs["MODE_OF_OPERATION"]["VALUE"].astype(str).values.tolist()
-        else:
-            raise FileNotFoundError(
-                "MODE_OF_OPERATION.csv not read in, likely missing from root_dir"
-            )
         seasons = (
             dfs["SEASON"]["VALUE"].astype(str).values.tolist()
             if "SEASON" not in otoole_cfg.empty_dfs
@@ -458,29 +426,62 @@ class TimeDefinition(OSeMOSYSBase):
             if "TIMESLICE" not in otoole_cfg.empty_dfs
             else None
         )
+        if "YearSplit" not in otoole_cfg.empty_dfs:
+            # check there are not different splits in different years
+            if (dfs["YearSplit"].groupby("TIMESLICE").nunique()["VALUE"] > 1).any():
+                raise ValueError("Different splits in different years")
+
+            year_split = (
+                dfs["YearSplit"]
+                .groupby(["TIMESLICE"])
+                .nth(0)
+                .set_index("TIMESLICE")["VALUE"]
+                .to_dict()
+            )
+        else:
+            year_split = None
+        if "Conversionld" not in otoole_cfg.empty_dfs:
+            timeslice_in_daytype = (
+                dfs["Conversionld"]
+                .loc[dfs["Conversionld"]["VALUE"] == 1, ["TIMESLICE", "DAYTYPE"]]
+                .set_index("TIMESLICE")["DAYTYPE"]
+                .astype(str)
+                .to_dict()
+            )
+        else:
+            timeslice_in_daytype = None
+        if "Conversionls" not in otoole_cfg.empty_dfs:
+            timeslice_in_season = (
+                dfs["Conversionls"]
+                .loc[dfs["Conversionls"]["VALUE"] == 1, ["TIMESLICE", "SEASON"]]
+                .set_index("TIMESLICE")["SEASON"]
+                .astype(str)
+                .to_dict()
+            )
+        else:
+            timeslice_in_season = None
+        if "DaysInDayType" not in otoole_cfg.empty_dfs:
+            # check if there are different numbers of daytypes in different seasons or years
+            if (dfs["DaysInDayType"].groupby("DAYTYPE").nunique()["VALUE"] > 1).any():
+                raise ValueError("Different number of daytypes in seasons or years")
+
+            days_in_day_type = (
+                dfs["DaysInDayType"].groupby("DAYTYPE").nth(0).set_index("DAYTYPE")["VALUE"]
+            )
+            days_in_day_type.index = days_in_day_type.index.astype(str)
+            days_in_day_type = days_in_day_type.to_dict()
+        else:
+            days_in_day_type = None
 
         return cls(
-            id="TimeDefinition",
-            long_name=None,
-            description=None,
+            id=Path(root_dir).name,
             years=years,
             seasons=seasons,
             timeslices=timeslices,
             day_types=day_types,
             otoole_cfg=otoole_cfg,
             daily_time_brackets=daily_time_brackets,
-            mode_of_operation=mode_of_operation,
-            year_split=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["YearSplit"],
-                        data_columns=["TIMESLICE", "YEAR"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "YearSplit" not in otoole_cfg.empty_dfs
-                else None
-            ),
+            year_split=year_split,
             day_split=(
                 OSeMOSYSData(
                     data=group_to_json(
@@ -492,28 +493,8 @@ class TimeDefinition(OSeMOSYSBase):
                 if "DaySplit" not in otoole_cfg.empty_dfs
                 else None
             ),
-            days_in_day_type=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["DaysInDayType"],
-                        data_columns=["SEASON", "DAYTYPE", "YEAR"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "DaysInDayType" not in otoole_cfg.empty_dfs
-                else None
-            ),
-            timeslice_in_daytype=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["Conversionld"],
-                        data_columns=["TIMESLICE", "DAYTYPE"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "Conversionld" not in otoole_cfg.empty_dfs
-                else None
-            ),
+            days_in_day_type=days_in_day_type,
+            timeslice_in_daytype=timeslice_in_daytype,
             timeslice_in_timebracket=(
                 OSeMOSYSData(
                     data=group_to_json(
@@ -525,15 +506,65 @@ class TimeDefinition(OSeMOSYSBase):
                 if "Conversionlh" not in otoole_cfg.empty_dfs
                 else None
             ),
-            timeslice_in_season=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["Conversionls"],
-                        data_columns=["TIMESLICE", "SEASON"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "Conversionls" not in otoole_cfg.empty_dfs
-                else None
-            ),
+            timeslice_in_season=timeslice_in_season,
         )
+
+    def _to_otoole(self, stem: str) -> pd.DataFrame:
+        if stem == "YEAR":
+            return pd.DataFrame(data={"VALUE": sorted(self.years)})
+        elif stem == "SEASON":
+            return pd.DataFrame(data={"VALUE": sorted(self.seasons)})
+        elif stem == "TIMESLICE":
+            return pd.DataFrame(data={"VALUE": sorted(self.timeslices)})
+        elif stem == "DAYTYPE":
+            return pd.DataFrame(data={"VALUE": sorted(self.day_types)})
+        elif stem == "DaysInDayType":
+            return pd.DataFrame.from_records(
+                [
+                    {
+                        "SEASON": season,
+                        "DAYTYPE": daytype,
+                        "YEAR": year,
+                        "VALUE": self.days_in_day_type[daytype],
+                    }
+                    for season, daytype, year in product(
+                        self.seasons, list(self.days_in_day_type.keys()), self.years
+                    )
+                ]
+            )
+        elif stem == "YearSplit":
+            return pd.DataFrame.from_records(
+                [
+                    {"TIMESLICE": ts, "YEAR": year, "VALUE": self.year_split[ts]}
+                    for ts, year in product(list(self.year_split.keys()), self.years)
+                ]
+            )
+        elif stem == "Conversionld":
+            return pd.DataFrame.from_records(
+                [
+                    {
+                        "TIMESLICE": timeslice,
+                        "DAYTYPE": daytype,
+                        "VALUE": 1,
+                    }
+                    for timeslice, daytype in self.timeslice_in_daytype.items()
+                ]
+            )
+        elif stem == "Conversionls":
+            return pd.DataFrame.from_records(
+                [
+                    {
+                        "TIMESLICE": timeslice,
+                        "SEASON": season,
+                        "VALUE": 1,
+                    }
+                    for timeslice, season in self.timeslice_in_season.items()
+                ]
+            )
+        else:
+            raise ValueError(f"no otoole compatibility method for '{stem}'")
+
+    def to_otoole_csv(self, output_directory):
+        for stem, _params in self.otoole_stems.items():
+            if stem not in self.otoole_cfg.empty_dfs:
+                self._to_otoole(stem).to_csv(Path(output_directory) / f"{stem}.csv", index=False)
