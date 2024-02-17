@@ -1,7 +1,7 @@
 import os
+import warnings
 from typing import List, Optional
 
-import pandas as pd
 import xarray as xr
 import yaml
 
@@ -13,6 +13,10 @@ from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.utils import to_df_helper
+
+# filter this pandas-3 dep warning for now
+warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
+import pandas as pd  # noqa: E402
 
 
 class RunSpec(OSeMOSYSBase):
