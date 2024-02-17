@@ -122,6 +122,7 @@ def validate_parts_from_splits(timeslices, day_types, time_brackets, values):
                 # validate keys match
                 if set(split.keys()) != set(part_list):
                     raise ValueError(f"provided '{name}_split' keys do not match '{name}'")
+                return split
             else:
                 raise ValueError(
                     f"Provided '{name}_split' have no ordered set '{name}' - provide set '{name}'."

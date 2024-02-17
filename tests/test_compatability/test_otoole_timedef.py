@@ -31,9 +31,4 @@ def test_otoole_roundtrip():
                     .reset_index(drop=True)
                 )
 
-                print("INP")
-                print(left)
-                print("OUTP")
-                print(right)
-
                 assert left.equals(right)
