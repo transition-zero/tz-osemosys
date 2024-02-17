@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, ClassVar, List, Mapping, Union
 
 import pandas as pd
+
 from pydantic import BaseModel, Field, ValidationInfo, conlist, field_validator, model_validator
 
 from feo.osemosys.schemas.validation.timedefinition_validation import (
