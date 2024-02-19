@@ -13,12 +13,12 @@ from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.schemas.validation.model_validation import (
-    check_able_to_meet_demands,
+from feo.osemosys.schemas.validation.model_composition import (
     check_tech_consuming_commodity,
     check_tech_producing_commodity,
     check_tech_producing_impact,
 )
+from feo.osemosys.schemas.validation.model_presolve import check_able_to_meet_demands
 from feo.osemosys.utils import to_df_helper
 
 
