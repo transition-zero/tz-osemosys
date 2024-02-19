@@ -2,9 +2,9 @@ def check_tech_producing_commodity(values):
     """
     For each commodity, check there is a technology which produces it
     """
-    for commodity in values["commodities"]:
+    for commodity in values.commodities:
         technology_missing = True
-        for technology in values["technologies"]:
+        for technology in values.technologies:
             if technology_missing and technology.output_activity_ratio is not None:
                 for region in technology.output_activity_ratio.data.keys():
                     if commodity.id in technology.output_activity_ratio.data[region].keys():
@@ -19,9 +19,9 @@ def check_tech_producing_impact(values):
     """
     For each impact, check there is a technology which produces it
     """
-    for impact in values["impacts"]:
+    for impact in values.impacts:
         technology_missing = True
-        for technology in values["technologies"]:
+        for technology in values.technologies:
             if technology_missing and technology.emission_activity_ratio is not None:
                 for region in technology.emission_activity_ratio.data.keys():
                     if impact.id in technology.emission_activity_ratio.data[region].keys():
@@ -36,10 +36,10 @@ def check_tech_consuming_commodity(values):
     """
     For each commodity which isn't a final demand, check it is the input of a technology
     """
-    for commodity in values["commodities"]:
+    for commodity in values.commodities:
         if commodity.demand_annual is None and commodity.accumulated_demand is None:
             technology_missing = True
-            for technology in values["technologies"]:
+            for technology in values.technologies:
                 if technology_missing and technology.input_activity_ratio is not None:
                     for region in technology.input_activity_ratio.data.keys():
                         if commodity.id in technology.input_activity_ratio.data[region].keys():
@@ -69,10 +69,10 @@ def check_able_to_meet_demands(values):
     #   emission limit
 
     # Skip checks if storage technologies are defined
-    if values["storage_technologies"]:
+    if values.storage_technologies:
         return values
 
-    for commodity in values["commodities"]:
+    for commodity in values.commodities:
         # #########################
         # Specified annual demand #
         # #########################
@@ -83,7 +83,7 @@ def check_able_to_meet_demands(values):
                 # Identify technologies which produce the demand
                 technologies_producing_demand = []
                 technology_names = []
-                for technology in values["technologies"]:
+                for technology in values.technologies:
                     if technology.output_activity_ratio is not None:
                         if region in technology.output_activity_ratio.data.keys():
                             if commodity.id in technology.output_activity_ratio.data[region].keys():
@@ -91,7 +91,7 @@ def check_able_to_meet_demands(values):
                                 technology_names.append(technology.id)
 
                 # Check demand can be satisfied in each year
-                for year in values["time_definition"].years:
+                for year in values.time_definition.years:
                     # Get demand in each timeslice
                     total_demand = commodity.demand_annual.data[region][str(year)]
                     demand_per_timeslice = {}
@@ -100,7 +100,7 @@ def check_able_to_meet_demands(values):
 
                     # Caclulate total possible production per timeslice
                     total_production_limit_ts = {
-                        key: 0 for key in values["time_definition"].timeslices
+                        key: 0 for key in values.time_definition.timeslices
                     }
                     for technology in technologies_producing_demand:
                         # Find mode of operation with highest output activity ratio (OAR)
@@ -138,7 +138,7 @@ def check_able_to_meet_demands(values):
                                 # Assume all production could take place in any timeslice
                                 prod_limit_activity_per_ts = {
                                     key: prod_limit_activity
-                                    for key in values["time_definition"].timeslices
+                                    for key in values.time_definition.timeslices
                                 }
 
                             except KeyError:
@@ -174,28 +174,28 @@ def check_able_to_meet_demands(values):
                                             * technology.capacity_factor[region][technology.id][
                                                 key
                                             ][year]
-                                            * values["time_definition"].year_split.data[timeslice][
+                                            * values.time_definition.year_split.data[timeslice][
                                                 str(year)
                                             ]
-                                            for key in values["time_definition"].timeslices
+                                            for key in values.time_definition.timeslices
                                         }
                                     except KeyError:
                                         # Assign production by timeslice by year_split
                                         prod_limit_capacity_per_ts = {
                                             key: prod_limit_capacity
-                                            * values["time_definition"].year_split.data[timeslice][
+                                            * values.time_definition.year_split.data[timeslice][
                                                 str(year)
                                             ]
-                                            for key in values["time_definition"].timeslices
+                                            for key in values.time_definition.timeslices
                                         }
                                 else:
                                     # Assign production by timeslice by year_split
                                     prod_limit_capacity_per_ts = {
                                         key: prod_limit_capacity
-                                        * values["time_definition"].year_split.data[timeslice][
+                                        * values.time_definition.year_split.data[timeslice][
                                             str(year)
                                         ]
-                                        for key in values["time_definition"].timeslices
+                                        for key in values.time_definition.timeslices
                                     }
 
                                 # Account for availibility factors
@@ -257,7 +257,7 @@ def check_able_to_meet_demands(values):
                     # Check demands can be met for each timeslice
                     if total_production_limit_ts is not None:
                         timeslices_insufficient_supply = []
-                        for timeslice in values["time_definition"].timeslices:
+                        for timeslice in values.time_definition.timeslices:
                             if (
                                 total_production_limit_ts[timeslice]
                                 < demand_per_timeslice[timeslice]
@@ -283,7 +283,7 @@ def check_able_to_meet_demands(values):
                 # Identify technologies which produce the demand
                 technologies_producing_demand = []
                 technology_names = []
-                for technology in values["technologies"]:
+                for technology in values.technologies:
                     if technology.output_activity_ratio is not None:
                         if region in technology.output_activity_ratio.data.keys():
                             if commodity.id in technology.output_activity_ratio.data[region].keys():
@@ -291,7 +291,7 @@ def check_able_to_meet_demands(values):
                                 technology_names.append(technology.id)
 
                 # Check demand can be satisfied in each year
-                for year in values["time_definition"].years:
+                for year in values.time_definition.years:
                     # Get demand in given region and year
                     total_demand = commodity.accumulated_demand.data[region][str(year)]
 
@@ -363,21 +363,21 @@ def check_able_to_meet_demands(values):
                                             * technology.capacity_factor[region][technology.id][
                                                 key
                                             ][year]
-                                            for key in values["time_definition"].timeslices
+                                            for key in values.time_definition.timeslices
                                         }
                                     except KeyError:
                                         # Assign equal production by timeslice
                                         prod_limit_capacity_per_ts = {
                                             key: prod_limit_capacity
-                                            / len(values["time_definition"].timeslices)
-                                            for key in values["time_definition"].timeslices
+                                            / len(values.time_definition.timeslices)
+                                            for key in values.time_definition.timeslices
                                         }
                                 else:
                                     # Assign equal production by timeslice
                                     prod_limit_capacity_per_ts = {
                                         key: prod_limit_capacity
-                                        / len(values["time_definition"].timeslices)
-                                        for key in values["time_definition"].timeslices
+                                        / len(values.time_definition.timeslices)
+                                        for key in values.time_definition.timeslices
                                     }
 
                                 # Account for availibility factors

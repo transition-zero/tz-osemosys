@@ -4,7 +4,7 @@ from typing import List, Optional
 import pandas as pd
 import xarray as xr
 import yaml
-from pydantic import root_validator
+from pydantic import model_validator
 
 from feo.osemosys.defaults import DefaultsOtoole, defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase
@@ -45,7 +45,7 @@ class RunSpec(OSeMOSYSBase):
     # Default values
     defaults_otoole: Optional[DefaultsOtoole] = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="after")
     def validation(cls, values):
         values = check_tech_producing_commodity(values)
         values = check_tech_producing_impact(values)
