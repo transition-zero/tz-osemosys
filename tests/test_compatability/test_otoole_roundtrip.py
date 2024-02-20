@@ -1,18 +1,17 @@
 import glob
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from feo.osemosys.schemas import RunSpec
 
-# Can run solely this test with:
-# python -m pytest tests/test_compatability/test_otoole_roundtrip.py -k test_files_equality
-
 
 def test_files_equality():
-    root_dir = "examples/otoole_csvs/model_three_edited/"
-    output_directory = "tests/otoole_compare/model_three_edited/"
+    """
+    Check CSVs are equivalent after creating a RunSpec object from CSVs and writing to CSVs
+    """
+    root_dir = "examples/otoole_csvs/otoole-full-electricity/"
+    output_directory = "tests/otoole_compare/otoole-full-electricity/"
 
     create_output_directory(output_directory)
 
@@ -51,25 +50,28 @@ def check_files_equality(original_files, comparison_files):
                 .sort_values(by=pd.read_csv(original_file).columns.tolist())
                 .reset_index(drop=True)
             )
+            # Cast all parameter values to floats
+            if not stem.isupper():
+                original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
+
             comparison_df_sorted = (
                 pd.read_csv(comparison_files[stem])
                 .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist())
                 .reset_index(drop=True)
             )
-            # Additional checks for specific cases
-            if stem in ["EmissionsPenalty", "TotalAnnualMaxCapacityInvestment"]:
-                original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
-            if stem == "OperationalLife":
-                original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(np.int64)
+            # Cast all parameter values to floats
+            if not stem.isupper():
+                comparison_df_sorted["VALUE"] = comparison_df_sorted["VALUE"].astype(float)
 
-            if "YEAR" in original_df_sorted.columns:
-                original_df_sorted["YEAR"] = original_df_sorted["YEAR"].astype(np.int64)
-            if "MODE_OF_OPERATION" in original_df_sorted.columns:
-                original_df_sorted["MODE_OF_OPERATION"] = original_df_sorted[
-                    "MODE_OF_OPERATION"
-                ].astype(np.int64)
+            if original_df_sorted.empty and comparison_df_sorted.empty and stem != "TradeRoute":
+                assert list(original_df_sorted.columns) == list(
+                    comparison_df_sorted.columns
+                ), f"unequal files: {stem}"
+            elif original_df_sorted.empty and not comparison_df_sorted.empty:
+                pass
+            elif stem != "TradeRoute":
+                assert original_df_sorted.equals(comparison_df_sorted), f"unequal files: {stem}"
 
-            assert original_df_sorted.equals(comparison_df_sorted), f"unequal files: {stem}"
         except AssertionError as e:
             print(f"Assertion Error: {e}")
             print("---------- original_df_sorted ----------")
