@@ -61,7 +61,7 @@ def test_timedefinition_construction():
         assert isinstance(td, TimeDefinition)
 
 
-def test_base_construction_failcases():
+def test_timedefinition_construction_failcases():
     for name, params in FAILING_TIME_DEFINITIONS.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
             TimeDefinition(id=name, **params)
