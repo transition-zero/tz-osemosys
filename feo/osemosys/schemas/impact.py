@@ -128,8 +128,6 @@ class Impact(OSeMOSYSBase):
             impact_instances.append(
                 cls(
                     id=impact,
-                    long_name=None,
-                    description=None,
                     otoole_cfg=otoole_cfg,
                     constraint_annual=(
                         OSeMOSYSData(

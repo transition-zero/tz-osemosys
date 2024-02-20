@@ -295,8 +295,6 @@ class Technology(OSeMOSYSBase):
             technology_instances.append(
                 cls(
                     id=technology,
-                    long_name=None,
-                    description=None,
                     otoole_cfg=otoole_cfg,
                     capacity_activity_unit_ratio=OSeMOSYSData(
                         data=data_json_format["CapacityToActivityUnit"]

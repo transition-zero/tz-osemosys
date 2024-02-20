@@ -143,8 +143,6 @@ class RunSpec(OSeMOSYSBase):
     def from_otoole(cls, root_dir):
         return cls(
             id="id",
-            long_name=None,
-            description=None,
             impacts=Impact.from_otoole_csv(root_dir=root_dir),
             regions=Region.from_otoole_csv(root_dir=root_dir),
             technologies=Technology.from_otoole_csv(root_dir=root_dir),

@@ -95,9 +95,6 @@ class Commodity(OSeMOSYSBase):
             commodity_instances.append(
                 cls(
                     id=commodity,
-                    # TODO
-                    long_name=None,
-                    description=None,
                     otoole_cfg=otoole_cfg,
                     demand_annual=(
                         OSeMOSYSData(
