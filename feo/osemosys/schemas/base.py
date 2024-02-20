@@ -13,6 +13,8 @@ def values_sum_one(values: Mapping) -> bool:
 
 
 MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]
+DataVar = float | int | str
+IdxVar = str | int
 
 
 class OSeMOSYSBase(BaseModel):
@@ -33,10 +35,6 @@ class OSeMOSYSBase(BaseModel):
         if "description" not in values:
             values["description"] = "No description provided."
         return values
-
-
-DataVar = float | int | str
-IdxVar = str | int
 
 
 class OSeMOSYSData(BaseModel):
@@ -82,9 +80,10 @@ class OSeMOSYSData(BaseModel):
 
     To define different
 
-
-
     """
+
+    def __init__(self, *args, **data):
+        super().__init__(data=args[0] if args else data)
 
     data: Union[
         DataVar,  # {data: 6.}
