@@ -27,12 +27,13 @@ FAILING_COMMODITY_DEFINITIONS = dict(
 
 def test_commodity_construction():
     for _name, params in PASSING_COMMODITY_DEFINITIONS.items():
+        print(_name, params)
         commod = Commodity(**params)
+        print(commod)
         assert isinstance(commod, Commodity)
 
 
-def test_region_construction_failcases():
+def test_commodity_construction_failcases():
     for _name, params in FAILING_COMMODITY_DEFINITIONS.items():
-        print(_name)
         with pytest.raises(ValueError) as e:  # noqa: F841
             Commodity(**params)
