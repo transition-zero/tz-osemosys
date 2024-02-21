@@ -125,6 +125,9 @@ class RunSpec(OSeMOSYSBase):
         # Convert Runspec data to dfs
         output_dfs = to_df_helper(self)
 
+        # Duplicate source REGION df for destination _REGION df
+        output_dfs["_REGION"] = output_dfs["REGION"]
+
         # Write output CSVs
         for file in list(output_dfs):
             output_dfs[file].to_csv(os.path.join(output_directory, file + ".csv"), index=False)
