@@ -2,6 +2,7 @@ from feo.osemosys.utils.cfg_parser import EnvVarLoader, substitute_factory, walk
 from feo.osemosys.utils.utils import (
     flatten,
     group_to_json,
+    isnumeric,
     json_dict_to_dataframe,
     makehash,
     maybe_eval_string,
@@ -20,4 +21,5 @@ __all__ = [
     "group_to_json",
     "json_dict_to_dataframe",
     "to_df_helper",
+    "isnumeric",
 ]
