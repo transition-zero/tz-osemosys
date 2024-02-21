@@ -158,11 +158,11 @@ class Region(OSeMOSYSBase):
             for region in regions:
                 if region.trade_routes is not None:
                     for neighbour, trade_route in region.trade_routes.items():
-                        df = pd.json_normalize(trade_route.data).rename(columns={0: "VALUE"})
+                        df = pd.json_normalize(trade_route.data).T.rename(columns={0: "VALUE"})
                         df["REGION"] = region.id
                         df["_REGION"] = neighbour
                         df[["FUEL", "YEAR"]] = pd.DataFrame(
-                            df.index.split(".").to_list(), index=df.index
+                            df.index.str.split(".").to_list(), index=df.index
                         )
                         trade_route_dfs.append(df)
 
