@@ -138,7 +138,7 @@ def construction_from_parts(values: Any):
       - validate keys on provided yearparts, daytypes, dayparts, daysplit, yearsplit,
         days_in_daytype
       - build unitary yearparts, daytypes, and dayparts where not specified
-      - build assume equal year, daytype, and day splitting where not specified
+      - build assume equal year_split, days_in_day_type, and day_split where not specified
       - option: if adjacency is specified:
         - use specified adjacency, validating keys
         - else:
