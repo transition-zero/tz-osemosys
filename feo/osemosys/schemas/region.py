@@ -26,14 +26,6 @@ class Region(OSeMOSYSBase, OtooleRegion):
     neighbours: List[str] | None = Field(default=None)
     trade_routes: OSeMOSYSData | None = Field(default=None)
 
-    # composable params
-    # reserve_margin: OSeMOSYSData | None = Field(default=None)
-    # renewable_production_target: OSeMOSYSData | None = Field(default=None)
-    # discount_rate: OSeMOSYSData | None  = Field(default=None)
-
-    # discount_rate_idv: OSeMOSYSData | None  = Field(default=None)
-    # discount_rate_storage: OSeMOSYSData | None  = Field(default=None)
-
     @model_validator(mode="before")
     def validation(cls, values):
         values = reserve_margin_fully_defined(values)
