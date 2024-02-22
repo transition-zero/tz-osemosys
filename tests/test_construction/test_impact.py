@@ -49,6 +49,5 @@ def test_impact_construction():
 
 def test_impact_construction_failcases():
     for _name, params in FAILING_IMPACT_DEFINITIONS.items():
-        print(_name)
         with pytest.raises(ValueError) as e:  # noqa: F841
             Impact(**params)
