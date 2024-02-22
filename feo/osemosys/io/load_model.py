@@ -4,6 +4,7 @@ from pathlib import Path
 import yaml
 
 from feo.osemosys import utils
+from feo.osemosys.schemas import RunSpec
 
 
 def load_model(*spec_files):
@@ -108,3 +109,5 @@ def load_model(*spec_files):
 
     # eval strings
     cfg = utils.walk_dict(cfg, utils.maybe_eval_string)
+
+    return RunSpec(**cfg)
