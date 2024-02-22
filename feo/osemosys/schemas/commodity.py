@@ -22,6 +22,10 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     demand_profile: OSeMOSYSData_SumOne | None = Field(None)
     is_renewable: OSeMOSYSData_Bool | None = Field(None)
 
+    # include this technology in joint reserve margin and renewables targets
+    include_in_joint_reserve_margin: OSeMOSYSData_Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData_Bool | None = Field(None)
+
     @field_validator("demand_annual", mode="before")
     @classmethod
     def passthrough_float(cls, v: Any) -> OSeMOSYSData:
