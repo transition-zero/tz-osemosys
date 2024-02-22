@@ -13,7 +13,7 @@ def check_sums_one(data, leniency, cols, cols_to_groupby):
     )
 
 
-def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
+def check_min_vals_lower_max(min_data, max_data, columns):
     """Check that values in min_data are lower than corresponding values in max_data
 
     Args:
@@ -35,4 +35,4 @@ def check_min_vals_lower_max(min_data, max_data, columns, error_msg):
     ).dropna()
 
     # Check that values in min_data are lower than those in max_data
-    assert (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all(), f"{error_msg}"
+    return (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all()
