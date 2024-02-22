@@ -195,10 +195,7 @@ class OtooleImpact(BaseModel):
 
         for impact in impacts:
             if impact.penalty is not None:
-                print("PENALTY")
-                print(impact.penalty)
                 df = pd.json_normalize(impact.penalty.data).T.rename(columns={0: "VALUE"})
-                print("PENALTY", df)
                 df["EMISSION"] = impact.id
                 df[["REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
