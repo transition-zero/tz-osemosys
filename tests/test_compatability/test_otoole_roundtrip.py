@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+
 from feo.osemosys.schemas import RunSpec
 
 
