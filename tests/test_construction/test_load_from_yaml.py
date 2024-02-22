@@ -62,4 +62,3 @@ def test_expression_parse():
 def test_sample_construction():
     for path in YAML_SAMPLE_PATHS:
         load_model(path)
-        assert True
