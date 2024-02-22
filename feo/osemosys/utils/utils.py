@@ -245,13 +245,13 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
             else:
                 data = json_dict_to_dataframe(getattr(instance, f"{sub_attribute}").data)
 
-            column_structure = otoole_stems[output_file]["column_structure"][:]
+            columns = otoole_stems[output_file]["columns"][:]
             if root_column is not None:
-                column_structure.remove(root_column)
-            data.columns = column_structure
+                columns.remove(root_column)
+            data.columns = columns
             if root_column is not None:
                 data[root_column] = instance.id
-            data = data[otoole_stems[output_file]["column_structure"]]
+            data = data[otoole_stems[output_file]["columns"]]
             # TODO: add casting to int for YEAR and MODE_OF_OPERATION?
             if not output_dfs[output_file].empty:
                 output_dfs[output_file] = pd.concat([output_dfs[output_file], data])
@@ -296,7 +296,7 @@ def to_df_helper(self):
         # Create output dfs, adding to dict with filename as key
         attribute_dfs = {}
         for file in list(otoole_stems):
-            attribute_dfs[file] = pd.DataFrame(columns=otoole_stems[file]["column_structure"])
+            attribute_dfs[file] = pd.DataFrame(columns=otoole_stems[file]["columns"])
 
         # Add data to output dfs iteratively for attributes with multiple instances (eg. impacts)
         if isinstance(getattr(self, f"{attribute}"), list):

@@ -1,10 +1,18 @@
-from typing import Dict, Union
+from typing import Annotated, Dict, Mapping, Union
 
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel, model_validator
 
 # ####################
 # ### BASE CLASSES ###
 # ####################
+
+
+def values_sum_one(values: Mapping) -> bool:
+    assert sum(values.values()) == 1.0, "Mapping values must sum to 1.0."
+    return values
+
+
+MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]
 
 
 class OSeMOSYSBase(BaseModel):
@@ -14,8 +22,17 @@ class OSeMOSYSBase(BaseModel):
     """
 
     id: str
-    long_name: str | None
-    description: str | None
+    long_name: str
+    description: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def backfill_missing(cls, values):
+        if "long_name" not in values:
+            values["long_name"] = values["id"]
+        if "description" not in values:
+            values["description"] = "No description provided."
+        return values
 
 
 DataVar = float | int | str
