@@ -146,9 +146,6 @@ class Region(OSeMOSYSBase):
             region_instances.append(
                 cls(
                     id=region["VALUE"],
-                    # TODO
-                    long_name=None,
-                    description=None,
                     otoole_cfg=otoole_cfg,
                     neighbours=(
                         (

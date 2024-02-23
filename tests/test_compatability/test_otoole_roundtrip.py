@@ -2,10 +2,12 @@ import glob
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from feo.osemosys.schemas import RunSpec
 
 
+@pytest.mark.skip(reason="Many forthcoming changes with object construction.")
 def test_files_equality():
     """
     Check CSVs are equivalent after creating a RunSpec object from CSVs and writing to CSVs

@@ -1,7 +1,7 @@
 import os
+import warnings
 from typing import List, Optional
 
-import pandas as pd
 import xarray as xr
 import yaml
 from pydantic import model_validator
@@ -20,6 +20,10 @@ from feo.osemosys.schemas.validation.model_composition import (
 )
 from feo.osemosys.schemas.validation.model_presolve import check_able_to_meet_demands
 from feo.osemosys.utils import to_df_helper
+
+# filter this pandas-3 dep warning for now
+warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
+import pandas as pd  # noqa: E402
 
 
 class RunSpec(OSeMOSYSBase):
@@ -155,8 +159,6 @@ class RunSpec(OSeMOSYSBase):
     def from_otoole(cls, root_dir):
         return cls(
             id="id",
-            long_name=None,
-            description=None,
             impacts=Impact.from_otoole_csv(root_dir=root_dir),
             regions=Region.from_otoole_csv(root_dir=root_dir),
             technologies=Technology.from_otoole_csv(root_dir=root_dir),
