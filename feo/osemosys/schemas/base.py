@@ -120,7 +120,30 @@ class OSeMOSYSData(BaseModel):
     """
 
     def __init__(self, *args, **data):
-        super().__init__(data=args[0] if args else data)
+        if args:
+            if len(args) > 1:
+                raise ValueError(f"Expected 1 positional argument, got {len(args)}.")
+            if isinstance(args[0], dict):
+                if "data" in args[0].keys() and len(args[0].keys()) == 1:
+                    super().__init__(**args[0])
+                elif "data" in args[0].keys() and len(args[0].keys()) > 1:
+                    raise ValueError(
+                        "If initialising via a dict keyed by 'data', 'data' must be the only key."
+                    )
+                else:
+                    # 'data' not in args[0].keys()
+                    super().__init__(data=args[0])
+            else:
+                super().__init__(data=args[0])
+        else:
+            if "data" in data.keys() and len(data.keys()) > 1:
+                raise ValueError(
+                    "If initialising via a dict keyed by 'data', 'data' must be the only key."
+                )
+            elif "data" in data.keys():
+                super().__init__(data=data["data"])
+            else:
+                super().__init__(data=data)
 
     data: Union[
         DataVar,  # {data: 6.}
