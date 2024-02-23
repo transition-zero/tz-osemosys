@@ -28,11 +28,13 @@ PASSING_IMPACT_DEFINITIONS = dict(
 )
 
 FAILING_IMPACT_DEFINITIONS = dict(
+    # exogenous_annual must be <= constraint_annual
     exogenous_gt_constraint_ann=dict(
         id="CO2e",
         constraint_annual={"*": {"*": 1}},
         exogenous_annual={"*": {"*": 2}},
     ),
+    # exogenous_total must be <= constraint_total
     exogenous_gt_constraint_total=dict(
         id="CO2e",
         constraint_total={"*": 1},
