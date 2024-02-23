@@ -15,6 +15,7 @@ from feo.osemosys.utils.utils import (
     merge,
     recursive_items,
     recursive_keys,
+    safecast_bool,
     to_df_helper,
 )
 
@@ -34,5 +35,5 @@ __all__ = [
     "recursive_keys",
     "rgetattr",
     "rsetattr",
-    "safecat_bool",
+    "safecast_bool",
 ]

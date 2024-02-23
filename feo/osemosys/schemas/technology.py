@@ -3,16 +3,10 @@ from typing import Any
 from pydantic import Field, conlist, model_validator
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.schemas.base import (
-    OSeMOSYSBase,
-    OSeMOSYSData,
-    OSeMOSYSData_Bool,
-    OSeMOSYSData_Int,
-)
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.technology import OtooleTechnology
 from feo.osemosys.schemas.validation.technology_validation import technology_storage_validation
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
-from feo.osemosys.utils import isnumeric
 
 # ##################
 # ### TECHNOLOGY ###
@@ -33,8 +27,8 @@ class OperatingMode(OSeMOSYSBase):
     emission_activity_ratio: OSeMOSYSData | None = Field(None)
     input_activity_ratio: OSeMOSYSData | None = Field(None)
     output_activity_ratio: OSeMOSYSData | None = Field(None)
-    to_storage: OSeMOSYSData_Int | None = Field(None)
-    from_storage: OSeMOSYSData_Int | None = Field(None)
+    to_storage: OSeMOSYSData.RY.Bool | None = Field(None)
+    from_storage: OSeMOSYSData.RY.Bool | None = Field(None)
 
 
 class Technology(OSeMOSYSBase, OtooleTechnology):
@@ -63,34 +57,36 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     # REQUIRED PARAMETERS
     # -----
-    operating_life: OSeMOSYSData_Int | None
-    capex: OSeMOSYSData | None
-    opex_fixed: OSeMOSYSData | None
+    operating_life: OSeMOSYSData.R.Int | None
+    capex: OSeMOSYSData.RY | None
+    opex_fixed: OSeMOSYSData.RY | None
 
     operating_modes: conlist(OperatingMode, min_length=1)
 
     # NON-REQUIRED PARAMETERS
     # -----
-    residual_capacity: OSeMOSYSData | None = Field(
-        OSeMOSYSData(defaults.technology_residual_capacity)
+    residual_capacity: OSeMOSYSData.RY | None = Field(
+        OSeMOSYSData.RY(defaults.technology_residual_capacity)
     )
-    capacity_activity_unit_ratio: OSeMOSYSData | None = Field(
-        OSeMOSYSData(defaults.technology_capacity_activity_unit_ratio)
+    capacity_activity_unit_ratio: OSeMOSYSData.R | None = Field(
+        OSeMOSYSData.R(defaults.technology_capacity_activity_unit_ratio)
     )
-    capacity_one_tech_unit: OSeMOSYSData | None = Field(None)
-    availability_factor: OSeMOSYSData | None = Field(
-        OSeMOSYSData(defaults.technology_availability_factor)
+    capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
+    availability_factor: OSeMOSYSData.RY | None = Field(
+        OSeMOSYSData.RY(defaults.technology_availability_factor)
     )
-    capacity_factor: OSeMOSYSData | None = Field(OSeMOSYSData(defaults.technology_capacity_factor))
-    is_renewable: OSeMOSYSData | None = Field(None)
+    capacity_factor: OSeMOSYSData.RYS | None = Field(
+        OSeMOSYSData(defaults.technology_capacity_factor)
+    )
+    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS
     # -----
     # capacity
-    capacity_gross_max: OSeMOSYSData | None = Field(None)
-    capacity_gross_min: OSeMOSYSData | None = Field(None)
-    capacity_additional_max: OSeMOSYSData | None = Field(None)
-    capacity_additional_min: OSeMOSYSData | None = Field(None)
+    capacity_gross_max: OSeMOSYSData.RY | None = Field(None)
+    capacity_gross_min: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
 
     # growth rate # TO BE IMPLEMENTED
     # additional_capacity_max_growth_rate: OSeMOSYSData | None  = Field(None)
@@ -99,14 +95,17 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # additional_capacity_min_growth_rate: RegionYearData | None  = Field(None)
 
     # activity
-    activity_annual_max: OSeMOSYSData | None = Field(None)
-    activity_annual_min: OSeMOSYSData | None = Field(None)
-    activity_total_max: OSeMOSYSData | None = Field(None)
-    activity_total_min: OSeMOSYSData | None = Field(None)
+    activity_annual_max: OSeMOSYSData.RY | None = Field(None)
+    activity_annual_min: OSeMOSYSData.RY | None = Field(None)
+    activity_total_max: OSeMOSYSData.R | None = Field(None)
+    activity_total_min: OSeMOSYSData.R | None = Field(None)
 
     # include this technology in joint reserve margin and renewables targets
-    include_in_joint_reserve_margin: OSeMOSYSData_Bool | None = Field(None)
-    include_in_joint_renewable_target: OSeMOSYSData_Bool | None = Field(None)
+    include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
+
+    def compose(self, **kwargs):
+        return self
 
     @model_validator(mode="before")
     @classmethod
@@ -114,22 +113,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
         for field, info in cls.model_fields.items():
             field_val = values.get(field)
 
-            if all(
-                [
-                    field_val is not None,
-                    isinstance(field_val, int),
-                    "OSeMOSYSData_Int" in str(info.annotation),
-                ]
-            ):
-                values[field] = OSeMOSYSData_Int(field_val)
-            elif all(
-                [
-                    field_val is not None,
-                    isnumeric(field_val),
-                    "OSeMOSYSData" in str(info.annotation),
-                ]
-            ):
-                values[field] = OSeMOSYSData(field_val)
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
 
         return values
 
@@ -184,7 +169,7 @@ class TechnologyStorage(OSeMOSYSBase):
     # REQUIRED PARAMETERS
     # -------------------
     capex: OSeMOSYSData
-    operating_life: OSeMOSYSData_Int
+    operating_life: OSeMOSYSData.RY.Int
 
     # NON-REQUIRED PARAMETERS
     # -----------------------

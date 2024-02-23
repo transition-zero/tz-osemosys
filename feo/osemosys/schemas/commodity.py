@@ -1,15 +1,9 @@
 from typing import Any
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
-from feo.osemosys.schemas.base import (
-    OSeMOSYSBase,
-    OSeMOSYSData,
-    OSeMOSYSData_Bool,
-    OSeMOSYSData_SumOne,
-)
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.commodity import OtooleCommodity
-from feo.osemosys.utils import isnumeric
 
 
 class Commodity(OSeMOSYSBase, OtooleCommodity):
@@ -18,34 +12,24 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
 
     """
 
-    demand_annual: OSeMOSYSData | None = Field(None)
-    demand_profile: OSeMOSYSData_SumOne | None = Field(None)
-    is_renewable: OSeMOSYSData_Bool | None = Field(None)
+    demand_annual: OSeMOSYSData.RY | None = Field(None)
+    demand_profile: OSeMOSYSData.RYS.SumOne | None = Field(None)
+    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # include this technology in joint reserve margin and renewables targets
-    include_in_joint_reserve_margin: OSeMOSYSData_Bool | None = Field(None)
-    include_in_joint_renewable_target: OSeMOSYSData_Bool | None = Field(None)
+    include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
-    @field_validator("demand_annual", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def passthrough_float(cls, v: Any) -> OSeMOSYSData:
-        if isnumeric(v):
-            return OSeMOSYSData(float(v))
-        return v
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
 
-    @field_validator("demand_profile", mode="before")
-    @classmethod
-    def passthrough_sumone(cls, v: Any) -> OSeMOSYSData_SumOne:
-        if isnumeric(v):
-            return OSeMOSYSData_SumOne(float(v))
-        return v
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
 
-    @field_validator("is_renewable", mode="before")
-    @classmethod
-    def passthrough_bool(cls, v: Any) -> OSeMOSYSData_Bool:
-        if isinstance(v, bool):
-            return OSeMOSYSData_Bool(v)
-        return v
+        return values
 
     @model_validator(mode="before")
     @classmethod
@@ -53,3 +37,6 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
         if values.get("demand_profile") is not None and values.get("demand_annual") is None:
             raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
         return values
+
+    def compose(self, **kwargs):
+        return self

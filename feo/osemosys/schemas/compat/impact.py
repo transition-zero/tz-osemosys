@@ -96,7 +96,7 @@ class OtooleImpact(BaseModel):
                     id=impact,
                     otoole_cfg=otoole_cfg,
                     constraint_annual=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.RY(
                             data=group_to_json(
                                 g=dfs["AnnualEmissionLimit"].loc[
                                     dfs["AnnualEmissionLimit"]["EMISSION"] == impact
@@ -110,7 +110,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     constraint_total=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.R(
                             data=group_to_json(
                                 g=dfs["ModelPeriodEmissionLimit"].loc[
                                     dfs["ModelPeriodEmissionLimit"]["EMISSION"] == impact
@@ -124,7 +124,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     exogenous_annual=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.RY(
                             data=group_to_json(
                                 g=dfs["AnnualExogenousEmission"].loc[
                                     dfs["AnnualExogenousEmission"]["EMISSION"] == impact
@@ -138,7 +138,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     exogenous_total=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.R(
                             data=group_to_json(
                                 g=dfs["ModelPeriodExogenousEmission"].loc[
                                     dfs["ModelPeriodExogenousEmission"]["EMISSION"] == impact
@@ -152,7 +152,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     penalty=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.RY(
                             data=group_to_json(
                                 g=dfs["EmissionsPenalty"].loc[
                                     dfs["EmissionsPenalty"]["EMISSION"] == impact

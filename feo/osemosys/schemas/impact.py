@@ -18,18 +18,18 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     """
 
     # Annual emissions constraint per region, year, and emission type
-    constraint_annual: OSeMOSYSData | None = Field(None)
+    constraint_annual: OSeMOSYSData.RY | None = Field(None)
     # Total modelled period emissions constraint per region and emission type
-    constraint_total: OSeMOSYSData | None = Field(None)
+    constraint_total: OSeMOSYSData.R | None = Field(None)
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
-    exogenous_annual: OSeMOSYSData | None = Field(None)
+    exogenous_annual: OSeMOSYSData.RY | None = Field(None)
     # Total modelled period exogenous emission per region and emission type
     # I.e. emissions from non-modelled sources
-    exogenous_total: OSeMOSYSData | None = Field(None)
+    exogenous_total: OSeMOSYSData.R | None = Field(None)
     # Financial penalty for each unit of eimssion per region, year, and emission type
     # E.g. used to model carbon prices
-    penalty: OSeMOSYSData | None = Field(None)
+    penalty: OSeMOSYSData.RY | None = Field(None)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -44,4 +44,7 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             exogenous_annual_within_constraint(self.constraint_annual, self.exogenous_annual)
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.constraint_total, self.exogenous_total)
+        return self
+
+    def compose(self, **kwargs):
         return self

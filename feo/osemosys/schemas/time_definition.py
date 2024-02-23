@@ -1,10 +1,12 @@
 from itertools import product
 from pathlib import Path
-from typing import Any, ClassVar, List, Mapping, Union
+from typing import Any, ClassVar, Mapping, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field, ValidationInfo, conlist, field_validator, model_validator
 
+from feo.osemosys.schemas.base import MappingSumOne, OSeMOSYSBase, OSeMOSYSData
+from feo.osemosys.schemas.compat.base import OtooleCfg
 from feo.osemosys.schemas.validation.timedefinition_validation import (
     build_adjacency,
     build_timeslices_from_parts,
@@ -16,16 +18,6 @@ from feo.osemosys.schemas.validation.timedefinition_validation import (
     validate_parts_from_splits,
 )
 from feo.osemosys.utils import group_to_json
-
-from .base import MappingSumOne, OSeMOSYSBase, OSeMOSYSData
-
-
-class OtooleCfg(BaseModel):
-    """
-    Paramters needed to round-trip csvs from otoole
-    """
-
-    empty_dfs: List[str] | None
 
 
 class TimeAdjacency(BaseModel):

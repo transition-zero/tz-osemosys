@@ -1,9 +1,11 @@
+import re
 from enum import Enum
-from typing import Annotated, Dict, Mapping, Union
+from typing import Annotated, Any, Dict, Mapping, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import AfterValidator, BaseModel, BeforeValidator, field_validator, model_validator
+from pydantic import AfterValidator, BaseModel, create_model, field_validator, model_validator
+from pydantic.fields import FieldInfo
 
 from feo.osemosys.defaults import defaults
 from feo.osemosys.utils import isnumeric, recursive_keys, rgetattr, rsetattr, safecast_bool
@@ -18,11 +20,40 @@ def values_sum_one(values: Mapping) -> bool:
     return values
 
 
+def cast_osemosysdata_value(val: Any, info: FieldInfo):
+    field_type_str = str(info.annotation)
+
+    pat = r"""OSeMOSYSData_[a-zA-Z]*_?[a-zA-Z]*"""
+    match = re.search(pat, field_type_str)
+
+    if match is not None:
+        span = match.group()
+        coords = span.split("_")[1]
+        try:
+            validator = span.split("_")[2]
+        except IndexError:
+            validator = None
+
+        if isinstance(val, int) and validator == "Int":
+            return getattr(OSeMOSYSData, coords).Int(data=val)
+        elif isinstance(val, bool) and validator == "Bool":
+            return getattr(OSeMOSYSData, coords).Bool(data=val)
+        elif isinstance(val, str) and validator == "DM":
+            return getattr(OSeMOSYSData, coords).DM(data=val)
+        elif isnumeric(val) and validator == "SumOne":
+            return getattr(OSeMOSYSData, coords).SumOne(data=val)
+        elif isnumeric(val):
+            return getattr(OSeMOSYSData, coords)(data=val)
+
+    return val
+
+
 def nested_sum_one(values: Mapping) -> bool:
-    # breakpoint()
     if isinstance(values, OSeMOSYSData):
         data = values.data
     elif isinstance(values, dict):
+        data = values
+    else:
         data = values
 
     if data is None:
@@ -48,6 +79,66 @@ def nested_sum_one(values: Mapping) -> bool:
     ):
         raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
     return values
+
+
+def check_or_cast_int(cls, v):
+    if isinstance(v, int):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), int):
+                try:
+                    rsetattr(v, list(keytup), int(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be an integer or a dict with integer values.")
+        return v
+    else:
+        try:
+            return int(v)
+        except ValueError:
+            raise ValueError("Data must be an integer or a dict with integer values.")
+
+
+def check_or_cast_bool(cls, v):
+    if isinstance(v, bool):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), bool):
+                try:
+                    rsetattr(v, list(keytup), safecast_bool(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be a boolean or a dict with boolean values.")
+        return v
+    else:
+        try:
+            return safecast_bool(v)
+        except ValueError:
+            raise ValueError("Data must be a boolean or a dict with boolean values.")
+
+
+def check_or_cast_dm(cls, v):
+    if isinstance(v, DepreciationMethod):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), DepreciationMethod):
+                try:
+                    rsetattr(v, list(keytup), DepreciationMethod(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
+        return v
+    else:
+        try:
+            return DepreciationMethod(v)
+        except ValueError:
+            raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
 
 
 MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]
@@ -156,79 +247,74 @@ class OSeMOSYSData(BaseModel):
     ]
 
 
-OSeMOSYSData_SumOne = Annotated[OSeMOSYSData, BeforeValidator(nested_sum_one)]
-
-
-class OSeMOSYSData_Int(OSeMOSYSData):
-    @field_validator("data")
-    @classmethod
-    def check_or_cast_int(cls, v):
-        if isinstance(v, int):
-            return v
-        elif isinstance(v, dict):
-            # check or try to cast
-            keys = [k for k in recursive_keys(v)]
-            for keytup in keys:
-                if not isinstance(rgetattr(v, list(keytup)), int):
-                    try:
-                        rsetattr(v, list(keytup), int(rgetattr(v, list(keytup))))
-                    except ValueError:
-                        raise ValueError("Data must be an integer or a dict with integer values.")
-            return v
-        else:
-            try:
-                return int(v)
-            except ValueError:
-                raise ValueError("Data must be an integer or a dict with integer values.")
-
-
-class OSeMOSYSData_Bool(OSeMOSYSData):
-    @field_validator("data")
-    @classmethod
-    def check_or_cast_bool(cls, v):
-        print("BEEEE", v)
-        if isinstance(v, bool):
-            return v
-        elif isinstance(v, dict):
-            # check or try to cast
-            keys = [k for k in recursive_keys(v)]
-            for keytup in keys:
-                if not isinstance(rgetattr(v, list(keytup)), bool):
-                    try:
-                        rsetattr(v, list(keytup), safecast_bool(rgetattr(v, list(keytup))))
-                    except ValueError:
-                        raise ValueError("Data must be a boolean or a dict with boolean values.")
-            return v
-        else:
-            try:
-                return safecast_bool(v)
-            except ValueError:
-                raise ValueError("Data must be a boolean or a dict with boolean values.")
-
-
 class DepreciationMethod(str, Enum):
     sinking_fund = "sinking-fund"
     straight_line = "straight-line"
 
 
-class OSeMOSYSData_DepreciationMethod(OSeMOSYSData):
-    @field_validator("data")
-    @classmethod
-    def check_or_cast_dm(cls, v):
-        if isinstance(v, DepreciationMethod):
-            return v
-        elif isinstance(v, dict):
-            # check or try to cast
-            keys = [k for k in recursive_keys(v)]
-            for keytup in keys:
-                if not isinstance(rgetattr(v, list(keytup)), DepreciationMethod):
-                    try:
-                        rsetattr(v, list(keytup), DepreciationMethod(rgetattr(v, list(keytup))))
-                    except ValueError:
-                        raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
-            return v
-        else:
-            try:
-                return DepreciationMethod(v)
-            except ValueError:
-                raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
+def _compose_R(cls, values):
+    # Region
+    return values
+
+
+def _compose_RY(cls, values):
+    # Region-Year
+    return values
+
+
+def _compose_RT(cls, values):
+    # Region-Technology
+    return values
+
+
+def _compose_RYS(cls, values):
+    # Region-Year-TimeSlice
+    return values
+
+
+def _compose_RTY(cls, values):
+    # Region-Technology-Year
+    return values
+
+
+def _compose_RCY(cls, values):
+    # Region-Commodity-Year
+    return values
+
+
+def _null(cls, values):
+    # pass-through only, for testing purposes
+    return values
+
+
+for key, func in zip(
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "ANY"],
+    [_compose_R, _compose_RY, _compose_RT, _compose_RYS, _compose_RTY, _compose_RCY, _null],
+):
+    # add a new OSEMOSYSData class for each data cooridinate key
+    setattr(OSeMOSYSData, key, create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData))
+
+    # add the compose method to each new class
+    getattr(OSeMOSYSData, key).compose = func
+
+    # add the datatype constructors
+    for _type, validator in zip(
+        ["Int", "Bool", "SumOne"], [check_or_cast_int, check_or_cast_bool, nested_sum_one]
+    ):
+        setattr(
+            getattr(OSeMOSYSData, key),
+            _type,
+            create_model(
+                f"OSeMOSYSData_{key}_{_type}",
+                __base__=getattr(OSeMOSYSData, key),
+                __validators__={
+                    f"check_or_cast_{_type.lower()}": field_validator("data")(validator)
+                },
+            ),
+        )
+
+OSeMOSYSData.R.DM = create_model(
+    "OSeMOSYSData_R_DM",
+    __base__=OSeMOSYSData.R,
+    __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
+)

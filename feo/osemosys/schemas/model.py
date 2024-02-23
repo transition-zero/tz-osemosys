@@ -3,19 +3,13 @@ from typing import Any, List
 from pydantic import Field, model_validator
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.schemas.base import (
-    OSeMOSYSBase,
-    OSeMOSYSData,
-    OSeMOSYSData_DepreciationMethod,
-    OSeMOSYSData_Int,
-)
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.model import RunSpecOtoole
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import isnumeric
 
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
@@ -33,15 +27,32 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     # ASSUMPIONS
     # ----------
-    depreciation_method: OSeMOSYSData_DepreciationMethod | None = Field(
-        OSeMOSYSData_DepreciationMethod(defaults.depreciation_method)
+    depreciation_method: OSeMOSYSData.R.DM | None = Field(
+        OSeMOSYSData.R.DM(defaults.depreciation_method)
     )
-    discount_rate: OSeMOSYSData | None = Field(OSeMOSYSData(defaults.discount_rate))
-    reserve_margin: OSeMOSYSData | None = Field(OSeMOSYSData(defaults.reserve_margin))
+    discount_rate: OSeMOSYSData.RT | None = Field(OSeMOSYSData(defaults.discount_rate))
+    reserve_margin: OSeMOSYSData.RY | None = Field(OSeMOSYSData(defaults.reserve_margin))
 
     # TARGETS
     # -------
-    renewable_production_target: OSeMOSYSData | None = Field(None)
+    renewable_production_target: OSeMOSYSData.RY | None = Field(None)
+
+    @model_validator(mode="after")
+    def compose_sets(self):
+        # compose sets
+        sets = {
+            "years": self.time_definition.years,
+            "timeslices": self.time_definition.timeslices,
+            "commodities": [commodity.id for commodity in self.commodities],
+            "regions": [region.id for region in self.regions],
+            "technologies": [technology.id for technology in self.technologies],
+            "impacts": [impact.id for impact in self.impacts],
+        }
+
+        self.commodities = [commodity.compose(**sets) for commodity in self.commodities]
+        self.regions = [region.compose(**sets) for region in self.regions]
+        self.technologies = [technology.compose(**sets) for technology in self.technologies]
+        self.impacts = [impact.compose(**sets) for impact in self.impacts]
 
     @model_validator(mode="before")
     @classmethod
@@ -49,29 +60,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         for field, info in cls.model_fields.items():
             field_val = values.get(field)
 
-            if all(
-                [
-                    field_val is not None,
-                    isinstance(field_val, int),
-                    "OSeMOSYSData_Int" in str(info.annotation),
-                ]
-            ):
-                values[field] = OSeMOSYSData_Int(field_val)
-            elif all(
-                [
-                    field_val is not None,
-                    isinstance(field_val, str),
-                    "OSeMOSYSData_DepreciationMethod" in str(info.annotation),
-                ]
-            ):
-                values[field] = OSeMOSYSData_DepreciationMethod(field_val)
-            elif all(
-                [
-                    field_val is not None,
-                    isnumeric(field_val),
-                    "OSeMOSYSData" in str(info.annotation),
-                ]
-            ):
-                values[field] = OSeMOSYSData(field_val)
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
 
         return values

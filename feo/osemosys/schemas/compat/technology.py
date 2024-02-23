@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from feo.osemosys.schemas.base import OSeMOSYSData, OSeMOSYSData_Int
+from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.compat.base import OtooleCfg
 from feo.osemosys.utils import flatten, group_to_json
 
@@ -225,73 +225,101 @@ class OtooleTechnology(BaseModel):
                     id=technology,
                     otoole_cfg=otoole_cfg,
                     operating_modes=operating_modes,
-                    capacity_activity_unit_ratio=OSeMOSYSData(
-                        data=data_json_format["CapacityToActivityUnit"]
-                    )
-                    if data_json_format["CapacityToActivityUnit"] is not None
-                    else None,
-                    capacity_one_tech_unit=OSeMOSYSData(
-                        data=data_json_format["CapacityOfOneTechnologyUnit"]
-                    )
-                    if data_json_format["CapacityOfOneTechnologyUnit"] is not None
-                    else None,
-                    availability_factor=OSeMOSYSData(data=data_json_format["AvailabilityFactor"])
-                    if data_json_format["AvailabilityFactor"] is not None
-                    else None,
-                    capacity_factor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
-                    if data_json_format["CapacityFactor"] is not None
-                    else None,
-                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLife"])
-                    if data_json_format["OperationalLife"] is not None
-                    else None,
-                    capex=OSeMOSYSData(data=data_json_format["CapitalCost"])
-                    if data_json_format["CapitalCost"] is not None
-                    else None,
-                    opex_fixed=OSeMOSYSData(data=data_json_format["FixedCost"])
-                    if data_json_format["FixedCost"] is not None
-                    else None,
-                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualCapacity"])
-                    if data_json_format["ResidualCapacity"] is not None
-                    else None,
-                    capacity_gross_max=OSeMOSYSData(data=data_json_format["TotalAnnualMaxCapacity"])
-                    if data_json_format["TotalAnnualMaxCapacity"] is not None
-                    else None,
-                    capacity_gross_min=OSeMOSYSData(data=data_json_format["TotalAnnualMinCapacity"])
-                    if data_json_format["TotalAnnualMinCapacity"] is not None
-                    else None,
-                    capacity_additional_max=OSeMOSYSData(
-                        data=data_json_format["TotalAnnualMaxCapacityInvestment"]
-                    )
-                    if data_json_format["TotalAnnualMaxCapacityInvestment"] is not None
-                    else None,
-                    capacity_additional_min=OSeMOSYSData(
-                        data=data_json_format["TotalAnnualMinCapacityInvestment"]
-                    )
-                    if data_json_format["TotalAnnualMinCapacityInvestment"] is not None
-                    else None,
-                    activity_annual_max=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"]
-                    )
-                    if data_json_format["TotalTechnologyAnnualActivityUpperLimit"] is not None
-                    else None,
-                    activity_annual_min=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"]
-                    )
-                    if data_json_format["TotalTechnologyAnnualActivityLowerLimit"] is not None
-                    else None,
-                    activity_total_max=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"]
-                    )
-                    if data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"] is not None
-                    else None,
-                    activity_total_min=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"]
-                    )
-                    if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"] is not None
-                    else None,
-                    is_renewable=OSeMOSYSData(data=data_json_format["RETagTechnology"])
-                    if data_json_format["RETagTechnology"] is not None
-                    else None,
+                    capacity_activity_unit_ratio=(
+                        OSeMOSYSData.R(data=data_json_format["CapacityToActivityUnit"])
+                        if data_json_format["CapacityToActivityUnit"] is not None
+                        else None
+                    ),
+                    capacity_one_tech_unit=(
+                        OSeMOSYSData.RY(data=data_json_format["CapacityOfOneTechnologyUnit"])
+                        if data_json_format["CapacityOfOneTechnologyUnit"] is not None
+                        else None
+                    ),
+                    availability_factor=(
+                        OSeMOSYSData.RY(data=data_json_format["AvailabilityFactor"])
+                        if data_json_format["AvailabilityFactor"] is not None
+                        else None
+                    ),
+                    capacity_factor=(
+                        OSeMOSYSData.RYS(data=data_json_format["CapacityFactor"])
+                        if data_json_format["CapacityFactor"] is not None
+                        else None
+                    ),
+                    operating_life=(
+                        OSeMOSYSData.R.Int(data=data_json_format["OperationalLife"])
+                        if data_json_format["OperationalLife"] is not None
+                        else None
+                    ),
+                    capex=(
+                        OSeMOSYSData.RY(data=data_json_format["CapitalCost"])
+                        if data_json_format["CapitalCost"] is not None
+                        else None
+                    ),
+                    opex_fixed=(
+                        OSeMOSYSData.RY(data=data_json_format["FixedCost"])
+                        if data_json_format["FixedCost"] is not None
+                        else None
+                    ),
+                    residual_capacity=(
+                        OSeMOSYSData.RY(data=data_json_format["ResidualCapacity"])
+                        if data_json_format["ResidualCapacity"] is not None
+                        else None
+                    ),
+                    capacity_gross_max=(
+                        OSeMOSYSData.RY(data=data_json_format["TotalAnnualMaxCapacity"])
+                        if data_json_format["TotalAnnualMaxCapacity"] is not None
+                        else None
+                    ),
+                    capacity_gross_min=(
+                        OSeMOSYSData.RY(data=data_json_format["TotalAnnualMinCapacity"])
+                        if data_json_format["TotalAnnualMinCapacity"] is not None
+                        else None
+                    ),
+                    capacity_additional_max=(
+                        OSeMOSYSData.RY(data=data_json_format["TotalAnnualMaxCapacityInvestment"])
+                        if data_json_format["TotalAnnualMaxCapacityInvestment"] is not None
+                        else None
+                    ),
+                    capacity_additional_min=(
+                        OSeMOSYSData.RY(data=data_json_format["TotalAnnualMinCapacityInvestment"])
+                        if data_json_format["TotalAnnualMinCapacityInvestment"] is not None
+                        else None
+                    ),
+                    activity_annual_max=(
+                        OSeMOSYSData.RY(
+                            data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"]
+                        )
+                        if data_json_format["TotalTechnologyAnnualActivityUpperLimit"] is not None
+                        else None
+                    ),
+                    activity_annual_min=(
+                        OSeMOSYSData.RY(
+                            data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"]
+                        )
+                        if data_json_format["TotalTechnologyAnnualActivityLowerLimit"] is not None
+                        else None
+                    ),
+                    activity_total_max=(
+                        OSeMOSYSData.R(
+                            data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"]
+                        )
+                        if data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"]
+                        is not None
+                        else None
+                    ),
+                    activity_total_min=(
+                        OSeMOSYSData.R(
+                            data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"]
+                        )
+                        if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"]
+                        is not None
+                        else None
+                    ),
+                    is_renewable=(
+                        OSeMOSYSData.RY.Bool(data=data_json_format["RETagTechnology"])
+                        if data_json_format["RETagTechnology"] is not None
+                        else None
+                    ),
                 )
             )
 
@@ -464,7 +492,9 @@ class OtooleTechnologyStorage:
                     capex=OSeMOSYSData(data=data_json_format["CapitalCostStorage"])
                     if data_json_format["CapitalCostStorage"] is not None
                     else None,
-                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLifeStorage"])
+                    operating_life=OSeMOSYSData.RY.Int(
+                        data=data_json_format["OperationalLifeStorage"]
+                    )
                     if data_json_format["OperationalLifeStorage"] is not None
                     else None,
                     minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])

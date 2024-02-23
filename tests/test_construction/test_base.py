@@ -1,11 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.base import (
-    OSeMOSYSBase,
-    OSeMOSYSData_Bool,
-    OSeMOSYSData_DepreciationMethod,
-    OSeMOSYSData_Int,
-)
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 
 PASSING_BASE = dict(
     # nameplate params inherited from key
@@ -68,32 +63,32 @@ def test_base_construction_failcases():
 
 def test_base_int_construction():
     for _name, params in PASSING_BASE_INT.items():
-        OSeMOSYSData_Int(**params)
+        OSeMOSYSData.ANY.Int(**params)
 
 
 def test_base_int_construction_failcases():
     for _name, params in FAILING_BASE_INT.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
-            OSeMOSYSData_Int(**params)
+            OSeMOSYSData.ANY.Int(**params)
 
 
 def test_base_bool_construction():
     for _name, params in PASSING_BASE_BOOL.items():
-        OSeMOSYSData_Bool(**params)
+        OSeMOSYSData.ANY.Bool(**params)
 
 
 def test_base_bool_construction_failcases():
     for _name, params in FAILING_BASE_BOOL.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
-            OSeMOSYSData_Bool(**params)
+            OSeMOSYSData.ANY.Bool(**params)
 
 
 def test_base_dm_construction():
     for _name, params in PASSING_BASE_DM.items():
-        OSeMOSYSData_DepreciationMethod(**params)
+        OSeMOSYSData.R.DM(**params)
 
 
 def test_base_dm_construction_failcases():
     for _name, params in FAILING_BASE_DM.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
-            OSeMOSYSData_DepreciationMethod(**params)
+            OSeMOSYSData.R.DM(**params)
