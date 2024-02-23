@@ -3,10 +3,10 @@ from typing import Annotated, Dict, Mapping, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import AfterValidator, BaseModel, BeforeValidator, model_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, field_validator, model_validator
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.utils import isnumeric
+from feo.osemosys.utils import isnumeric, recursive_keys, rgetattr, rsetattr, safecast_bool
 
 # ####################
 # ### BASE CLASSES ###
@@ -51,7 +51,7 @@ def nested_sum_one(values: Mapping) -> bool:
 
 
 MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]
-DataVar = float | int | str
+DataVar = float | int | str | bool
 IdxVar = str | int
 
 
@@ -160,25 +160,50 @@ OSeMOSYSData_SumOne = Annotated[OSeMOSYSData, BeforeValidator(nested_sum_one)]
 
 
 class OSeMOSYSData_Int(OSeMOSYSData):
-    data: Union[
-        int,  # {data: 6.}
-        Dict[IdxVar, int],
-        Dict[IdxVar, Dict[IdxVar, int]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
-    ]
+    @field_validator("data")
+    @classmethod
+    def check_or_cast_int(cls, v):
+        if isinstance(v, int):
+            return v
+        elif isinstance(v, dict):
+            # check or try to cast
+            keys = [k for k in recursive_keys(v)]
+            for keytup in keys:
+                if not isinstance(rgetattr(v, list(keytup)), int):
+                    try:
+                        rsetattr(v, list(keytup), int(rgetattr(v, list(keytup))))
+                    except ValueError:
+                        raise ValueError("Data must be an integer or a dict with integer values.")
+            return v
+        else:
+            try:
+                return int(v)
+            except ValueError:
+                raise ValueError("Data must be an integer or a dict with integer values.")
 
 
 class OSeMOSYSData_Bool(OSeMOSYSData):
-    data: Union[
-        bool,  # {data: 6.}
-        Dict[IdxVar, bool],
-        Dict[IdxVar, Dict[IdxVar, bool]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]]],
-    ]
+    @field_validator("data")
+    @classmethod
+    def check_or_cast_bool(cls, v):
+        print("BEEEE", v)
+        if isinstance(v, bool):
+            return v
+        elif isinstance(v, dict):
+            # check or try to cast
+            keys = [k for k in recursive_keys(v)]
+            for keytup in keys:
+                if not isinstance(rgetattr(v, list(keytup)), bool):
+                    try:
+                        rsetattr(v, list(keytup), safecast_bool(rgetattr(v, list(keytup))))
+                    except ValueError:
+                        raise ValueError("Data must be a boolean or a dict with boolean values.")
+            return v
+        else:
+            try:
+                return safecast_bool(v)
+            except ValueError:
+                raise ValueError("Data must be a boolean or a dict with boolean values.")
 
 
 class DepreciationMethod(str, Enum):
@@ -187,11 +212,23 @@ class DepreciationMethod(str, Enum):
 
 
 class OSeMOSYSData_DepreciationMethod(OSeMOSYSData):
-    data: Union[
-        DepreciationMethod,
-        Dict[IdxVar, DepreciationMethod],
-        Dict[IdxVar, Dict[IdxVar, DepreciationMethod]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]]],
-    ]
+    @field_validator("data")
+    @classmethod
+    def check_or_cast_dm(cls, v):
+        if isinstance(v, DepreciationMethod):
+            return v
+        elif isinstance(v, dict):
+            # check or try to cast
+            keys = [k for k in recursive_keys(v)]
+            for keytup in keys:
+                if not isinstance(rgetattr(v, list(keytup)), DepreciationMethod):
+                    try:
+                        rsetattr(v, list(keytup), DepreciationMethod(rgetattr(v, list(keytup))))
+                    except ValueError:
+                        raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
+            return v
+        else:
+            try:
+                return DepreciationMethod(v)
+            except ValueError:
+                raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")

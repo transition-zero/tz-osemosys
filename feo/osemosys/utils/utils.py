@@ -16,6 +16,23 @@ from feo.osemosys.io.simpleeval import EvalWithCompoundTypes
 from datetime import datetime, timedelta  # noqa
 
 
+def safecast_bool(val):
+    if isinstance(val, str):
+        if val.lower() in ["true", "t", "1"]:
+            return True
+        elif val.lower() in ["false", "f", "0"]:
+            return False
+        else:
+            raise ValueError(f"Cannot safely cast {val} to boolean")
+    elif isinstance(val, int):
+        if val in [1, 0]:
+            return bool(val)
+        else:
+            raise ValueError(f"Cannot safely cast {val} to boolean")
+    else:
+        raise ValueError(f"Cannot safely cast {val} to boolean")
+
+
 def isnumeric(val: Any) -> bool:
     """
     Check if a value is numeric.
@@ -55,6 +72,26 @@ def merge(d: MutableMapping, v: MutableMapping):
         else:
             d[key] = v[key]
     return d
+
+
+def recursive_items(dictionary, keys=None):
+    if keys is None:
+        keys = []
+    for key, value in dictionary.items():
+        if type(value) is dict:
+            yield from recursive_items(value, keys + [key])
+        else:
+            yield (tuple(keys + [key]), value)
+
+
+def recursive_keys(dictionary, keys=None):
+    if keys is None:
+        keys = []
+    for key, value in dictionary.items():
+        if type(value) is dict:
+            yield from recursive_keys(value, keys + [key])
+        else:
+            yield (tuple(keys + [key]))
 
 
 class BaseResponse(BaseModel):
