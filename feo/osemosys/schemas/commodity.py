@@ -80,11 +80,11 @@ class Commodity(OSeMOSYSBase):
         if len(df_commodity) != len(df_commodity["VALUE"].unique()):
             raise ValueError("FUEL.csv must not contain duplicate values")
 
-        # Check impact names are consistent with those in FUEL.csv
+        # Check commodity names are consistent with those in FUEL.csv
         for df in dfs.keys():
-            for impact in dfs[df]["FUEL"].unique():
-                if impact not in list(df_commodity["VALUE"]):
-                    raise ValueError(f"{impact} given in {df}.csv but not in FUEL.csv")
+            for commodity in dfs[df]["FUEL"].unique():
+                if commodity not in list(df_commodity["VALUE"]):
+                    raise ValueError(f"{commodity} given in {df}.csv but not in FUEL.csv")
 
         # ########################
         # Define class instances #
