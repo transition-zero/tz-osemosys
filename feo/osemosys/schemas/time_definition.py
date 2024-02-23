@@ -52,8 +52,8 @@ class TimeAdjacency(BaseModel):
 
 
 def construction_from_timeslices(values: Any):
-    """pathway 3: years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
-    timeslice_in_season with optional year_split, day_split, days_in_day_type
+    """pathway 3: years plus any of (timeslices, timeslice_in_timebracket, timeslice_in_daytype,
+    timeslice_in_season), with optional year_split, day_split, days_in_day_type
     and optional validation on yearparts, daytypes, and dayparts OR adjacency
     - default to seasons
     - build unitary yearparts, daytypes, and dayparts where not specified
@@ -133,12 +133,12 @@ def construction_from_timeslices(values: Any):
 
 
 def construction_from_parts(values: Any):
-    """pathway 2: years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit,
-    days_in_daytype with optional adjacency
+    """pathway 2: years plus any of (yearparts, daytypes, dayparts, daysplit, yearsplit,
+    days_in_daytype), with optional adjacency
       - validate keys on provided yearparts, daytypes, dayparts, daysplit, yearsplit,
         days_in_daytype
       - build unitary yearparts, daytypes, and dayparts where not specified
-      - build assume equal year, daytype, and day splitting where not specified
+      - build assume equal year_split, days_in_day_type, and day_split where not specified
       - option: if adjacency is specified:
         - use specified adjacency, validating keys
         - else:

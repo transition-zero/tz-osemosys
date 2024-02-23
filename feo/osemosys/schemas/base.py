@@ -36,6 +36,15 @@ class OSeMOSYSBase(BaseModel):
             values["description"] = "No description provided."
         return values
 
+    @model_validator(mode="before")
+    @classmethod
+    def backfill_missing(cls, values):
+        if "long_name" not in values:
+            values["long_name"] = values["id"]
+        if "description" not in values:
+            values["description"] = "No description provided."
+        return values
+
 
 class OSeMOSYSData(BaseModel):
     """
