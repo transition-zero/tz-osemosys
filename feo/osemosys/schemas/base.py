@@ -6,6 +6,7 @@ from pydantic import AfterValidator, BaseModel, BeforeValidator, model_validator
 
 from feo.osemosys.defaults import defaults
 from feo.osemosys.utils import isnumeric
+s-263-commodity-construction
 
 # ####################
 # ### BASE CLASSES ###
