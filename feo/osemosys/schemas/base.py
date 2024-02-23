@@ -144,6 +144,7 @@ class OSeMOSYSData(BaseModel):
                 super().__init__(data=data["data"])
             else:
                 super().__init__(data=data)
+        super().__init__(data=args[0] if args else data)
 
     data: Union[
         DataVar,  # {data: 6.}

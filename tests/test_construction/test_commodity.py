@@ -14,10 +14,12 @@ PASSING_COMMODITY_DEFINITIONS = dict(
 )
 
 FAILING_COMMODITY_DEFINITIONS = dict(
+    # If demand_profile is defined, demand_annual must also be defined
     demand_profile_no_annual=dict(
         id="coal", demand_profile={"*": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5}}
     ),
-    demand_profile_gt_one=dict(
+    # Demand profile must sum to one
+    demand_profile_equals_one=dict(
         id="coal",
         demand_annual=5,
         demand_profile={"*": {"0h": 0.4, "6h": 0.2, "12h": 0.3, "18h": 0.5}},
@@ -27,13 +29,12 @@ FAILING_COMMODITY_DEFINITIONS = dict(
 
 def test_commodity_construction():
     for _name, params in PASSING_COMMODITY_DEFINITIONS.items():
-        print(_name, params)
         commod = Commodity(**params)
-        print(commod)
         assert isinstance(commod, Commodity)
 
 
-def test_commodity_construction_failcases():
+def test_region_construction_failcases():
     for _name, params in FAILING_COMMODITY_DEFINITIONS.items():
+        print(_name)
         with pytest.raises(ValueError) as e:  # noqa: F841
             Commodity(**params)
