@@ -1,6 +1,11 @@
 from typing import Annotated, Dict, Mapping, Union
 
-from pydantic import AfterValidator, BaseModel, model_validator
+import numpy as np
+import pandas as pd
+from pydantic import AfterValidator, BaseModel, BeforeValidator, model_validator
+
+from feo.osemosys.defaults import defaults
+from feo.osemosys.utils import isnumeric
 
 # ####################
 # ### BASE CLASSES ###
@@ -9,6 +14,38 @@ from pydantic import AfterValidator, BaseModel, model_validator
 
 def values_sum_one(values: Mapping) -> bool:
     assert sum(values.values()) == 1.0, "Mapping values must sum to 1.0."
+    return values
+
+
+def nested_sum_one(values: Mapping) -> bool:
+    # breakpoint()
+    if isinstance(values, OSeMOSYSData):
+        data = values.data
+    elif isinstance(values, dict):
+        data = values
+
+    if data is None:
+        return values
+
+    # check for single value
+    if isnumeric(data):
+        if float(data) == 1.0:
+            return values
+
+    # else use pandas json_normalize to make flat dataframe of nested dictionary
+    df = pd.json_normalize(data).T
+    assert (
+        df.index.str.split(".").str.len().unique().size == 1
+    ), "Nested dictionary must have consistent depth"
+    cols = [f"L{ii}" for ii in range(1, max(df.index.str.split(".").str.len()) + 1)]
+    df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+
+    if not np.allclose(
+        df.groupby(cols[:-1])[0].sum(),
+        1.0,
+        atol=defaults.equals_one_tolerance,
+    ):
+        raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
     return values
 
 
@@ -95,7 +132,10 @@ class OSeMOSYSData(BaseModel):
     ]
 
 
-class OSeMOSYSDataInt(BaseModel):
+OSeMOSYSData_SumOne = Annotated[OSeMOSYSData, BeforeValidator(nested_sum_one)]
+
+
+class OSeMOSYSData_Int(BaseModel):
     data: Union[
         int,  # {data: 6.}
         Dict[IdxVar, int],
@@ -103,4 +143,15 @@ class OSeMOSYSDataInt(BaseModel):
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
+    ]
+
+
+class OSeMOSYSData_Bool(BaseModel):
+    data: Union[
+        bool,  # {data: 6.}
+        Dict[IdxVar, bool],
+        Dict[IdxVar, Dict[IdxVar, bool]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]]],
     ]

@@ -6,9 +6,10 @@ import xarray as xr
 import yaml
 from pydantic import model_validator
 
-from feo.osemosys.defaults import DefaultsOtoole, defaults
+from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase
 from feo.osemosys.schemas.commodity import Commodity
+from feo.osemosys.schemas.compat.base import DefaultsOtoole
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
@@ -182,3 +183,115 @@ class RunSpec(OSeMOSYSBase):
 
         #TODO: acceptable to use otoole here or should otoole only be for post processing?
         """
+
+        #     depreciation_method=(
+        #         OSeMOSYSDataInt(
+        #             data=group_to_json(
+        #                 g=dfs["DepreciationMethod"].loc[
+        #                     dfs["DepreciationMethod"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "DepreciationMethod" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     discount_rate=(
+        #         OSeMOSYSData(
+        #             data=group_to_json(
+        #                 g=dfs["DiscountRate"].loc[
+        #                     dfs["DiscountRate"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "DiscountRate" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     discount_rate_idv=(
+        #         OSeMOSYSData(
+        #             data=group_to_json(
+        #                 g=dfs["DiscountRateIdv"].loc[
+        #                     dfs["DiscountRateIdv"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["TECHNOLOGY"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "DiscountRateIdv" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     discount_rate_storage=(
+        #         OSeMOSYSData(
+        #             data=group_to_json(
+        #                 g=dfs["DiscountRateStorage"].loc[
+        #                     dfs["DiscountRateStorage"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["STORAGE"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "DiscountRateStorage" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     reserve_margin=(
+        #         OSeMOSYSData(
+        #             data=group_to_json(
+        #                 g=dfs["ReserveMargin"].loc[
+        #                     dfs["ReserveMargin"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["YEAR"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "ReserveMargin" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     reserve_margin_tag_fuel=(
+        #         OSeMOSYSDataInt(
+        #             data=group_to_json(
+        #                 g=dfs["ReserveMarginTagFuel"].loc[
+        #                     dfs["ReserveMarginTagFuel"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["FUEL", "YEAR"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     reserve_margin_tag_technology=(
+        #         OSeMOSYSDataInt(
+        #             data=group_to_json(
+        #                 g=dfs["ReserveMarginTagTechnology"].loc[
+        #                     dfs["ReserveMarginTagTechnology"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["TECHNOLOGY", "YEAR"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "ReserveMarginTagTechnology" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        #     renewable_production_target=(
+        #         OSeMOSYSData(
+        #             data=group_to_json(
+        #                 g=dfs["REMinProductionTarget"].loc[
+        #                     dfs["REMinProductionTarget"]["REGION"] == region["VALUE"]
+        #                 ],
+        #                 root_column="REGION",
+        #                 data_columns=["YEAR"],
+        #                 target_column="VALUE",
+        #             )
+        #         )
+        #         if "REMinProductionTarget" not in otoole_cfg.empty_dfs
+        #         else None
+        #     ),
+        # )

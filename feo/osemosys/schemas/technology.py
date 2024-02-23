@@ -12,7 +12,7 @@ from feo.osemosys.schemas.validation.technology_validation import (
 )
 from feo.osemosys.utils import group_to_json
 
-from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
+from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSData_Int
 
 # ##################
 # ### TECHNOLOGY ###
@@ -47,7 +47,7 @@ class Technology(OSeMOSYSBase):
     # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
     availability_factor: OSeMOSYSData | None
     capacity_factor: OSeMOSYSData | None
-    operating_life: OSeMOSYSDataInt | None
+    operating_life: OSeMOSYSData_Int | None
 
     # financials
     # -----
@@ -101,9 +101,9 @@ class Technology(OSeMOSYSBase):
     # Technology fuel output activity ratio by mode of operation
     output_activity_ratio: OSeMOSYSData | None
     # Binary parameter linking a technology to the storage facility it charges (1 linked)
-    to_storage: OSeMOSYSDataInt | None
+    to_storage: OSeMOSYSData_Int | None
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
-    from_storage: OSeMOSYSDataInt | None
+    from_storage: OSeMOSYSData_Int | None
 
     # Renewable technology tag
     # -----
@@ -312,7 +312,7 @@ class Technology(OSeMOSYSBase):
                     capacity_factor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
                     if data_json_format["CapacityFactor"] is not None
                     else None,
-                    operating_life=OSeMOSYSDataInt(data=data_json_format["OperationalLife"])
+                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLife"])
                     if data_json_format["OperationalLife"] is not None
                     else None,
                     capex=OSeMOSYSData(data=data_json_format["CapitalCost"])
@@ -374,10 +374,10 @@ class Technology(OSeMOSYSBase):
                     output_activity_ratio=OSeMOSYSData(data=data_json_format["OutputActivityRatio"])
                     if data_json_format["OutputActivityRatio"] is not None
                     else None,
-                    to_storage=OSeMOSYSDataInt(data=data_json_format["TechnologyToStorage"])
+                    to_storage=OSeMOSYSData_Int(data=data_json_format["TechnologyToStorage"])
                     if data_json_format["TechnologyToStorage"] is not None
                     else None,
-                    from_storage=OSeMOSYSDataInt(data=data_json_format["TechnologyFromStorage"])
+                    from_storage=OSeMOSYSData_Int(data=data_json_format["TechnologyFromStorage"])
                     if data_json_format["TechnologyFromStorage"] is not None
                     else None,
                     is_renewable=OSeMOSYSData(data=data_json_format["RETagTechnology"])
@@ -395,7 +395,7 @@ class TechnologyStorage(OSeMOSYSBase):
     """
 
     capex: OSeMOSYSData | None
-    operating_life: OSeMOSYSDataInt | None
+    operating_life: OSeMOSYSData_Int | None
     # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
     minimum_charge: OSeMOSYSData | None
     # Level of storage at the beginning of first modelled year, in units of activity
@@ -511,7 +511,7 @@ class TechnologyStorage(OSeMOSYSBase):
                     capex=OSeMOSYSData(data=data_json_format["CapitalCostStorage"])
                     if data_json_format["CapitalCostStorage"] is not None
                     else None,
-                    operating_life=OSeMOSYSDataInt(data=data_json_format["OperationalLifeStorage"])
+                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLifeStorage"])
                     if data_json_format["OperationalLifeStorage"] is not None
                     else None,
                     minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])

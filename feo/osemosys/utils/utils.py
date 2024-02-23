@@ -16,6 +16,27 @@ from feo.osemosys.io.simpleeval import EvalWithCompoundTypes
 from datetime import datetime, timedelta  # noqa
 
 
+def isnumeric(val: Any) -> bool:
+    """
+    Check if a value is numeric.
+
+    Args:
+        val (Any): The value to be checked.
+
+    Returns:
+        bool: True if the value is numeric, False otherwise.
+    """
+    try:
+        float(val)
+        return True
+    except TypeError:
+        return False
+    except ValueError:
+        return False
+    except Exception as e:
+        raise e
+
+
 def merge(d: MutableMapping, v: MutableMapping):
     """
     Merge two dictionaries.
