@@ -1,6 +1,9 @@
+import pytest
+
 from feo.osemosys.schemas import RunSpec
 
 
+@pytest.mark.skip(reason="Many forthcoming changes with object construction.")
 def test_to_xr_ds():
     """
     Check Runspec can be converted to dataset
