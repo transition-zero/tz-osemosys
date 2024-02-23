@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import ClassVar, List, Union
 
 import pandas as pd
-from pydantic import BaseModel, conlist, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from feo.osemosys.schemas.validation.region_validation import (
     discount_rate_as_decimals,
@@ -11,7 +11,7 @@ from feo.osemosys.schemas.validation.region_validation import (
 )
 from feo.osemosys.utils import group_to_json
 
-from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSDataInt
+from .base import OSeMOSYSBase, OSeMOSYSData
 
 ##########
 # REGION #
@@ -35,51 +35,22 @@ class Region(OSeMOSYSBase):
     - depreciation method
     """
 
-    neighbours: conlist(str, min_length=0) | None
-    trade_route: OSeMOSYSDataInt | None
-    depreciation_method: OSeMOSYSDataInt | None
-    discount_rate: OSeMOSYSData | None
-    discount_rate_idv: OSeMOSYSData | None
-    discount_rate_storage: OSeMOSYSData | None
-    reserve_margin: OSeMOSYSData | None
-    reserve_margin_tag_fuel: OSeMOSYSDataInt | None
-    reserve_margin_tag_technology: OSeMOSYSDataInt | None
-    renewable_production_target: OSeMOSYSData | None
+    neighbours: List[str] | None = Field(default=None)
+    trade_routes: OSeMOSYSData | None = Field(default=None)
 
-    otoole_cfg: OtooleCfg | None
+    # composable params
+    # reserve_margin: OSeMOSYSData | None = Field(default=None)
+    # renewable_production_target: OSeMOSYSData | None = Field(default=None)
+    # discount_rate: OSeMOSYSData | None  = Field(default=None)
+
+    # discount_rate_idv: OSeMOSYSData | None  = Field(default=None)
+    # discount_rate_storage: OSeMOSYSData | None  = Field(default=None)
+
+    otoole_cfg: OtooleCfg | None = Field(default=None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "TradeRoute": {
             "attribute": "trade_route",
             "column_structure": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
-        },
-        "DepreciationMethod": {
-            "attribute": "depreciation_method",
-            "column_structure": ["REGION", "VALUE"],
-        },
-        "DiscountRate": {"attribute": "discount_rate", "column_structure": ["REGION", "VALUE"]},
-        "DiscountRateIdv": {
-            "attribute": "discount_rate_idv",
-            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
-        },
-        "DiscountRateStorage": {
-            "attribute": "discount_rate_storage",
-            "column_structure": ["REGION", "STORAGE", "VALUE"],
-        },
-        "ReserveMargin": {
-            "attribute": "reserve_margin",
-            "column_structure": ["REGION", "YEAR", "VALUE"],
-        },
-        "ReserveMarginTagFuel": {
-            "attribute": "reserve_margin_tag_fuel",
-            "column_structure": ["REGION", "FUEL", "YEAR", "VALUE"],
-        },
-        "ReserveMarginTagTechnology": {
-            "attribute": "reserve_margin_tag_technology",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "REMinProductionTarget": {
-            "attribute": "renewable_production_target",
-            "column_structure": ["REGION", "YEAR", "VALUE"],
         },
     }
 
@@ -147,18 +118,9 @@ class Region(OSeMOSYSBase):
                 cls(
                     id=region["VALUE"],
                     otoole_cfg=otoole_cfg,
-                    neighbours=(
-                        (
-                            dfs["TradeRoute"]
-                            .loc[dfs["TradeRoute"]["REGION"] == region["VALUE"], "_REGION"]
-                            .values.tolist()
-                        )
-                        if dst_regions is not None
-                        else None
-                    ),
-                    trade_route=(
-                        OSeMOSYSDataInt(
-                            data=group_to_json(
+                    trade_routes=(
+                        OSeMOSYSData(
+                            group_to_json(
                                 g=dfs["TradeRoute"].loc[
                                     dfs["TradeRoute"]["REGION"] == region["VALUE"]
                                 ],
@@ -170,117 +132,41 @@ class Region(OSeMOSYSBase):
                         if "TradeRoute" not in otoole_cfg.empty_dfs
                         else None
                     ),
-                    depreciation_method=(
-                        OSeMOSYSDataInt(
-                            data=group_to_json(
-                                g=dfs["DepreciationMethod"].loc[
-                                    dfs["DepreciationMethod"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                target_column="VALUE",
-                            )
-                        )
-                        if "DepreciationMethod" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    discount_rate=(
-                        OSeMOSYSData(
-                            data=group_to_json(
-                                g=dfs["DiscountRate"].loc[
-                                    dfs["DiscountRate"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                target_column="VALUE",
-                            )
-                        )
-                        if "DiscountRate" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    discount_rate_idv=(
-                        OSeMOSYSData(
-                            data=group_to_json(
-                                g=dfs["DiscountRateIdv"].loc[
-                                    dfs["DiscountRateIdv"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["TECHNOLOGY"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "DiscountRateIdv" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    discount_rate_storage=(
-                        OSeMOSYSData(
-                            data=group_to_json(
-                                g=dfs["DiscountRateStorage"].loc[
-                                    dfs["DiscountRateStorage"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["STORAGE"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "DiscountRateStorage" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    reserve_margin=(
-                        OSeMOSYSData(
-                            data=group_to_json(
-                                g=dfs["ReserveMargin"].loc[
-                                    dfs["ReserveMargin"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "ReserveMargin" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    reserve_margin_tag_fuel=(
-                        OSeMOSYSDataInt(
-                            data=group_to_json(
-                                g=dfs["ReserveMarginTagFuel"].loc[
-                                    dfs["ReserveMarginTagFuel"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["FUEL", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    reserve_margin_tag_technology=(
-                        OSeMOSYSDataInt(
-                            data=group_to_json(
-                                g=dfs["ReserveMarginTagTechnology"].loc[
-                                    dfs["ReserveMarginTagTechnology"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["TECHNOLOGY", "YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "ReserveMarginTagTechnology" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
-                    renewable_production_target=(
-                        OSeMOSYSData(
-                            data=group_to_json(
-                                g=dfs["REMinProductionTarget"].loc[
-                                    dfs["REMinProductionTarget"]["REGION"] == region["VALUE"]
-                                ],
-                                root_column="REGION",
-                                data_columns=["YEAR"],
-                                target_column="VALUE",
-                            )
-                        )
-                        if "REMinProductionTarget" not in otoole_cfg.empty_dfs
-                        else None
-                    ),
                 )
             )
 
         return region_instances
+
+    @classmethod
+    def to_otoole_csv(cls, regions: List["Region"], output_directory: str):
+        """Write a number of Region objects to otoole-organised csvs.
+
+        Args:
+            regions (List[Region]): A list of Region instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
+
+        # Sets
+        regions_df = pd.DataFrame({"VALUE": [r.id for r in regions]})
+        regions_df.to_csv(os.path.join(output_directory, "REGION.csv"), index=False)
+        regions_df.to_csv(os.path.join(output_directory, "_REGION.csv"), index=False)
+
+        # Parameters
+        # collect TradeRoutes
+        if any([("TradeRoute" not in r.otoole_cfg.empty_dfs) for r in regions]):
+            trade_route_dfs = []
+            for region in regions:
+                if region.trade_routes is not None:
+                    for neighbour, trade_route in region.trade_routes.items():
+                        df = pd.json_normalize(trade_route.data).rename(columns={0: "VALUE"})
+                        df["REGION"] = region.id
+                        df["_REGION"] = neighbour
+                        df[["FUEL", "YEAR"]] = pd.DataFrame(
+                            df.index.split(".").to_list(), index=df.index
+                        )
+                        trade_route_dfs.append(df)
+
+            trade_routes = pd.concat(trade_route_dfs)
+            trade_routes.to_csv(os.path.join(output_directory, "TradeRoute.csv"), index=False)
+
+        return True
