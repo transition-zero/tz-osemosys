@@ -38,5 +38,32 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
             raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
         return values
 
-    def compose(self, **kwargs):
+    def compose(self, regions, years, timeslices):
+        if self.demand_annual is not None:
+            self.demand_annual = OSeMOSYSData.RY(
+                self.demand_annual.compose(self.id, regions, years, self.demand_annual.data)
+            )
+        if self.demand_profile is not None:
+            self.demand_profile = OSeMOSYSData.RYS.SumOne(
+                self.demand_profile.compose(
+                    self.id, regions, years, timeslices, self.demand_profile.data
+                )
+            )
+        if self.is_renewable is not None:
+            self.is_renewable = OSeMOSYSData.RY.Bool(
+                self.is_renewable.compose(self.id, regions, years, self.is_renewable.data)
+            )
+        if self.include_in_joint_reserve_margin is not None:
+            self.include_in_joint_reserve_margin = OSeMOSYSData.RY.Bool(
+                self.include_in_joint_reserve_margin.compose(
+                    self.id, regions, years, self.include_in_joint_reserve_margin.data
+                )
+            )
+        if self.include_in_joint_renewable_target is not None:
+            self.include_in_joint_renewable_target = OSeMOSYSData.RY.Bool(
+                self.include_in_joint_renewable_target.compose(
+                    self.id, regions, years, self.include_in_joint_renewable_target.data
+                )
+            )
+
         return self

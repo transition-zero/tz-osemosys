@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Annotated, Any, Dict, Mapping, Union
+from typing import Annotated, Any, Dict, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,14 @@ from pydantic import AfterValidator, BaseModel, create_model, field_validator, m
 from pydantic.fields import FieldInfo
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.utils import isnumeric, recursive_keys, rgetattr, rsetattr, safecast_bool
+from feo.osemosys.utils import (
+    group_to_json,
+    isnumeric,
+    recursive_keys,
+    rgetattr,
+    rsetattr,
+    safecast_bool,
+)
 
 # ####################
 # ### BASE CLASSES ###
@@ -252,37 +259,144 @@ class DepreciationMethod(str, Enum):
     straight_line = "straight-line"
 
 
-def _compose_R(cls, values):
+def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
+    if isinstance(data, dict):
+        keys = recursive_keys(data)
+        if max([len(k) for k in keys]) > max_depth:
+            raise ValueError(
+                f"Data for {obj_id} must not have a nesting depth greater than {max_depth}."
+            )
+    return True
+
+
+def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
+    if not isinstance(data, dict):
+        data = {"*": data}
+
+    # cast to dataframe
+    df = pd.json_normalize(data).T
+    cols = [f"L{ii}" for ii in list(range(max(df.index.str.split(".").str.len())))]
+    df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+    df = df.rename(columns={0: "value"})
+
+    # handle int years? -> cast to str
+
+    # assign each column to a set
+    assign_sets = list(sets.keys())
+
+    for col in cols:
+        col_vals = df.loc[df[col] != "*", col].values.tolist()
+        if col_vals:
+            renamed = False
+            for set_name, set_vals in sets.items():
+                # assign set if it has not been assigned and all the vals are in the set
+                if (set_name in assign_sets) and (len(set(col_vals) - set(set_vals)) == 0):
+                    assign_sets.remove(set_name)
+                    df = df.rename(columns={col: set_name})
+                    renamed = True
+                    break
+            if not renamed:
+                # there were values in a column that did not match any set
+                raise ValueError(
+                    f"Data for {obj_id} contains set values {col_vals} that do not match any set."
+                )
+
+    unassigned_cols = [c for c in df.columns if c not in sets.keys()]
+    if len(unassigned_cols) > len(assign_sets):
+        raise ValueError(
+            f"Data for {obj_id} contains more unassigned columns that there are unassigned sets."
+        )
+
+    # assign any un-assigned wildcard columns to a un-assigned sets
+    df = df.rename(
+        columns=dict(
+            zip(
+                df.columns[(df == "*").all()].values,
+                [set_name for set_name in assign_sets[: (df == "*").all().sum()]],
+            )
+        )
+    )
+
+    # if any un-assigned set remain, expand the dataframe
+    for set_name in assign_sets:
+        if set_name not in df.columns:
+            df[set_name] = "*"
+
+    # explode wildcards
+    for col in df.columns:
+        if col in sets.keys():
+            explode_vals = [val for val in sets[col] if val not in df[col].values.tolist()]
+            df.loc[df[col] == "*", col] = df.loc[df[col] == "*", col].apply(
+                lambda x: explode_vals  # noqa: B023
+            )
+            df = df.explode(col)
+
+    # re-json
+    data = group_to_json(df, data_columns=list(sets.keys()), target_column="value")
+
+    return data
+
+
+def _compose_R(self, obj_id, regions, data):
     # Region
-    return values
+
+    _check_nesting_depth(obj_id, data, 1)
+    data = _check_set_membership(obj_id, data, {"regions": regions})
+
+    return data
 
 
-def _compose_RY(cls, values):
+def _compose_RY(self, obj_id, regions, years, data):
     # Region-Year
-    return values
+
+    _check_nesting_depth(obj_id, data, 2)
+    data = _check_set_membership(obj_id, data, {"regions": regions, "years": years})
+
+    return data
 
 
-def _compose_RT(cls, values):
+def _compose_RT(self, obj_id, regions, technologies, data):
     # Region-Technology
-    return values
+
+    _check_nesting_depth(obj_id, data, 2)
+    data = _check_set_membership(obj_id, data, {"regions": regions, "technologies": technologies})
+
+    return data
 
 
-def _compose_RYS(cls, values):
+def _compose_RYS(self, obj_id, regions, years, timeslices, data):
     # Region-Year-TimeSlice
-    return values
+
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "years": years, "timeslices": timeslices}
+    )
+
+    return data
 
 
-def _compose_RTY(cls, values):
+def _compose_RTY(self, obj_id, regions, technologies, years, data):
     # Region-Technology-Year
-    return values
+
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "technologies": technologies, "years": years}
+    )
+
+    return data
 
 
-def _compose_RCY(cls, values):
+def _compose_RCY(self, obj_id, regions, commodities, years, data):
     # Region-Commodity-Year
-    return values
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "commodities": commodities, "years": years}
+    )
+
+    return data
 
 
-def _null(cls, values):
+def _null(self, values):
     # pass-through only, for testing purposes
     return values
 
