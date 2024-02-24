@@ -38,7 +38,7 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
             raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
         return values
 
-    def compose(self, regions, years, timeslices):
+    def compose(self, regions, years, timeslices, **kwargs):
         if self.demand_annual is not None:
             self.demand_annual = OSeMOSYSData.RY(
                 self.demand_annual.compose(self.id, regions, years, self.demand_annual.data)
