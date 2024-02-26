@@ -270,6 +270,10 @@ def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
 
 
 def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
+    # cast 'years' to str
+    if "years" in sets.keys():
+        sets["years"] = [str(yr) for yr in sets["years"]]
+
     if not isinstance(data, dict):
         data = {"*": data}
 
@@ -278,8 +282,6 @@ def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
     cols = [f"L{ii}" for ii in list(range(max(df.index.str.split(".").str.len())))]
     df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
     df = df.rename(columns={0: "value"})
-
-    # handle int years? -> cast to str
 
     # assign each column to a set
     assign_sets = list(sets.keys())
@@ -301,7 +303,7 @@ def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
                     f"Data for {obj_id} contains set values {col_vals} that do not match any set."
                 )
 
-    unassigned_cols = [c for c in df.columns if c not in sets.keys()]
+    unassigned_cols = [c for c in df.columns if c not in sets.keys() if c != "value"]
     if len(unassigned_cols) > len(assign_sets):
         raise ValueError(
             f"Data for {obj_id} contains more unassigned columns that there are unassigned sets."
@@ -337,7 +339,7 @@ def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
     return data
 
 
-def _compose_R(self, obj_id, regions, data):
+def _compose_R(self, obj_id, data, regions, **sets):
     # Region
 
     _check_nesting_depth(obj_id, data, 1)
@@ -346,7 +348,7 @@ def _compose_R(self, obj_id, regions, data):
     return data
 
 
-def _compose_RY(self, obj_id, regions, years, data):
+def _compose_RY(self, obj_id, data, regions, years, **sets):
     # Region-Year
 
     _check_nesting_depth(obj_id, data, 2)
@@ -355,7 +357,7 @@ def _compose_RY(self, obj_id, regions, years, data):
     return data
 
 
-def _compose_RT(self, obj_id, regions, technologies, data):
+def _compose_RT(self, obj_id, data, regions, technologies, **sets):
     # Region-Technology
 
     _check_nesting_depth(obj_id, data, 2)
@@ -364,7 +366,7 @@ def _compose_RT(self, obj_id, regions, technologies, data):
     return data
 
 
-def _compose_RYS(self, obj_id, regions, years, timeslices, data):
+def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
     # Region-Year-TimeSlice
 
     _check_nesting_depth(obj_id, data, 3)
@@ -375,7 +377,7 @@ def _compose_RYS(self, obj_id, regions, years, timeslices, data):
     return data
 
 
-def _compose_RTY(self, obj_id, regions, technologies, years, data):
+def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
     # Region-Technology-Year
 
     _check_nesting_depth(obj_id, data, 3)
@@ -386,11 +388,21 @@ def _compose_RTY(self, obj_id, regions, technologies, years, data):
     return data
 
 
-def _compose_RCY(self, obj_id, regions, commodities, years, data):
+def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
     # Region-Commodity-Year
     _check_nesting_depth(obj_id, data, 3)
     data = _check_set_membership(
         obj_id, data, {"regions": regions, "commodities": commodities, "years": years}
+    )
+
+    return data
+
+
+def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
+    # Region-Impact-Year
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "impacts": impacts, "years": years}
     )
 
     return data
@@ -402,8 +414,17 @@ def _null(self, values):
 
 
 for key, func in zip(
-    ["R", "RY", "RT", "RYS", "RTY", "RCY", "ANY"],
-    [_compose_R, _compose_RY, _compose_RT, _compose_RYS, _compose_RTY, _compose_RCY, _null],
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "ANY"],
+    [
+        _compose_R,
+        _compose_RY,
+        _compose_RT,
+        _compose_RYS,
+        _compose_RTY,
+        _compose_RCY,
+        _compose_RIY,
+        _null,
+    ],
 ):
     # add a new OSEMOSYSData class for each data cooridinate key
     setattr(OSeMOSYSData, key, create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData))
