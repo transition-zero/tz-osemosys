@@ -20,24 +20,23 @@ PASSING_COMMODITIES = dict(
 )
 
 PASSING_TECHNOLOGIES = dict(
-    # most_basic=dict(
-    #     params=dict(
-    #         id="most_basic",
-    #         operating_life=10,
-    #         capex=15,
-    #         opex_fixed=1.5,
-    #         operating_modes=[dict(
-    # id="mode_1",
-    # opex_variable=1.5,
-    # input_activity_ratio={"COAL": 1.0})],
-    #     ),
-    #     sets=dict(
-    #         regions=["R1", "R2"],
-    #         years=[2025, 2026, 2027],
-    #         timeslices=["0h", "6h", "12h", "18h"],
-    #         commodities=["COAL"],
-    #     ),
-    # )
+    most_basic=dict(
+        params=dict(
+            id="most_basic",
+            operating_life=10,
+            capex=15,
+            opex_fixed=1.5,
+            operating_modes=[
+                dict(id="mode_1", opex_variable=1.5, input_activity_ratio={"COAL": 1.0})
+            ],
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026, 2027],
+            timeslices=["0h", "6h", "12h", "18h"],
+            commodities=["COAL"],
+        ),
+    )
 )
 PASSING_REGIONS = dict()
 
@@ -91,13 +90,23 @@ def test_compose_technology():
         tech.compose(**data["sets"])
 
         # check one param
-        demand_annual_keys = [k for k in recursive_keys(tech.demand_annual.data)]
+        capex = [k for k in recursive_keys(tech.capex.data)]
         for region in data["sets"]["regions"]:
-            assert region in [k[0] for k in demand_annual_keys]
+            assert region in [k[0] for k in capex]
         for year in data["sets"]["years"]:
-            assert str(year) in [k[1] for k in demand_annual_keys]
+            assert str(year) in [k[1] for k in capex]
 
         # check the operating mode
+        op_mode_1 = tech.operating_modes[0]
+        print(op_mode_1)
+        input_activity_ratio = [k for k in recursive_keys(op_mode_1.input_activity_ratio.data)]
+        print(input_activity_ratio)
+        for region in data["sets"]["regions"]:
+            assert region in [k[0] for k in input_activity_ratio]
+        for commodity in data["sets"]["commodities"]:
+            assert commodity in [k[1] for k in input_activity_ratio]
+        for year in data["sets"]["years"]:
+            assert str(year) in [k[2] for k in input_activity_ratio]
 
 
 def test_failing_commodity():

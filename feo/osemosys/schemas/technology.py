@@ -30,8 +30,31 @@ class OperatingMode(OSeMOSYSBase):
     to_storage: OSeMOSYSData.RY.Bool | None = Field(None)
     from_storage: OSeMOSYSData.RY.Bool | None = Field(None)
 
-    def compose(self, **kwargs):
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                    )
+
         return self
+
+    @model_validator(mode="before")
+    @classmethod
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
+
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
+
+        return values
 
 
 class Technology(OSeMOSYSBase, OtooleTechnology):
@@ -79,7 +102,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
         OSeMOSYSData.RY(defaults.technology_availability_factor)
     )
     capacity_factor: OSeMOSYSData.RYS | None = Field(
-        OSeMOSYSData(defaults.technology_capacity_factor)
+        OSeMOSYSData.RYS(defaults.technology_capacity_factor)
     )
     is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
 
@@ -107,7 +130,24 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
     include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
-    def compose(self, **kwargs):
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                    )
+
+        # compose operating modes
+        self.operating_modes = [
+            operating_mode.compose(**sets) for operating_mode in self.operating_modes
+        ]
+
         return self
 
     @model_validator(mode="before")
@@ -171,7 +211,7 @@ class TechnologyStorage(OSeMOSYSBase):
 
     # REQUIRED PARAMETERS
     # -------------------
-    capex: OSeMOSYSData
+    capex: OSeMOSYSData.RY
     operating_life: OSeMOSYSData.RY.Int
 
     # NON-REQUIRED PARAMETERS
