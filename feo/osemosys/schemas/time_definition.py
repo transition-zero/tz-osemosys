@@ -191,6 +191,70 @@ def construction_from_years_only(values: Any):
     return values
 
 
+def format_by_max_length(val: int, max):
+    if max > 10:
+        return f"{val:02}"
+    if max >= 100:
+        return f"{val:03}"
+    return f"{val}"
+
+
+def construction_from_yrparts_dayparts_int(values: Any):
+    """pathway 2: years plus yearparts and dayparts as integers
+    - build timeslices from yearparts and dayparts
+    - build adjacency from ordered years and timeslices
+    """
+    years = values.get("years")
+    yearparts = values.get("seasons")
+    dayparts = values.get("daily_time_brackets")
+    yearparts = [("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)]
+    dayparts = [("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)]
+
+    for key in [
+        "timeslices",
+        "timeslice_in_timebracket",
+        "timeslice_in_daytype",
+        "timeslice_in_season",
+        "day_types",
+        "day_split",
+        "days_in_day_type",
+        "year_split",
+    ]:
+        if values.get(key) is not None:
+            raise ValueError(
+                """If specifying time_definition with a
+                             number of yearparts and dayparts, no other
+                             time_definition parameters can be specified."""
+            )
+
+    timeslices = build_timeslices_from_parts(yearparts, dayparts)
+    values["timeslices"] = timeslices
+
+    values["timeslice_in_timebracket"] = {
+        timeslice: [time_bracket for time_bracket in dayparts if time_bracket in timeslice]
+        for timeslice in timeslices
+    }
+    values["timeslice_in_season"] = {
+        timeslice: [season for season in yearparts if season in timeslice]
+        for timeslice in timeslices
+    }
+    values["year_split"] = {yearpart: 1.0 / len(yearparts) for yearpart in yearparts}
+    values["day_split"] = {daypart: 1.0 / len(dayparts) for daypart in dayparts}
+    values["day_types"] = [1]
+    values["day_split"] = {1: 1.0}
+    values["days_in_day_type"] = {1: 1.0}
+    values["timeslice_in_daytype"] = {timeslice: [1] for timeslice in timeslices}
+
+    adj = TimeAdjacency(
+        years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
+        timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
+    )
+    values["adj"] = adj
+    values["adj_inv"] = adj.inv()
+
+    return values
+
+
 class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     """
     Class to contain all temporal defition of the OSeMOSYS model.
@@ -201,10 +265,13 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     years only
 
     pathway 2:
+    years plus yearparts and dayparts as integers
+
+    pathway 3:
     years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit, days_in_daytype
     with optional adjacency
 
-    pathway 3:
+    pathway 4:
     years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
     timeslice_in_season with optional year_split, day_split, days_in_day_type
     and optional validation on yearparts, daytypes, and dayparts OR adjacency
@@ -276,7 +343,11 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
         # years is always required
         if values.get("years") is None:
             raise ValueError("'years' is a required parameter")
-        if any(
+        if isinstance(values.get("seasons"), int) and isinstance(
+            values.get("daily_time_brackets"), int
+        ):
+            values = construction_from_yrparts_dayparts_int(values)
+        elif any(
             [
                 values.get("timeslices") is not None,
                 values.get("timeslice_in_timebracket") is not None,
@@ -314,7 +385,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     @model_validator(mode="before")
     @classmethod
     def convert_from_int(cls, values: Any) -> Any:
-        for key in ("seasons", "timeslices", "day_types", "daily_time_brackets"):
+        for key in ("timeslices", "day_types"):
             if isinstance(values.get(key), int):
                 values[key] = [str(ii) for ii in range(1, values[key] + 1)]
         return values
