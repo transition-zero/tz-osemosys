@@ -283,5 +283,6 @@ def build_timeslices_from_parts(seasons, day_types, time_brackets):
         product_slices.append(day_types)
     if time_brackets:
         product_slices.append(time_brackets)
+    print(product_slices)
 
     return ["-".join(timeslice) for timeslice in product(*product_slices)]

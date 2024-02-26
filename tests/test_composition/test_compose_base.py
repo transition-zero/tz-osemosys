@@ -1,6 +1,7 @@
 import pytest
 
 from feo.osemosys.schemas.commodity import Commodity
+from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.utils import recursive_keys
 
@@ -38,10 +39,22 @@ PASSING_TECHNOLOGIES = dict(
         ),
     )
 )
-PASSING_REGIONS = dict()
 
-PASSING_IMPACTS = dict()
-PASSING_MODELS = dict()
+PASSING_IMPACTS = dict(
+    basic_with_constraint=dict(
+        params=dict(
+            id="CO2e",
+            constraint_annual={"*": {"*": 1}},
+            constraint_total={"*": 10},
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026, 2027],
+            timeslices=["0h", "6h", "12h", "18h"],
+            commodities=["COAL"],
+        ),
+    )
+)
 
 
 FAILING_COMMODITIES = dict(
@@ -72,6 +85,18 @@ FAILING_COMMODITIES = dict(
 )
 
 
+def test_compose_impact():
+    for _name, data in PASSING_IMPACTS.items():
+        impact = Impact(**data["params"])
+        impact.compose(**data["sets"])
+
+        constraint_annual_keys = [k for k in recursive_keys(impact.constraint_annual.data)]
+        for region in data["sets"]["regions"]:
+            assert region in [k[0] for k in constraint_annual_keys]
+        for year in data["sets"]["years"]:
+            assert str(year) in [k[1] for k in constraint_annual_keys]
+
+
 def test_compose_commodity():
     for _name, data in PASSING_COMMODITIES.items():
         commodity = Commodity(**data["params"])
@@ -98,9 +123,7 @@ def test_compose_technology():
 
         # check the operating mode
         op_mode_1 = tech.operating_modes[0]
-        print(op_mode_1)
         input_activity_ratio = [k for k in recursive_keys(op_mode_1.input_activity_ratio.data)]
-        print(input_activity_ratio)
         for region in data["sets"]["regions"]:
             assert region in [k[0] for k in input_activity_ratio]
         for commodity in data["sets"]["commodities"]:

@@ -1,0 +1,47 @@
+from feo.osemosys.schemas.model import RunSpec
+from feo.osemosys.utils import recursive_keys
+
+PASSING_RUNSPEC_DEFINITIONS = dict(
+    most_basic=dict(
+        time_definition=dict(
+            id="yearpart-daypart", years=range(2020, 2051), timeslices=["A", "B", "C", "D"]
+        ),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(id="mode_1", opex_variable=1.5, input_activity_ratio={"COAL": 1.0})
+                ],
+            )
+        ],
+    )
+)
+
+
+def test_compose_runspec():
+    for name, data in PASSING_RUNSPEC_DEFINITIONS.items():
+        spec = RunSpec(id=name, **data)
+        spec.compose()
+
+        # check one param
+        capex = [k for k in recursive_keys(spec.technologies[0].capex.data)]
+        for region in spec.regions:
+            assert region.id in [k[0] for k in capex]
+        for year in spec.time_definition.years:
+            assert str(year) in [k[1] for k in capex]
+
+        # check the operating mode
+        op_mode_1 = spec.technologies[0].operating_modes[0]
+        input_activity_ratio = [k for k in recursive_keys(op_mode_1.input_activity_ratio.data)]
+        for region in spec.regions:
+            assert region.id in [k[0] for k in input_activity_ratio]
+        for commodity in spec.commodities:
+            assert commodity.id in [k[1] for k in input_activity_ratio]
+        for year in spec.time_definition.years:
+            assert str(year) in [k[2] for k in input_activity_ratio]
