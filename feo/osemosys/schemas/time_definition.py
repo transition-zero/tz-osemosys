@@ -270,13 +270,6 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
             return list(v)
         return v
 
-    @field_validator("seasons", "timeslices", "day_types", "daily_time_brackets")
-    @classmethod
-    def convert_from_int(cls, v: Any) -> Any:
-        if isinstance(v, int):
-            return list(range(1, v + 1))
-        return v
-
     @model_validator(mode="before")
     @classmethod
     def construction_validation(cls, values: Any, info: ValidationInfo) -> Any:
@@ -316,4 +309,12 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
             elif isinstance(values.get("adj"), dict):
                 values["adj_inv"] = TimeAdjacency(**values["adj"]).inv()
 
+        return values
+
+    @model_validator(mode="before")
+    @classmethod
+    def convert_from_int(cls, values: Any) -> Any:
+        for key in ("seasons", "timeslices", "day_types", "daily_time_brackets"):
+            if isinstance(values.get(key), int):
+                values[key] = [str(ii) for ii in range(1, values[key] + 1)]
         return values

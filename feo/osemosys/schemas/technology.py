@@ -200,6 +200,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
         return self
 
 
+# class TechnologyTransmission(OSeMOSYSBase):
+
+
 class TechnologyStorage(OSeMOSYSBase):
     """
     Class to contain all information pertaining to storage technologies

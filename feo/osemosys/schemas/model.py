@@ -8,7 +8,7 @@ from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.model import RunSpecOtoole
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
-from feo.osemosys.schemas.technology import Technology, TechnologyStorage
+from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
 
 
@@ -19,10 +19,11 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     regions: List[Region]
     commodities: List[Commodity]
     impacts: List[Impact]
-    technologies: List[Technology]
-    storage_technologies: List[TechnologyStorage] | None = Field(None)
+    technologies: List[Technology]  # just production technologies for now
+    # production_technologies: List[ProductionTechnology] | None = Field(default=None)
+    # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
+    # storage_technologies: List[TechnologyStorage] | None = Field(None)
     # TODO
-    # production_technologies: List[TechnologyProduction]
     # transmission_technologies: List[TechnologyTransmission]
 
     # ASSUMPIONS
@@ -38,8 +39,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     renewable_production_target: OSeMOSYSData.RY | None = Field(None)
 
     @model_validator(mode="after")
-    def compose_sets(self):
-        # compose sets
+    def compose(self):
+        # compose
         sets = {
             "years": self.time_definition.years,
             "timeslices": self.time_definition.timeslices,

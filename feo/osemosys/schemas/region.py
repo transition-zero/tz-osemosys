@@ -24,7 +24,9 @@ class Region(OSeMOSYSBase, OtooleRegion):
     """
 
     neighbours: List[str] | None = Field(default=None)
-    trade_routes: OSeMOSYSData.RCY | None = Field(default=None)  # RCY
+    trade_routes: OSeMOSYSData.RCY.Bool | None = Field(default=None)  # R_RCY
+
+    exclude_technologies: List[str] | None = Field(default=None)
 
     @model_validator(mode="before")
     def validation(cls, values):

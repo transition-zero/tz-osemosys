@@ -46,5 +46,17 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             exogenous_total_within_constraint(self.constraint_total, self.exogenous_total)
         return self
 
-    def compose(self, **kwargs):
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                    )
+
         return self
