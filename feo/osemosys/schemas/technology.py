@@ -23,12 +23,15 @@ class OperatingMode(OSeMOSYSBase):
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
 
-    opex_variable: OSeMOSYSData | None = Field(None)
-    emission_activity_ratio: OSeMOSYSData | None = Field(None)
-    input_activity_ratio: OSeMOSYSData | None = Field(None)
-    output_activity_ratio: OSeMOSYSData | None = Field(None)
+    opex_variable: OSeMOSYSData.RY | None = Field(None)
+    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
+    input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
+    output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     to_storage: OSeMOSYSData.RY.Bool | None = Field(None)
     from_storage: OSeMOSYSData.RY.Bool | None = Field(None)
+
+    def compose(self, **kwargs):
+        return self
 
 
 class Technology(OSeMOSYSBase, OtooleTechnology):

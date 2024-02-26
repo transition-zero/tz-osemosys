@@ -131,12 +131,12 @@ class OtooleTechnology(BaseModel):
         },
     }
     operating_mode_stem_translation: ClassVar[dict[str, str]] = {
-        "VariableCost": "opex_variable",
-        "EmissionActivityRatio": "emission_activity_ratio",
-        "InputActivityRatio": "input_activity_ratio",
-        "OutputActivityRatio": "output_activity_ratio",
-        "TechnologyToStorage": "to_storage",
-        "TechnologyFromStorage": "from_storage",
+        "VariableCost": ("opex_variable", OSeMOSYSData.RY),
+        "EmissionActivityRatio": ("emission_activity_ratio", OSeMOSYSData.RIY),
+        "InputActivityRatio": ("input_activity_ratio", OSeMOSYSData.RCY),
+        "OutputActivityRatio": ("output_activity_ratio", OSeMOSYSData.RCY),
+        "TechnologyToStorage": ("to_storage", OSeMOSYSData.RY.Bool),
+        "TechnologyFromStorage": ("from_storage", OSeMOSYSData.RY.Bool),
     }
 
     @classmethod
@@ -211,10 +211,13 @@ class OtooleTechnology(BaseModel):
             operating_modes = []
             for op_mode_id in operating_mode_ids:
                 op_mode_data = {}
-                for stem, attribute in cls.operating_mode_stem_translation.items():
+                for stem, (
+                    attribute,
+                    osemosys_datatype,
+                ) in cls.operating_mode_stem_translation.items():
                     if data_json_format[stem] is not None:
                         if op_mode_id in data_json_format[stem]:
-                            op_mode_data[attribute] = OSeMOSYSData(
+                            op_mode_data[attribute] = osemosys_datatype(
                                 data=data_json_format[stem][op_mode_id]
                             )
                 op_mode_data["id"] = op_mode_id
@@ -361,7 +364,10 @@ class OtooleTechnology(BaseModel):
                         else:
                             dfs[stem] = [df]
 
-            for stem, attribute in cls.operating_mode_stem_translation.items():
+            for stem, (
+                attribute,
+                _osemosys_datatype,
+            ) in cls.operating_mode_stem_translation.items():
                 for mode in technology.operating_modes:
                     if getattr(mode, attribute) is not None:
                         df = pd.json_normalize(getattr(mode, attribute).data).T.rename(
