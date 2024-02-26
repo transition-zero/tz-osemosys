@@ -54,6 +54,22 @@ def isnumeric(val: Any) -> bool:
         raise e
 
 
+def enforce_list(val: Any) -> List:
+    """
+    Enforce a value to be a list.
+
+    Args:
+        val (Any): The value to be enforced.
+
+    Returns:
+        List: The value as a list.
+    """
+    if isinstance(val, list):
+        return val
+    else:
+        return [val]
+
+
 def merge(d: MutableMapping, v: MutableMapping):
     """
     Merge two dictionaries.
@@ -103,6 +119,16 @@ def flatten(list_of_lists):
     return list(chain.from_iterable(list_of_lists))
 
 
+def maybe_flatten(list_of_lists):
+    resp = []
+    for sublist in list_of_lists:
+        if isinstance(sublist, list):
+            resp.extend(sublist)
+        else:
+            resp.append(sublist)
+    return resp
+
+
 def _indirect_cls(path):
     mod_name, _cls_name = path.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
@@ -142,6 +168,8 @@ def maybe_eval_string(expr: Any):
     # if it's not a string, pass it through.
     if not isinstance(expr, str):
         return expr
+
+    expr = expr.strip()
 
     # check for trigger functions
     for func in ["sum(", "range(", "max(", "min("]:

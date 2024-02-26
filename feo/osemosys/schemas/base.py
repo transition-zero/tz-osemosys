@@ -167,7 +167,10 @@ class OSeMOSYSBase(BaseModel):
     @classmethod
     def backfill_missing(cls, values):
         if "long_name" not in values:
-            values["long_name"] = values["id"]
+            try:
+                values["long_name"] = values["id"]
+            except KeyError:
+                raise ValueError(f"{cls.__name__} must be provided with an 'id'.")
         if "description" not in values:
             values["description"] = "No description provided."
         return values
@@ -270,6 +273,9 @@ def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
 
 
 def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
+    print("sets")
+    print(sets)
+
     # cast 'years' to str
     if "years" in sets.keys():
         sets["years"] = [str(yr) for yr in sets["years"]]

@@ -6,12 +6,14 @@ from feo.osemosys.utils.cfg_parser import (
     walk_dict,
 )
 from feo.osemosys.utils.utils import (
+    enforce_list,
     flatten,
     group_to_json,
     isnumeric,
     json_dict_to_dataframe,
     makehash,
     maybe_eval_string,
+    maybe_flatten,
     merge,
     recursive_items,
     recursive_keys,
@@ -36,4 +38,6 @@ __all__ = [
     "rgetattr",
     "rsetattr",
     "safecast_bool",
+    "enforce_list",
+    "maybe_flatten",
 ]
