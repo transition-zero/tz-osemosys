@@ -21,7 +21,7 @@ FAILING_TECH_DEFINITIONS = dict(
         opex_fixed=1.5,
         operating_modes=[dict(id="mode_1")],
         capacity_gross_min=2,
-        capacity_gross_max=1,
+        capacity_gross_max={"GLOBAL": {"2020": 1}},
     ),
     # Technology minimum additional capacity limit must be < maximum additional capacity limit
     capacity_additional_min_gt_max=dict(
