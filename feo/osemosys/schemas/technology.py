@@ -166,11 +166,14 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 class TechnologyStorage(OSeMOSYSBase):
     """
     Class to contain all information pertaining to storage technologies
+    """
+
+    capex: OSeMOSYSData | None
+    operating_life: OSeMOSYSData_Int | None
     # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
     # Level of storage at the beginning of first modelled year, in units of activity
     # Maximum discharging rate for the storage, in units of activity per year
     # Maximum charging rate for the storage, in units of activity per year
-    """
 
     # REQUIRED PARAMETERS
     # -------------------

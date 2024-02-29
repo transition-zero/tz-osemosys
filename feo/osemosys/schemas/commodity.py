@@ -47,5 +47,9 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     @classmethod
     def check_demand_exists_if_profile(cls, values):
         if values.get("demand_profile") is not None and values.get("demand_annual") is None:
-            raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
+            commodity = values.get("id")
+            raise ValueError(
+                f"If demand_profile is defined for commodity '{commodity}', "
+                f"demand_annual must also be defined."
+            )
         return values
