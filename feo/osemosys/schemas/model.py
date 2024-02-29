@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, List
 
 from pydantic import Field, model_validator
@@ -19,7 +20,6 @@ from feo.osemosys.utils import isnumeric
 
 # filter this pandas-3 dep warning for now
 warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
-import pandas as pd  # noqa: E402
 
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
