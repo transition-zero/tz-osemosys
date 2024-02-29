@@ -41,9 +41,11 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     @model_validator(mode="after")
     def validate_exogenous_lt_constraint(self):
         if self.constraint_annual is not None and self.exogenous_annual is not None:
-            exogenous_annual_within_constraint(self.constraint_annual, self.exogenous_annual)
+            exogenous_annual_within_constraint(
+                self.id, self.constraint_annual, self.exogenous_annual
+            )
         if self.constraint_total is not None and self.exogenous_total is not None:
-            exogenous_total_within_constraint(self.constraint_total, self.exogenous_total)
+            exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)
         return self
 
     def compose(self, **sets):
@@ -58,5 +60,4 @@ class Impact(OSeMOSYSBase, OtooleImpact):
                         field,
                         field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
                     )
-
         return self

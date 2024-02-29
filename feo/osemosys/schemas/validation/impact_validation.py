@@ -1,7 +1,7 @@
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
 
-def exogenous_annual_within_constraint(constraint_annual, exogenous_annual):
+def exogenous_annual_within_constraint(id, constraint_annual, exogenous_annual):
     """
     Check exogenous_annual <= constraint_annual for each region, impact and year
     """
@@ -13,14 +13,14 @@ def exogenous_annual_within_constraint(constraint_annual, exogenous_annual):
             ["REGION", "YEAR", "VALUE"],
         ):
             raise ValueError(
-                """Exogenous annual emissions are not less than or equal to
-                the annual emissions constraint."""
+                f"Impact '{id}' values in exogenous_annual should be lower than"
+                " or equal to the corresponding values in constraint_annual"
             )
 
     return True
 
 
-def exogenous_total_within_constraint(constraint_total, exogenous_total):
+def exogenous_total_within_constraint(id, constraint_total, exogenous_total):
     """
     Check exogenous_total <= constraint_total for each region and impact
     """
@@ -32,7 +32,8 @@ def exogenous_total_within_constraint(constraint_total, exogenous_total):
             ["REGION", "VALUE"],
         ):
             raise ValueError(
-                """Exogenous total emissions are not less than or equal
-                to the total emissions constraint."""
+                f"Impact '{id}' values in exogenous_total should be lower than"
+                " or equal to the corresponding values in constraint_total"
             )
-        return True
+
+    return True
