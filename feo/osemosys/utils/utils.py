@@ -16,6 +16,23 @@ from feo.osemosys.io.simpleeval import EvalWithCompoundTypes
 from datetime import datetime, timedelta  # noqa
 
 
+def safecast_bool(val):
+    if isinstance(val, str):
+        if val.lower() in ["true", "t", "1"]:
+            return True
+        elif val.lower() in ["false", "f", "0"]:
+            return False
+        else:
+            raise ValueError(f"Cannot safely cast {val} to boolean")
+    elif isinstance(val, int):
+        if val in [1, 0]:
+            return bool(val)
+        else:
+            raise ValueError(f"Cannot safely cast {val} to boolean")
+    else:
+        raise ValueError(f"Cannot safely cast {val} to boolean")
+
+
 def isnumeric(val: Any) -> bool:
     """
     Check if a value is numeric.
@@ -35,6 +52,22 @@ def isnumeric(val: Any) -> bool:
         return False
     except Exception as e:
         raise e
+
+
+def enforce_list(val: Any) -> List:
+    """
+    Enforce a value to be a list.
+
+    Args:
+        val (Any): The value to be enforced.
+
+    Returns:
+        List: The value as a list.
+    """
+    if isinstance(val, list):
+        return val
+    else:
+        return [val]
 
 
 def merge(d: MutableMapping, v: MutableMapping):
@@ -57,6 +90,26 @@ def merge(d: MutableMapping, v: MutableMapping):
     return d
 
 
+def recursive_items(dictionary, keys=None):
+    if keys is None:
+        keys = []
+    for key, value in dictionary.items():
+        if type(value) is dict:
+            yield from recursive_items(value, keys + [key])
+        else:
+            yield (tuple(keys + [key]), value)
+
+
+def recursive_keys(dictionary, keys=None):
+    if keys is None:
+        keys = []
+    for key, value in dictionary.items():
+        if type(value) is dict:
+            yield from recursive_keys(value, keys + [key])
+        else:
+            yield (tuple(keys + [key]))
+
+
 class BaseResponse(BaseModel):
     status_code: int
     msg: str
@@ -64,6 +117,16 @@ class BaseResponse(BaseModel):
 
 def flatten(list_of_lists):
     return list(chain.from_iterable(list_of_lists))
+
+
+def maybe_flatten(list_of_lists):
+    resp = []
+    for sublist in list_of_lists:
+        if isinstance(sublist, list):
+            resp.extend(sublist)
+        else:
+            resp.append(sublist)
+    return resp
 
 
 def _indirect_cls(path):
@@ -105,6 +168,8 @@ def maybe_eval_string(expr: Any):
     # if it's not a string, pass it through.
     if not isinstance(expr, str):
         return expr
+
+    expr = expr.strip()
 
     # check for trigger functions
     for func in ["sum(", "range(", "max(", "min("]:

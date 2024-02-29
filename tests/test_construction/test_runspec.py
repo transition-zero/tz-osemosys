@@ -20,7 +20,70 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
     )
 )
 
-FAILING_RUNSPEC_DEFINITIONS = dict()
+FAILING_RUNSPEC_DEFINITIONS = dict(
+    missing_time_definition=dict(
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            )
+        ],
+    ),
+    missing_regions=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            )
+        ],
+    ),
+    missing_commodities=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            )
+        ],
+    ),
+    missing_impacts=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            )
+        ],
+    ),
+    missing_technologies=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+    ),
+)
 
 
 def test_tech_construction():
@@ -30,6 +93,6 @@ def test_tech_construction():
 
 
 def test_tech_construction_failcases():
-    for _name, params in FAILING_RUNSPEC_DEFINITIONS.items():
+    for name, params in FAILING_RUNSPEC_DEFINITIONS.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
-            RunSpec(**params)
+            RunSpec(id=name, **params)

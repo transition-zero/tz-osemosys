@@ -1,12 +1,21 @@
+import re
 from enum import Enum
-from typing import Annotated, Dict, Mapping, Union
+from typing import Annotated, Any, Dict, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import AfterValidator, BaseModel, BeforeValidator, model_validator
+from pydantic import AfterValidator, BaseModel, create_model, field_validator, model_validator
+from pydantic.fields import FieldInfo
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.utils import isnumeric
+from feo.osemosys.utils import (
+    group_to_json,
+    isnumeric,
+    recursive_keys,
+    rgetattr,
+    rsetattr,
+    safecast_bool,
+)
 
 # ####################
 # ### BASE CLASSES ###
@@ -18,11 +27,40 @@ def values_sum_one(values: Mapping) -> bool:
     return values
 
 
+def cast_osemosysdata_value(val: Any, info: FieldInfo):
+    field_type_str = str(info.annotation)
+
+    pat = r"""OSeMOSYSData_[a-zA-Z]*_?[a-zA-Z]*"""
+    match = re.search(pat, field_type_str)
+
+    if match is not None:
+        span = match.group()
+        coords = span.split("_")[1]
+        try:
+            validator = span.split("_")[2]
+        except IndexError:
+            validator = None
+
+        if isinstance(val, int) and validator == "Int":
+            return getattr(OSeMOSYSData, coords).Int(data=val)
+        elif isinstance(val, bool) and validator == "Bool":
+            return getattr(OSeMOSYSData, coords).Bool(data=val)
+        elif isinstance(val, str) and validator == "DM":
+            return getattr(OSeMOSYSData, coords).DM(data=val)
+        elif isnumeric(val) and validator == "SumOne":
+            return getattr(OSeMOSYSData, coords).SumOne(data=val)
+        elif isnumeric(val):
+            return getattr(OSeMOSYSData, coords)(data=val)
+
+    return val
+
+
 def nested_sum_one(values: Mapping) -> bool:
-    # breakpoint()
     if isinstance(values, OSeMOSYSData):
         data = values.data
     elif isinstance(values, dict):
+        data = values
+    else:
         data = values
 
     if data is None:
@@ -50,8 +88,68 @@ def nested_sum_one(values: Mapping) -> bool:
     return values
 
 
+def check_or_cast_int(cls, v):
+    if isinstance(v, int):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), int):
+                try:
+                    rsetattr(v, list(keytup), int(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be an integer or a dict with integer values.")
+        return v
+    else:
+        try:
+            return int(v)
+        except ValueError:
+            raise ValueError("Data must be an integer or a dict with integer values.")
+
+
+def check_or_cast_bool(cls, v):
+    if isinstance(v, bool):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), bool):
+                try:
+                    rsetattr(v, list(keytup), safecast_bool(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be a boolean or a dict with boolean values.")
+        return v
+    else:
+        try:
+            return safecast_bool(v)
+        except ValueError:
+            raise ValueError("Data must be a boolean or a dict with boolean values.")
+
+
+def check_or_cast_dm(cls, v):
+    if isinstance(v, DepreciationMethod):
+        return v
+    elif isinstance(v, dict):
+        # check or try to cast
+        keys = [k for k in recursive_keys(v)]
+        for keytup in keys:
+            if not isinstance(rgetattr(v, list(keytup)), DepreciationMethod):
+                try:
+                    rsetattr(v, list(keytup), DepreciationMethod(rgetattr(v, list(keytup))))
+                except ValueError:
+                    raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
+        return v
+    else:
+        try:
+            return DepreciationMethod(v)
+        except ValueError:
+            raise ValueError("Data must be one of 'sinking-fund' or 'straight-line'.")
+
+
 MappingSumOne = Annotated[Mapping, AfterValidator(values_sum_one)]
-DataVar = float | int | str
+DataVar = float | int | str | bool
 IdxVar = str | int
 
 
@@ -69,7 +167,10 @@ class OSeMOSYSBase(BaseModel):
     @classmethod
     def backfill_missing(cls, values):
         if "long_name" not in values:
-            values["long_name"] = values["id"]
+            try:
+                values["long_name"] = values["id"]
+            except KeyError:
+                raise ValueError(f"{cls.__name__} must be provided with an 'id'.")
         if "description" not in values:
             values["description"] = "No description provided."
         return values
@@ -156,42 +257,205 @@ class OSeMOSYSData(BaseModel):
     ]
 
 
-OSeMOSYSData_SumOne = Annotated[OSeMOSYSData, BeforeValidator(nested_sum_one)]
-
-
-class OSeMOSYSData_Int(OSeMOSYSData):
-    data: Union[
-        int,  # {data: 6.}
-        Dict[IdxVar, int],
-        Dict[IdxVar, Dict[IdxVar, int]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, int]]]]],
-    ]
-
-
-class OSeMOSYSData_Bool(OSeMOSYSData):
-    data: Union[
-        bool,  # {data: 6.}
-        Dict[IdxVar, bool],
-        Dict[IdxVar, Dict[IdxVar, bool]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]]],
-    ]
-
-
 class DepreciationMethod(str, Enum):
     sinking_fund = "sinking-fund"
     straight_line = "straight-line"
 
 
-class OSeMOSYSData_DepreciationMethod(OSeMOSYSData):
-    data: Union[
-        DepreciationMethod,
-        Dict[IdxVar, DepreciationMethod],
-        Dict[IdxVar, Dict[IdxVar, DepreciationMethod]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]],
-        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]]],
-    ]
+def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
+    if isinstance(data, dict):
+        keys = recursive_keys(data)
+        if max([len(k) for k in keys]) > max_depth:
+            raise ValueError(
+                f"Data for {obj_id} must not have a nesting depth greater than {max_depth}."
+            )
+    return True
+
+
+def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
+    print("sets")
+    print(sets)
+
+    # cast 'years' to str
+    if "years" in sets.keys():
+        sets["years"] = [str(yr) for yr in sets["years"]]
+
+    if not isinstance(data, dict):
+        data = {"*": data}
+
+    # cast to dataframe
+    df = pd.json_normalize(data).T
+    cols = [f"L{ii}" for ii in list(range(max(df.index.str.split(".").str.len())))]
+    df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+    df = df.rename(columns={0: "value"})
+
+    # assign each column to a set
+    assign_sets = list(sets.keys())
+
+    for col in cols:
+        col_vals = df.loc[df[col] != "*", col].values.tolist()
+        if col_vals:
+            renamed = False
+            for set_name, set_vals in sets.items():
+                # assign set if it has not been assigned and all the vals are in the set
+                if (set_name in assign_sets) and (len(set(col_vals) - set(set_vals)) == 0):
+                    assign_sets.remove(set_name)
+                    df = df.rename(columns={col: set_name})
+                    renamed = True
+                    break
+            if not renamed:
+                # there were values in a column that did not match any set
+                raise ValueError(
+                    f"Data for {obj_id} contains set values {col_vals} that do not match any set."
+                )
+
+    unassigned_cols = [c for c in df.columns if c not in sets.keys() if c != "value"]
+    if len(unassigned_cols) > len(assign_sets):
+        raise ValueError(
+            f"Data for {obj_id} contains more unassigned columns that there are unassigned sets."
+        )
+
+    # assign any un-assigned wildcard columns to a un-assigned sets
+    df = df.rename(
+        columns=dict(
+            zip(
+                df.columns[(df == "*").all()].values,
+                [set_name for set_name in assign_sets[: (df == "*").all().sum()]],
+            )
+        )
+    )
+
+    # if any un-assigned set remain, expand the dataframe
+    for set_name in assign_sets:
+        if set_name not in df.columns:
+            df[set_name] = "*"
+
+    # explode wildcards
+    for col in df.columns:
+        if col in sets.keys():
+            explode_vals = [val for val in sets[col] if val not in df[col].values.tolist()]
+            df.loc[df[col] == "*", col] = df.loc[df[col] == "*", col].apply(
+                lambda x: explode_vals  # noqa: B023
+            )
+            df = df.explode(col)
+
+    # re-json
+    data = group_to_json(df, data_columns=list(sets.keys()), target_column="value")
+
+    return data
+
+
+def _compose_R(self, obj_id, data, regions, **sets):
+    # Region
+
+    _check_nesting_depth(obj_id, data, 1)
+    data = _check_set_membership(obj_id, data, {"regions": regions})
+
+    return data
+
+
+def _compose_RY(self, obj_id, data, regions, years, **sets):
+    # Region-Year
+
+    _check_nesting_depth(obj_id, data, 2)
+    data = _check_set_membership(obj_id, data, {"regions": regions, "years": years})
+
+    return data
+
+
+def _compose_RT(self, obj_id, data, regions, technologies, **sets):
+    # Region-Technology
+
+    _check_nesting_depth(obj_id, data, 2)
+    data = _check_set_membership(obj_id, data, {"regions": regions, "technologies": technologies})
+
+    return data
+
+
+def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
+    # Region-Year-TimeSlice
+
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "years": years, "timeslices": timeslices}
+    )
+
+    return data
+
+
+def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
+    # Region-Technology-Year
+
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "technologies": technologies, "years": years}
+    )
+
+    return data
+
+
+def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
+    # Region-Commodity-Year
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "commodities": commodities, "years": years}
+    )
+
+    return data
+
+
+def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
+    # Region-Impact-Year
+    _check_nesting_depth(obj_id, data, 3)
+    data = _check_set_membership(
+        obj_id, data, {"regions": regions, "impacts": impacts, "years": years}
+    )
+
+    return data
+
+
+def _null(self, values):
+    # pass-through only, for testing purposes
+    return values
+
+
+for key, func in zip(
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "ANY"],
+    [
+        _compose_R,
+        _compose_RY,
+        _compose_RT,
+        _compose_RYS,
+        _compose_RTY,
+        _compose_RCY,
+        _compose_RIY,
+        _null,
+    ],
+):
+    # add a new OSEMOSYSData class for each data cooridinate key
+    setattr(OSeMOSYSData, key, create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData))
+
+    # add the compose method to each new class
+    getattr(OSeMOSYSData, key).compose = func
+
+    # add the datatype constructors
+    for _type, validator in zip(
+        ["Int", "Bool", "SumOne"], [check_or_cast_int, check_or_cast_bool, nested_sum_one]
+    ):
+        setattr(
+            getattr(OSeMOSYSData, key),
+            _type,
+            create_model(
+                f"OSeMOSYSData_{key}_{_type}",
+                __base__=getattr(OSeMOSYSData, key),
+                __validators__={
+                    f"check_or_cast_{_type.lower()}": field_validator("data")(validator)
+                },
+            ),
+        )
+
+OSeMOSYSData.R.DM = create_model(
+    "OSeMOSYSData_R_DM",
+    __base__=OSeMOSYSData.R,
+    __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
+)

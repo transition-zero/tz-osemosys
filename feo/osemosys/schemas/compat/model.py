@@ -7,7 +7,7 @@ import xarray as xr
 from pydantic import BaseModel, Field
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.schemas.base import OSeMOSYSData_Bool
+from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
 from feo.osemosys.schemas.impact import Impact
@@ -200,7 +200,7 @@ class RunSpecOtoole(BaseModel):
             )
             for commodity in commodities:
                 if commodity.id in re_tagfuel_data.keys():
-                    commodity.include_in_joint_renewable_target = OSeMOSYSData_Bool(
+                    commodity.include_in_joint_renewable_target = OSeMOSYSData.RY.Bool(
                         re_tagfuel_data[commodity.id]
                     )
 
@@ -216,7 +216,7 @@ class RunSpecOtoole(BaseModel):
             )
             for technology in technologies:
                 if technology.id in re_tagtechnology_data.keys():
-                    technology.include_in_joint_renewable_target = OSeMOSYSData_Bool(
+                    technology.include_in_joint_renewable_target = OSeMOSYSData.RY.Bool(
                         re_tagtechnology_data[technology.id]
                     )
 
@@ -232,7 +232,7 @@ class RunSpecOtoole(BaseModel):
             )
             for commodity in commodities:
                 if commodity.id in reserve_margin_fuel_data.keys():
-                    commodity.include_in_joint_reserve_margin = OSeMOSYSData_Bool(
+                    commodity.include_in_joint_reserve_margin = OSeMOSYSData.RY.Bool(
                         reserve_margin_fuel_data[commodity.id]
                     )
 
@@ -248,7 +248,7 @@ class RunSpecOtoole(BaseModel):
             )
             for technology in technologies:
                 if technology.id in reserve_margin_technology_data.keys():
-                    technology.include_in_joint_reserve_margin = OSeMOSYSData_Bool(
+                    technology.include_in_joint_reserve_margin = OSeMOSYSData.RY.Bool(
                         reserve_margin_technology_data[technology.id]
                     )
 

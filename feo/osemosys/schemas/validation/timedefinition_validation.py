@@ -271,7 +271,7 @@ def build_adjacency(
 # ##########################################
 
 
-def build_timeslices_from_parts(seasons, day_types, time_brackets):
+def build_timeslices_from_parts(seasons, day_types=None, time_brackets=None):
     """
     If timeslices are not provided, but parts are, get timeslices from parts
     """

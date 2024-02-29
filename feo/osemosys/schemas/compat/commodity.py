@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from feo.osemosys.schemas.base import OSeMOSYSData, OSeMOSYSData_Bool
+from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.compat.base import OtooleCfg
 from feo.osemosys.utils import group_to_json
 
@@ -74,7 +74,7 @@ class OtooleCommodity(BaseModel):
         commodity_instances = []
         for commodity in df_commodity["VALUE"].values.tolist():
             demand_annual = (
-                OSeMOSYSData(
+                OSeMOSYSData.RY(
                     group_to_json(
                         g=dfs["SpecifiedAnnualDemand"].loc[
                             dfs["SpecifiedAnnualDemand"]["FUEL"] == commodity
@@ -88,7 +88,7 @@ class OtooleCommodity(BaseModel):
                 else None
             )
             accumulated_demand = (
-                OSeMOSYSData(
+                OSeMOSYSData.RY(
                     group_to_json(
                         g=dfs["AccumulatedAnnualDemand"].loc[
                             dfs["AccumulatedAnnualDemand"]["FUEL"] == commodity
@@ -107,7 +107,7 @@ class OtooleCommodity(BaseModel):
                 )
 
             demand_profile = (
-                OSeMOSYSData(
+                OSeMOSYSData.RYS.SumOne(
                     group_to_json(
                         g=dfs["SpecifiedDemandProfile"].loc[
                             dfs["SpecifiedDemandProfile"]["FUEL"] == commodity
@@ -121,7 +121,7 @@ class OtooleCommodity(BaseModel):
                 else None
             )
             is_renewable = (
-                OSeMOSYSData_Bool(
+                OSeMOSYSData.RY.Bool(
                     group_to_json(
                         g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == commodity],
                         root_column="FUEL",

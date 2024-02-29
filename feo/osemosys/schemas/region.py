@@ -24,10 +24,15 @@ class Region(OSeMOSYSBase, OtooleRegion):
     """
 
     neighbours: List[str] | None = Field(default=None)
-    trade_routes: OSeMOSYSData | None = Field(default=None)
+    trade_routes: OSeMOSYSData.RCY.Bool | None = Field(default=None)  # R_RCY
+
+    exclude_technologies: List[str] | None = Field(default=None)
 
     @model_validator(mode="before")
     def validation(cls, values):
         values = reserve_margin_fully_defined(values)
         values = discount_rate_as_decimals(values)
         return values
+
+    def compose(self, **kwargs):
+        return self

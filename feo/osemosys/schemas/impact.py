@@ -18,18 +18,18 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     """
 
     # Annual emissions constraint per region, year, and emission type
-    constraint_annual: OSeMOSYSData | None = Field(None)
+    constraint_annual: OSeMOSYSData.RY | None = Field(None)
     # Total modelled period emissions constraint per region and emission type
-    constraint_total: OSeMOSYSData | None = Field(None)
+    constraint_total: OSeMOSYSData.R | None = Field(None)
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
-    exogenous_annual: OSeMOSYSData | None = Field(None)
+    exogenous_annual: OSeMOSYSData.RY | None = Field(None)
     # Total modelled period exogenous emission per region and emission type
     # I.e. emissions from non-modelled sources
-    exogenous_total: OSeMOSYSData | None = Field(None)
+    exogenous_total: OSeMOSYSData.R | None = Field(None)
     # Financial penalty for each unit of eimssion per region, year, and emission type
     # E.g. used to model carbon prices
-    penalty: OSeMOSYSData | None = Field(None)
+    penalty: OSeMOSYSData.RY | None = Field(None)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -46,4 +46,18 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             )
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)
+        return self
+
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                    )
         return self

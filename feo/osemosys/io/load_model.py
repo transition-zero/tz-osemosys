@@ -93,7 +93,7 @@ def load_model(*spec_files):
     """
 
     # load yaml
-    spec_files = utils.flatten(
+    spec_files = utils.maybe_flatten(
         [(glob(f + "/*.yaml") if Path(f).is_dir() else f) for f in spec_files]
     )
 
