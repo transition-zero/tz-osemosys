@@ -51,6 +51,18 @@ def cast_osemosysdata_value(val: Any, info: FieldInfo):
             return getattr(OSeMOSYSData, coords).SumOne(data=val)
         elif isnumeric(val):
             return getattr(OSeMOSYSData, coords)(data=val)
+        elif isinstance(val, dict):
+            if validator == "SumOne":
+                return getattr(OSeMOSYSData, coords).SumOne(
+                    data={str(k): v for k, v in val.items()}
+                )
+            elif validator == "Bool":
+                return getattr(OSeMOSYSData, coords).Bool(data={str(k): v for k, v in val.items()})
+            elif validator == "Int":
+                return getattr(OSeMOSYSData, coords).Int(data={str(k): v for k, v in val.items()})
+            elif validator == "DM":
+                return getattr(OSeMOSYSData, coords).DM(data={str(k): v for k, v in val.items()})
+            return getattr(OSeMOSYSData, coords)(data={str(k): v for k, v in val.items()})
 
     return val
 
@@ -273,9 +285,6 @@ def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
 
 
 def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
-    print("sets")
-    print(sets)
-
     # cast 'years' to str
     if "years" in sets.keys():
         sets["years"] = [str(yr) for yr in sets["years"]]
