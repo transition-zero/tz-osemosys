@@ -9,7 +9,14 @@ PASSING_TECH_DEFINITIONS = dict(
         capex=15,
         opex_fixed=1.5,
         operating_modes=[dict(id="mode_1")],
-    )
+    ),
+    with_capex=dict(
+        id="with_capex",
+        operating_life=10,
+        capex={2022: 15, 2023: 20},
+        opex_fixed=1.5,
+        operating_modes=[dict(id="mode_1")],
+    ),
 )
 
 FAILING_TECH_DEFINITIONS = dict(

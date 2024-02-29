@@ -45,6 +45,7 @@ def test_expression_parse():
     c: max([4,5,6])
     d: min([4,5,6])
     e: '{k:v for k,v in zip(["x","y","z"],[1,2,3])}'
+    f: '{k:k+1 for k in range(3)}'
     """
     data = yaml.load(blob, Loader=yaml.SafeLoader)
 
@@ -55,6 +56,7 @@ def test_expression_parse():
     assert data["d"] == 4
     assert isinstance(data["e"], dict)
     assert data["e"]["x"] == 1
+    assert data["f"][0] == 1
 
 
 def test_sample_construction():
