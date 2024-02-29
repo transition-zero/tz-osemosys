@@ -158,7 +158,7 @@ class OSeMOSYSData(BaseModel):
 OSeMOSYSData_SumOne = Annotated[OSeMOSYSData, BeforeValidator(nested_sum_one)]
 
 
-class OSeMOSYSData_Int(BaseModel):
+class OSeMOSYSData_Int(OSeMOSYSData):
     data: Union[
         int,  # {data: 6.}
         Dict[IdxVar, int],
@@ -169,7 +169,7 @@ class OSeMOSYSData_Int(BaseModel):
     ]
 
 
-class OSeMOSYSData_Bool(BaseModel):
+class OSeMOSYSData_Bool(OSeMOSYSData):
     data: Union[
         bool,  # {data: 6.}
         Dict[IdxVar, bool],

@@ -1,392 +1,166 @@
-import os
-from pathlib import Path
-from typing import ClassVar, List, Union
+from typing import Any
 
-import pandas as pd
-from pydantic import BaseModel, model_validator
+from pydantic import Field, conlist, model_validator
 
-from feo.osemosys.schemas.validation.technology_validation import (
-    min_activity_lower_than_max,
-    min_capacity_lower_than_max,
-    technology_storage_validation,
-)
-from feo.osemosys.utils import group_to_json
-
-from .base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSData_Int
+from feo.osemosys.defaults import defaults
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSData_Int
+from feo.osemosys.schemas.compat.technology import OtooleTechnology
+from feo.osemosys.schemas.validation.technology_validation import technology_storage_validation
+from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
+from feo.osemosys.utils import isnumeric
 
 # ##################
 # ### TECHNOLOGY ###
 # ##################
 
 
-class OtooleCfg(BaseModel):
+class OperatingMode(OSeMOSYSBase):
     """
-    Paramters needed to round-trip csvs from otoole
+    Class for a single operating mode
+    # Technology emission activity ratio by mode of operation
+    # Technology fuel input activity ratio by mode of operation
+    # Technology fuel output activity ratio by mode of operation
+    # Binary parameter linking a technology to the storage facility it charges (1 linked)
+    # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
 
-    empty_dfs: list[str] | None
+    opex_variable: OSeMOSYSData | None = Field(None)
+    emission_activity_ratio: OSeMOSYSData | None = Field(None)
+    input_activity_ratio: OSeMOSYSData | None = Field(None)
+    output_activity_ratio: OSeMOSYSData | None = Field(None)
+    to_storage: OSeMOSYSData_Int | None = Field(None)
+    from_storage: OSeMOSYSData_Int | None = Field(None)
 
 
-class Technology(OSeMOSYSBase):
+class Technology(OSeMOSYSBase, OtooleTechnology):
     """
     Class to contain all information pertaining to technologies (excluding storage technologies)
-    """
 
-    # Capacity unit to activity unit conversion
-    # -----
-    # Conversion factor relating the energy that would be produced when one unit of capacity is
-    # fully used in one year.
-    capacity_activity_unit_ratio: OSeMOSYSData | None
-
+    # Capacity unit to activity unit conversion:
+    #   Conversion factor relating the energy that would be produced when one unit of capacity is
+    #   fully used in one year.
     # Capacity of one new unit of a technology
     # If specified the problem will turn into a Mixed Integer Linear Problem
-    capacity_one_tech_unit: OSeMOSYSData | None
-
-    # Capacity factor, lifespan, availability
+    # Capacity factor and availability availability
     # -----
     # Maximum time a technology can run in the whole year, as a fraction from 0 to 1
-    availability_factor: OSeMOSYSData | None
-    capacity_factor: OSeMOSYSData | None
-    operating_life: OSeMOSYSData_Int | None
+    #     Maximum technology capacity (installed + residual) per year
+    # Minimum technology capacity (installed + residual) per year
+    # Maximum technology capacity additions per year
+    # Minimum technology capacity additions per year
+    # Maximum technology activity per year
+    # Minimum technology activity per year
+        # Maximum technology activity across whole modelled period
+    # Minimum technology activity across whole modelled period
+    # growth rate (<1.)
+    Absolute value (ceil relative to growth rate)
+    """
 
-    # financials
+    # REQUIRED PARAMETERS
     # -----
+    operating_life: OSeMOSYSData_Int | None
     capex: OSeMOSYSData | None
     opex_fixed: OSeMOSYSData | None
-    opex_variable: OSeMOSYSData | None
 
-    # initial capacity
+    operating_modes: conlist(OperatingMode, min_length=1)
+
+    # NON-REQUIRED PARAMETERS
     # -----
-    residual_capacity: OSeMOSYSData | None
+    residual_capacity: OSeMOSYSData | None = Field(
+        OSeMOSYSData(defaults.technology_residual_capacity)
+    )
+    capacity_activity_unit_ratio: OSeMOSYSData | None = Field(
+        OSeMOSYSData(defaults.technology_capacity_activity_unit_ratio)
+    )
+    capacity_one_tech_unit: OSeMOSYSData | None = Field(None)
+    availability_factor: OSeMOSYSData | None = Field(
+        OSeMOSYSData(defaults.technology_availability_factor)
+    )
+    capacity_factor: OSeMOSYSData | None = Field(OSeMOSYSData(defaults.technology_capacity_factor))
+    is_renewable: OSeMOSYSData | None = Field(None)
 
-    # constraints - capacity
+    # NON-REQUIRED CONSTRAINTS
     # -----
-    # Maximum technology capacity (installed + residual) per year
-    capacity_gross_max: OSeMOSYSData | None
-    # Minimum technology capacity (installed + residual) per year
-    capacity_gross_min: OSeMOSYSData | None
-    # Maximum technology capacity additions per year
-    capacity_additional_max: OSeMOSYSData | None
-    # Minimum technology capacity additions per year
-    capacity_additional_min: OSeMOSYSData | None
+    # capacity
+    capacity_gross_max: OSeMOSYSData | None = Field(None)
+    capacity_gross_min: OSeMOSYSData | None = Field(None)
+    capacity_additional_max: OSeMOSYSData | None = Field(None)
+    capacity_additional_min: OSeMOSYSData | None = Field(None)
 
-    # TODO:
-    # Relative growth rate restrictions not currently implemented in osemosys code
-    # additional_capacity_max_growth_rate: RegionYearData
-    # # growth rate (<1.)
-    # additional_capacity_max_ceil: RegionYearData
-    # # Absolute value (ceil relative to growth rate)
-    # additional_capacity_max_floor: RegionYearData
-    # # absolute value (floor relative to growth rate)
-    # additional_capacity_min_growth_rate: RegionYearData
-    # # growth rate (<1.)
+    # growth rate # TO BE IMPLEMENTED
+    # additional_capacity_max_growth_rate: OSeMOSYSData | None  = Field(None)
+    # additional_capacity_max_ceil: OSeMOSYSData | None = Field(None)
+    # additional_capacity_max_floor: RegionYearData | None = Field(None)
+    # additional_capacity_min_growth_rate: RegionYearData | None  = Field(None)
 
-    # constraints - activity
-    # -----
-    # Maximum technology activity per year
-    activity_annual_max: OSeMOSYSData | None
-    # Minimum technology activity per year
-    activity_annual_min: OSeMOSYSData | None
-    # Maximum technology activity across whole modelled period
-    activity_total_max: OSeMOSYSData | None
-    # Minimum technology activity across whole modelled period
-    activity_total_min: OSeMOSYSData | None
-
-    # activity ratios & efficiency
-    # -----
-    # Technology emission activity ratio by mode of operation
-    emission_activity_ratio: OSeMOSYSData | None
-    # Technology fuel input activity ratio by mode of operation
-    input_activity_ratio: OSeMOSYSData | None
-    # Technology fuel output activity ratio by mode of operation
-    output_activity_ratio: OSeMOSYSData | None
-    # Binary parameter linking a technology to the storage facility it charges (1 linked)
-    to_storage: OSeMOSYSData_Int | None
-    # Binary parameter linking a storage facility to the technology it feeds (1 linked)
-    from_storage: OSeMOSYSData_Int | None
-
-    # Renewable technology tag
-    # -----
-    # Binary parameter indicating technologies that can contribute to renewable targets
-    is_renewable: OSeMOSYSData | None
-
-    otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "CapacityToActivityUnit": {
-            "attribute": "capacity_activity_unit_ratio",
-            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
-        },
-        "CapacityOfOneTechnologyUnit": {
-            "attribute": "capacity_one_tech_unit",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "AvailabilityFactor": {
-            "attribute": "availability_factor",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "CapacityFactor": {
-            "attribute": "capacity_factor",
-            "column_structure": ["REGION", "TECHNOLOGY", "TIMESLICE", "YEAR", "VALUE"],
-        },
-        "OperationalLife": {
-            "attribute": "operating_life",
-            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
-        },
-        "CapitalCost": {
-            "attribute": "capex",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "FixedCost": {
-            "attribute": "opex_fixed",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "VariableCost": {
-            "attribute": "opex_variable",
-            "column_structure": ["REGION", "TECHNOLOGY", "MODE_OF_OPERATION", "YEAR", "VALUE"],
-        },
-        "ResidualCapacity": {
-            "attribute": "residual_capacity",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalAnnualMaxCapacity": {
-            "attribute": "capacity_gross_max",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalAnnualMinCapacity": {
-            "attribute": "capacity_gross_min",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalAnnualMaxCapacityInvestment": {
-            "attribute": "capacity_additional_max",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalAnnualMinCapacityInvestment": {
-            "attribute": "capacity_additional_min",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalTechnologyAnnualActivityUpperLimit": {
-            "attribute": "activity_annual_max",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalTechnologyAnnualActivityLowerLimit": {
-            "attribute": "activity_annual_min",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-        "TotalTechnologyModelPeriodActivityUpperLimit": {
-            "attribute": "activity_total_max",
-            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
-        },
-        "TotalTechnologyModelPeriodActivityLowerLimit": {
-            "attribute": "activity_total_min",
-            "column_structure": ["REGION", "TECHNOLOGY", "VALUE"],
-        },
-        "EmissionActivityRatio": {
-            "attribute": "emission_activity_ratio",
-            "column_structure": [
-                "REGION",
-                "TECHNOLOGY",
-                "EMISSION",
-                "MODE_OF_OPERATION",
-                "YEAR",
-                "VALUE",
-            ],
-        },
-        "InputActivityRatio": {
-            "attribute": "input_activity_ratio",
-            "column_structure": [
-                "REGION",
-                "TECHNOLOGY",
-                "FUEL",
-                "MODE_OF_OPERATION",
-                "YEAR",
-                "VALUE",
-            ],
-        },
-        "OutputActivityRatio": {
-            "attribute": "output_activity_ratio",
-            "column_structure": [
-                "REGION",
-                "TECHNOLOGY",
-                "FUEL",
-                "MODE_OF_OPERATION",
-                "YEAR",
-                "VALUE",
-            ],
-        },
-        "TechnologyToStorage": {
-            "attribute": "to_storage",
-            "column_structure": ["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"],
-        },
-        "TechnologyFromStorage": {
-            "attribute": "from_storage",
-            "column_structure": ["REGION", "TECHNOLOGY", "STORAGE", "MODE_OF_OPERATION", "VALUE"],
-        },
-        "RETagTechnology": {
-            "attribute": "is_renewable",
-            "column_structure": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },
-    }
+    # activity
+    activity_annual_max: OSeMOSYSData | None = Field(None)
+    activity_annual_min: OSeMOSYSData | None = Field(None)
+    activity_total_max: OSeMOSYSData | None = Field(None)
+    activity_total_min: OSeMOSYSData | None = Field(None)
 
     @model_validator(mode="before")
-    def validator(cls, values):
-        values = min_activity_lower_than_max(values)
-        values = min_capacity_lower_than_max(values)
+    @classmethod
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
+
+            if all(
+                [
+                    field_val is not None,
+                    isinstance(field_val, int),
+                    "OSeMOSYSData_Int" in str(info.annotation),
+                ]
+            ):
+                values[field] = OSeMOSYSData_Int(field_val)
+            elif all(
+                [
+                    field_val is not None,
+                    isnumeric(field_val),
+                    "OSeMOSYSData" in str(info.annotation),
+                ]
+            ):
+                values[field] = OSeMOSYSData(field_val)
+
         return values
 
-    @classmethod
-    def from_otoole_csv(cls, root_dir) -> List["Technology"]:
-        #############
-        # Load Data #
-        #############
+    @model_validator(mode="after")
+    def validate_min_lt_max(self):
+        if self.capacity_gross_min is not None and self.capacity_gross_max is not None:
+            if not check_min_vals_lower_max(
+                self.capacity_gross_min,
+                self.capacity_gross_max,
+                ["REGION", "YEAR", "VALUE"],
+            ):
+                raise ValueError("Minimum gross capacity is not less than maximum gross capacity.")
 
-        df_technologies = pd.read_csv(os.path.join(root_dir, "TECHNOLOGY.csv"))
+        if self.capacity_additional_min is not None and self.capacity_additional_max is not None:
+            if not check_min_vals_lower_max(
+                self.capacity_additional_min,
+                self.capacity_additional_max,
+                ["REGION", "YEAR", "VALUE"],
+            ):
+                raise ValueError("Minimum gross capacity is not less than maximum gross capacity.")
 
-        dfs = {}
-        otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in list(cls.otoole_stems):
-            try:
-                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
-                if dfs[key].empty:
-                    otoole_cfg.empty_dfs.append(key)
-            except FileNotFoundError:
-                otoole_cfg.empty_dfs.append(key)
-
-        #####################
-        # Basic Data Checks #
-        #####################
-
-        # Check no duplicates in TECHNOLOGY.csv
-        if len(df_technologies) != len(df_technologies["VALUE"].unique()):
-            raise ValueError("TECHNOLOGY.csv must not contain duplicate values")
-
-        # Check technology names are consistent with those in TECHNOLOGY.csv
-        for df in dfs.keys():
-            for technology in dfs[df]["TECHNOLOGY"].unique():
-                if technology not in list(df_technologies["VALUE"]):
-                    raise ValueError(f"{technology} given in {df}.csv but not in TECHNOLOGY.csv")
-
-        ##########################
-        # Define class instances #
-        ##########################
-
-        technology_instances = []
-        for technology in df_technologies["VALUE"].values.tolist():
-            data_json_format = {}
-            for stem in list(cls.otoole_stems):
-                # If input CSV present
-                if stem in dfs:
-                    data_columns = dfs[stem].columns.tolist()
-                    data_columns.remove("TECHNOLOGY")
-                    data_columns.remove("VALUE")
-                    data_json_format[stem] = (
-                        group_to_json(
-                            g=dfs[stem].loc[dfs[stem]["TECHNOLOGY"] == technology],
-                            root_column="TECHNOLOGY",
-                            data_columns=data_columns,
-                            target_column="VALUE",
-                        )
-                        if technology in dfs[stem]["TECHNOLOGY"].values
-                        else None
-                    )
-                # If input CSV missing
-                else:
-                    data_json_format[stem] = None
-
-            technology_instances.append(
-                cls(
-                    id=technology,
-                    otoole_cfg=otoole_cfg,
-                    capacity_activity_unit_ratio=OSeMOSYSData(
-                        data=data_json_format["CapacityToActivityUnit"]
-                    )
-                    if data_json_format["CapacityToActivityUnit"] is not None
-                    else None,
-                    capacity_one_tech_unit=OSeMOSYSData(
-                        data=data_json_format["CapacityOfOneTechnologyUnit"]
-                    )
-                    if data_json_format["CapacityOfOneTechnologyUnit"] is not None
-                    else None,
-                    availability_factor=OSeMOSYSData(data=data_json_format["AvailabilityFactor"])
-                    if data_json_format["AvailabilityFactor"] is not None
-                    else None,
-                    capacity_factor=OSeMOSYSData(data=data_json_format["CapacityFactor"])
-                    if data_json_format["CapacityFactor"] is not None
-                    else None,
-                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLife"])
-                    if data_json_format["OperationalLife"] is not None
-                    else None,
-                    capex=OSeMOSYSData(data=data_json_format["CapitalCost"])
-                    if data_json_format["CapitalCost"] is not None
-                    else None,
-                    opex_fixed=OSeMOSYSData(data=data_json_format["FixedCost"])
-                    if data_json_format["FixedCost"] is not None
-                    else None,
-                    opex_variable=OSeMOSYSData(data=data_json_format["VariableCost"])
-                    if data_json_format["VariableCost"] is not None
-                    else None,
-                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualCapacity"])
-                    if data_json_format["ResidualCapacity"] is not None
-                    else None,
-                    capacity_gross_max=OSeMOSYSData(data=data_json_format["TotalAnnualMaxCapacity"])
-                    if data_json_format["TotalAnnualMaxCapacity"] is not None
-                    else None,
-                    capacity_gross_min=OSeMOSYSData(data=data_json_format["TotalAnnualMinCapacity"])
-                    if data_json_format["TotalAnnualMinCapacity"] is not None
-                    else None,
-                    capacity_additional_max=OSeMOSYSData(
-                        data=data_json_format["TotalAnnualMaxCapacityInvestment"]
-                    )
-                    if data_json_format["TotalAnnualMaxCapacityInvestment"] is not None
-                    else None,
-                    capacity_additional_min=OSeMOSYSData(
-                        data=data_json_format["TotalAnnualMinCapacityInvestment"]
-                    )
-                    if data_json_format["TotalAnnualMinCapacityInvestment"] is not None
-                    else None,
-                    activity_annual_max=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyAnnualActivityUpperLimit"]
-                    )
-                    if data_json_format["TotalTechnologyAnnualActivityUpperLimit"] is not None
-                    else None,
-                    activity_annual_min=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyAnnualActivityLowerLimit"]
-                    )
-                    if data_json_format["TotalTechnologyAnnualActivityLowerLimit"] is not None
-                    else None,
-                    activity_total_max=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"]
-                    )
-                    if data_json_format["TotalTechnologyModelPeriodActivityUpperLimit"] is not None
-                    else None,
-                    activity_total_min=OSeMOSYSData(
-                        data=data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"]
-                    )
-                    if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"] is not None
-                    else None,
-                    emission_activity_ratio=OSeMOSYSData(
-                        data=data_json_format["EmissionActivityRatio"]
-                    )
-                    if data_json_format["EmissionActivityRatio"] is not None
-                    else None,
-                    input_activity_ratio=OSeMOSYSData(data=data_json_format["InputActivityRatio"])
-                    if data_json_format["InputActivityRatio"] is not None
-                    else None,
-                    output_activity_ratio=OSeMOSYSData(data=data_json_format["OutputActivityRatio"])
-                    if data_json_format["OutputActivityRatio"] is not None
-                    else None,
-                    to_storage=OSeMOSYSData_Int(data=data_json_format["TechnologyToStorage"])
-                    if data_json_format["TechnologyToStorage"] is not None
-                    else None,
-                    from_storage=OSeMOSYSData_Int(data=data_json_format["TechnologyFromStorage"])
-                    if data_json_format["TechnologyFromStorage"] is not None
-                    else None,
-                    is_renewable=OSeMOSYSData(data=data_json_format["RETagTechnology"])
-                    if data_json_format["RETagTechnology"] is not None
-                    else None,
+        if self.activity_annual_min is not None and self.activity_annual_max is not None:
+            if not check_min_vals_lower_max(
+                self.activity_annual_min,
+                self.activity_annual_max,
+                ["REGION", "YEAR", "VALUE"],
+            ):
+                raise ValueError(
+                    "Minimum annual activity is not less than maximum annual activity."
                 )
-            )
 
-        return technology_instances
+        if self.activity_total_min is not None and self.activity_total_max is not None:
+            if not check_min_vals_lower_max(
+                self.activity_total_min,
+                self.activity_total_max,
+                ["REGION", "VALUE"],
+            ):
+                raise ValueError("Minimum total activity is not less than maximum total activity.")
+
+        return True
 
 
 class TechnologyStorage(OSeMOSYSBase):
@@ -397,141 +171,26 @@ class TechnologyStorage(OSeMOSYSBase):
     capex: OSeMOSYSData | None
     operating_life: OSeMOSYSData_Int | None
     # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
-    minimum_charge: OSeMOSYSData | None
     # Level of storage at the beginning of first modelled year, in units of activity
-    initial_level: OSeMOSYSData | None
-    residual_capacity: OSeMOSYSData | None
     # Maximum discharging rate for the storage, in units of activity per year
-    max_discharge_rate: OSeMOSYSData | None
     # Maximum charging rate for the storage, in units of activity per year
-    max_charge_rate: OSeMOSYSData | None
 
-    otoole_cfg: OtooleCfg | None
-    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "CapitalCostStorage": {
-            "attribute": "capex",
-            "column_structure": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "OperationalLifeStorage": {
-            "attribute": "operating_life",
-            "column_structure": ["REGION", "STORAGE", "VALUE"],
-        },
-        "MinStorageCharge": {
-            "attribute": "minimum_charge",
-            "column_structure": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "StorageLevelStart": {
-            "attribute": "initial_level",
-            "column_structure": ["REGION", "STORAGE", "VALUE"],
-        },
-        "ResidualStorageCapacity": {
-            "attribute": "residual_capacity",
-            "column_structure": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "StorageMaxDischargeRate": {
-            "attribute": "max_discharge_rate",
-            "column_structure": ["REGION", "STORAGE", "VALUE"],
-        },
-        "StorageMaxChargeRate": {
-            "attribute": "max_charge_rate",
-            "column_structure": ["REGION", "STORAGE", "VALUE"],
-        },
-    }
+    # REQUIRED PARAMETERS
+    # -------------------
+    capex: OSeMOSYSData
+    operating_life: OSeMOSYSData_Int
+
+    # NON-REQUIRED PARAMETERS
+    # -----------------------
+    minimum_charge: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_minimum_charge))
+    initial_level: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_initial_level))
+    residual_capacity: OSeMOSYSData = Field(
+        OSeMOSYSData(defaults.technology_storage_residual_capacity)
+    )
+    max_discharge_rate: OSeMOSYSData | None = Field(None)
+    max_charge_rate: OSeMOSYSData | None = Field(None)
 
     @model_validator(mode="before")
     def validator(cls, values):
         values = technology_storage_validation(values)
         return values
-
-    @classmethod
-    def from_otoole_csv(cls, root_dir) -> List["TechnologyStorage"]:
-        #############
-        # Load Data #
-        #############
-
-        df_storage_technologies = pd.read_csv(os.path.join(root_dir, "STORAGE.csv"))
-
-        dfs = {}
-        otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in list(cls.otoole_stems):
-            try:
-                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
-                if dfs[key].empty:
-                    otoole_cfg.empty_dfs.append(key)
-            except FileNotFoundError:
-                otoole_cfg.empty_dfs.append(key)
-
-        #####################
-        # Basic Data Checks #
-        #####################
-
-        # Check no duplicates in STORAGE.csv
-        if len(df_storage_technologies) != len(df_storage_technologies["VALUE"].unique()):
-            raise ValueError("STORAGE.csv must not contain duplicate values")
-
-        # Check storage technology names are consistent with those in STORAGE.csv
-        for df in dfs.keys():
-            for storage in dfs[df]["STORAGE"].unique():
-                if storage not in list(df_storage_technologies["VALUE"]):
-                    raise ValueError(f"{storage} given in {df}.csv but not in STORAGE.csv")
-
-        ##########################
-        # Define class instances #
-        ##########################
-
-        storage_instances = []
-        for storage in df_storage_technologies["VALUE"].values.tolist():
-            data_json_format = {}
-            for stem in list(cls.otoole_stems):
-                # If input CSV present
-                if stem in dfs:
-                    data_columns = dfs[stem].columns.tolist()
-                    data_columns.remove("STORAGE")
-                    data_columns.remove("VALUE")
-                    data_json_format[stem] = (
-                        group_to_json(
-                            g=dfs[stem].loc[dfs[stem]["STORAGE"] == storage],
-                            root_column="STORAGE",
-                            data_columns=data_columns,
-                            target_column="VALUE",
-                        )
-                        if storage in dfs[stem]["STORAGE"].values
-                        else None
-                    )
-                # If input CSV missing
-                else:
-                    data_json_format[stem] = None
-
-            storage_instances.append(
-                cls(
-                    id=storage,
-                    long_name=None,
-                    description=None,
-                    otoole_cfg=otoole_cfg,
-                    capex=OSeMOSYSData(data=data_json_format["CapitalCostStorage"])
-                    if data_json_format["CapitalCostStorage"] is not None
-                    else None,
-                    operating_life=OSeMOSYSData_Int(data=data_json_format["OperationalLifeStorage"])
-                    if data_json_format["OperationalLifeStorage"] is not None
-                    else None,
-                    minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
-                    if data_json_format["MinStorageCharge"] is not None
-                    else None,
-                    initial_level=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
-                    if data_json_format["StorageLevelStart"] is not None
-                    else None,
-                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
-                    if data_json_format["ResidualStorageCapacity"] is not None
-                    else None,
-                    max_discharge_rate=OSeMOSYSData(
-                        data=data_json_format["StorageMaxDischargeRate"]
-                    )
-                    if data_json_format["StorageMaxDischargeRate"] is not None
-                    else None,
-                    max_charge_rate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
-                    if data_json_format["StorageMaxChargeRate"] is not None
-                    else None,
-                )
-            )
-
-        return storage_instances

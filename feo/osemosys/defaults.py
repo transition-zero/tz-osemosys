@@ -6,6 +6,14 @@ from pydantic_settings import BaseSettings
 
 class Defaults(BaseSettings):
     equals_one_tolerance: float = Field(0.01)
+    technology_capacity_activity_unit_ratio: float = Field(1.0)
+    technology_capacity_factor: float = Field(1.0)
+    technology_availability_factor: float = Field(1.0)
+    technology_residual_capacity: float = Field(0.0)
+    technology_storage_residual_capacity: float = Field(0.0)
+    technology_storage_minimum_charge: float = Field(0.0)
+    technology_storage_initial_level: float = Field(0.0)
+    technology_storage_residual_capacity: float = Field(0.0)
 
 
 class DefaultsLinopy(BaseSettings):
