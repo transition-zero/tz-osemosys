@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated, Dict, Mapping, Union
 
 import numpy as np
@@ -177,4 +178,20 @@ class OSeMOSYSData_Bool(OSeMOSYSData):
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, bool]]]]],
+    ]
+
+
+class DepreciationMethod(str, Enum):
+    sinking_fund = "sinking-fund"
+    straight_line = "straight-line"
+
+
+class OSeMOSYSData_DepreciationMethod(OSeMOSYSData):
+    data: Union[
+        DepreciationMethod,
+        Dict[IdxVar, DepreciationMethod],
+        Dict[IdxVar, Dict[IdxVar, DepreciationMethod]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]],
+        Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DepreciationMethod]]]]],
     ]

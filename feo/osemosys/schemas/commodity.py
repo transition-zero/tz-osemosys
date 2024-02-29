@@ -22,6 +22,10 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     demand_profile: OSeMOSYSData_SumOne | None = Field(None)
     is_renewable: OSeMOSYSData_Bool | None = Field(None)
 
+    # include this technology in joint reserve margin and renewables targets
+    include_in_joint_reserve_margin: OSeMOSYSData_Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData_Bool | None = Field(None)
+
     @field_validator("demand_annual", mode="before")
     @classmethod
     def passthrough_float(cls, v: Any) -> OSeMOSYSData:
@@ -47,9 +51,5 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     @classmethod
     def check_demand_exists_if_profile(cls, values):
         if values.get("demand_profile") is not None and values.get("demand_annual") is None:
-            commodity = values.get("id")
-            raise ValueError(
-                f"If demand_profile is defined for commodity '{commodity}', "
-                f"demand_annual must also be defined."
-            )
+            raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
         return values

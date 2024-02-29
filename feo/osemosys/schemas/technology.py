@@ -3,7 +3,12 @@ from typing import Any
 from pydantic import Field, conlist, model_validator
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, OSeMOSYSData_Int
+from feo.osemosys.schemas.base import (
+    OSeMOSYSBase,
+    OSeMOSYSData,
+    OSeMOSYSData_Bool,
+    OSeMOSYSData_Int,
+)
 from feo.osemosys.schemas.compat.technology import OtooleTechnology
 from feo.osemosys.schemas.validation.technology_validation import technology_storage_validation
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
@@ -99,6 +104,10 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     activity_total_max: OSeMOSYSData | None = Field(None)
     activity_total_min: OSeMOSYSData | None = Field(None)
 
+    # include this technology in joint reserve margin and renewables targets
+    include_in_joint_reserve_margin: OSeMOSYSData_Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData_Bool | None = Field(None)
+
     @model_validator(mode="before")
     @classmethod
     def cast_values(cls, values: Any) -> Any:
@@ -160,20 +169,17 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
             ):
                 raise ValueError("Minimum total activity is not less than maximum total activity.")
 
-        return True
+        return self
 
 
 class TechnologyStorage(OSeMOSYSBase):
     """
     Class to contain all information pertaining to storage technologies
-    """
-
-    capex: OSeMOSYSData | None
-    operating_life: OSeMOSYSData_Int | None
     # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
     # Level of storage at the beginning of first modelled year, in units of activity
     # Maximum discharging rate for the storage, in units of activity per year
     # Maximum charging rate for the storage, in units of activity per year
+    """
 
     # REQUIRED PARAMETERS
     # -------------------

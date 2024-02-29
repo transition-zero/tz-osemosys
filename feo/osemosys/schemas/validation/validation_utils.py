@@ -63,5 +63,5 @@ def check_min_vals_lower_max(min_data, max_data, columns):
             min_df, max_df, on=columns, suffixes=("_min", "_max"), how="outer"
         ).dropna()
 
-        # Check that values in min_data are lower than those in max_data
-        return (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all()
+    # Check that values in min_data are lower than those in max_data
+    return (merged_df["VALUE_min"] <= merged_df["VALUE_max"]).all()

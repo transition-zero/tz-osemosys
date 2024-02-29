@@ -46,4 +46,4 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             )
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)
-        return True
+        return self
