@@ -15,6 +15,7 @@ from feo.osemosys.schemas.time_definition import TimeDefinition
 # filter this pandas-3 dep warning for now
 warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
 
+
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # COMPONENTS
     # ----------
