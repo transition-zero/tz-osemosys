@@ -11,11 +11,11 @@ def exogenous_annual_within_constraint(id, constraint_annual, exogenous_annual):
             exogenous_annual,
             constraint_annual,
             ["REGION", "YEAR", "VALUE"],
-            (
+        ):
+            raise ValueError(
                 f"Impact '{id}' values in exogenous_annual should be lower than"
                 " or equal to the corresponding values in constraint_annual"
-            ),
-        )
+            )
 
     return True
 
@@ -30,10 +30,10 @@ def exogenous_total_within_constraint(id, constraint_total, exogenous_total):
             exogenous_total,
             constraint_total,
             ["REGION", "VALUE"],
-            (
+        ):
+            raise ValueError(
                 f"Impact '{id}' values in exogenous_total should be lower than"
                 " or equal to the corresponding values in constraint_total"
-            ),
-        )
+            )
 
     return True
