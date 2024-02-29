@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, List
 
 from pydantic import Field, model_validator
@@ -11,6 +12,8 @@ from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
 
+# filter this pandas-3 dep warning for now
+warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # COMPONENTS
@@ -23,8 +26,6 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
     # storage_technologies: List[TechnologyStorage] | None = Field(None)
-    # TODO
-    # transmission_technologies: List[TechnologyTransmission]
 
     # ASSUMPIONS
     # ----------
@@ -54,6 +55,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         self.regions = [region.compose(**sets) for region in self.regions]
         self.technologies = [technology.compose(**sets) for technology in self.technologies]
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
+
+        return self
 
     @model_validator(mode="before")
     @classmethod
