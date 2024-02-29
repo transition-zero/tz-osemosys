@@ -13,8 +13,7 @@ technologies:
     exclude_regions:
       - ATLANTIC-MARKET
       - PACIFIC-MARKET
-    capex:
-      "*": "{y:700 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years}) - min(${time_definition.years})) for y in ${time_definition.years}}"
+    capex: "{y:700 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years}) - min(${time_definition.years})) for y in ${time_definition.years}}"
     opex_fixed: 10
     operating_modes:
       - id: GEN
