@@ -33,7 +33,6 @@ FAILING_TECH_DEFINITIONS = dict(
         capacity_additional_min=2,
         capacity_additional_max=1,
     ),
-
     # Technology minimum annual activity limit must be < maximum annual activity limit
     activity_min_gt_max=dict(
         id="activity_min_gt_max",
@@ -44,7 +43,6 @@ FAILING_TECH_DEFINITIONS = dict(
         activity_annual_min=2,
         activity_annual_max=1,
     ),
-
     # Technology minimum total activity limit must be < maximum total activity limit
     activity_total_min_gt_max=dict(
         id="activity_total_min_gt_max",

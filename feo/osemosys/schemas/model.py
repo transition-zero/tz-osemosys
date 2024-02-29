@@ -11,10 +11,10 @@ from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import isnumeric
 
 # filter this pandas-3 dep warning for now
 warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
+
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # COMPONENTS
