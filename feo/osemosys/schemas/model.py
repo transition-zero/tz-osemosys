@@ -17,6 +17,10 @@ from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.utils import isnumeric
 
+# filter this pandas-3 dep warning for now
+warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
+import pandas as pd  # noqa: E402
+
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # COMPONENTS
