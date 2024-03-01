@@ -3,7 +3,7 @@ from linopy import Model
 from numpy import inf
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
+def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add activity variables to the model
 
     Arguments
