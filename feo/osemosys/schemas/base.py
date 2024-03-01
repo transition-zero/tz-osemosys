@@ -4,7 +4,14 @@ from typing import Annotated, Any, Dict, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import AfterValidator, BaseModel, create_model, field_validator, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ValidationInfo,
+    create_model,
+    field_validator,
+    model_validator,
+)
 from pydantic.fields import FieldInfo
 
 from feo.osemosys.defaults import defaults
@@ -23,7 +30,9 @@ from feo.osemosys.utils import (
 
 
 def values_sum_one(values: Mapping) -> bool:
-    assert sum(values.values()) == 1.0, "Mapping values must sum to 1.0."
+    assert np.allclose(
+        sum(values.values()), 1.0, atol=defaults.equals_one_tolerance
+    ), "Mapping values must sum to 1.0."
     return values
 
 
@@ -51,11 +60,24 @@ def cast_osemosysdata_value(val: Any, info: FieldInfo):
             return getattr(OSeMOSYSData, coords).SumOne(data=val)
         elif isnumeric(val):
             return getattr(OSeMOSYSData, coords)(data=val)
+        elif isinstance(val, dict):
+            if validator == "Int":
+                return getattr(OSeMOSYSData, coords).Int(data={str(k): v for k, v in val.items()})
+            elif validator == "Bool":
+                return getattr(OSeMOSYSData, coords).Bool(data={str(k): v for k, v in val.items()})
+            elif validator == "DM":
+                return getattr(OSeMOSYSData, coords).DM(data={str(k): v for k, v in val.items()})
+            elif validator == "SumOne":
+                return getattr(OSeMOSYSData, coords).SumOne(
+                    data={str(k): v for k, v in val.items()}
+                )
+            else:
+                return getattr(OSeMOSYSData, coords)(data={str(k): v for k, v in val.items()})
 
     return val
 
 
-def nested_sum_one(values: Mapping) -> bool:
+def nested_sum_one(values: Mapping, info: ValidationInfo) -> bool:
     if isinstance(values, OSeMOSYSData):
         data = values.data
     elif isinstance(values, dict):
@@ -75,16 +97,25 @@ def nested_sum_one(values: Mapping) -> bool:
     df = pd.json_normalize(data).T
     assert (
         df.index.str.split(".").str.len().unique().size == 1
-    ), "Nested dictionary must have consistent depth"
+    ), f"{info.field_name}: Nested dictionary must have consistent depth"
     cols = [f"L{ii}" for ii in range(1, max(df.index.str.split(".").str.len()) + 1)]
     df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
 
-    if not np.allclose(
-        df.groupby(cols[:-1])[0].sum(),
-        1.0,
-        atol=defaults.equals_one_tolerance,
-    ):
-        raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+    if len(cols[:-1]) >= 1:
+        if not np.allclose(
+            df.groupby(cols[:-1]).sum()[0],
+            1.0,
+            atol=defaults.equals_one_tolerance,
+        ):
+            raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+    else:
+        if not np.allclose(
+            df[0].sum(),
+            1.0,
+            atol=defaults.equals_one_tolerance,
+        ):
+            raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+
     return values
 
 
@@ -273,9 +304,6 @@ def _check_nesting_depth(obj_id: str, data: Any, max_depth: int):
 
 
 def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
-    print("sets")
-    print(sets)
-
     # cast 'years' to str
     if "years" in sets.keys():
         sets["years"] = [str(yr) for yr in sets["years"]]

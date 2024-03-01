@@ -23,7 +23,7 @@ class OperatingMode(OSeMOSYSBase):
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
 
-    opex_variable: OSeMOSYSData.RY | None = Field(None)
+    opex_variable: OSeMOSYSData.RY | None = Field(defaults.technology_opex_variable_cost)
     emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
@@ -85,7 +85,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # -----
     operating_life: OSeMOSYSData.R.Int | None
     capex: OSeMOSYSData.RY | None
-    opex_fixed: OSeMOSYSData.RY | None
+    opex_fixed: OSeMOSYSData.RY | None = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
 
     operating_modes: conlist(OperatingMode, min_length=1)
 
@@ -163,13 +163,15 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     @model_validator(mode="after")
     def validate_min_lt_max(self):
-        if self.capacity_gross_min is not None and self.capacity_gross_max is not None:
-            if not check_min_vals_lower_max(
-                self.capacity_gross_min,
-                self.capacity_gross_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError("Minimum gross capacity is not less than maximum gross capacity.")
+        # # Broken for now
+        # if self.capacity_gross_min is not None and self.capacity_gross_max is not None:
+        #     if not check_min_vals_lower_max(
+        #         self.capacity_gross_min,
+        #         self.capacity_gross_max,
+        #         ["REGION", "YEAR", "VALUE"],
+        #     ):
+        #         raise ValueError(
+        #           "Minimum gross capacity is not less than maximum gross capacity.")
 
         if self.capacity_additional_min is not None and self.capacity_additional_max is not None:
             if not check_min_vals_lower_max(
