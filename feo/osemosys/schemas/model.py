@@ -64,6 +64,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     def cast_values(cls, values: Any) -> Any:
         for field, info in cls.model_fields.items():
             field_val = values.get(field)
+
             if field_val is not None:
                 values[field] = cast_osemosysdata_value(field_val, info)
 
