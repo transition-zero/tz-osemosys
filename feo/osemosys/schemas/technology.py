@@ -23,7 +23,9 @@ class OperatingMode(OSeMOSYSBase):
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
 
-    opex_variable: OSeMOSYSData.RY | None = Field(defaults.technology_opex_variable_cost)
+    opex_variable: OSeMOSYSData.RY | None = Field(
+        OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
+    )
     emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)

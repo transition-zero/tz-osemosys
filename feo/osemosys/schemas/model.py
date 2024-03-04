@@ -24,17 +24,17 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
+    storage_technologies: List[Technology] | None = Field(default=None)  # TODO for now
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
-    # storage_technologies: List[TechnologyStorage] | None = Field(None)
 
     # ASSUMPIONS
     # ----------
     depreciation_method: OSeMOSYSData.R.DM | None = Field(
         OSeMOSYSData.R.DM(defaults.depreciation_method)
     )
-    discount_rate: OSeMOSYSData.RT | None = Field(OSeMOSYSData(defaults.discount_rate))
-    reserve_margin: OSeMOSYSData.RY | None = Field(OSeMOSYSData(defaults.reserve_margin))
+    discount_rate: OSeMOSYSData.RT | None = Field(OSeMOSYSData.RT(defaults.discount_rate))
+    reserve_margin: OSeMOSYSData.RY | None = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 
     # TARGETS
     # -------
@@ -42,7 +42,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     @model_validator(mode="after")
     def compose(self):
-        # compose
+        # compose subsidiary objects
         sets = {
             "years": self.time_definition.years,
             "timeslices": self.time_definition.timeslices,
@@ -56,6 +56,26 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         self.regions = [region.compose(**sets) for region in self.regions]
         self.technologies = [technology.compose(**sets) for technology in self.technologies]
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
+
+        # compose own parameters
+        if self.depreciation_method:
+            self.depreciation_method = OSeMOSYSData.R.DM(
+                self.depreciation_method.compose(self.id, self.depreciation_method.data, **sets)
+            )
+        if self.discount_rate:
+            self.discount_rate = OSeMOSYSData.RT(
+                self.discount_rate.compose(self.id, self.discount_rate.data, **sets)
+            )
+        if self.reserve_margin:
+            self.reserve_margin = OSeMOSYSData.RY(
+                self.reserve_margin.compose(self.id, self.reserve_margin.data, **sets)
+            )
+        if self.renewable_production_target:
+            self.renewable_production_target = OSeMOSYSData.RY(
+                self.renewable_production_target.compose(
+                    self.id, self.renewable_production_target.data, **sets
+                )
+            )
 
         return self
 
