@@ -146,17 +146,11 @@ class OtooleCommodity(BaseModel):
         return commodity_instances
 
     @classmethod
-    def to_otoole_csv(cls, commodities: List["Commodity"], output_directory: str):
-        """Write a number of Commodity objects to otoole-organised csvs.
+    def to_dataframes(cls, commodities: List["Commodity"]):
+        # collect dataframes
+        dfs = {}
 
-        Args:
-            commodities (List[Commodity]): A list of Commodity instances
-            output_directory (str): Path to the root of the otoole csv directory
-        """
-
-        # Sets
-        commodities_df = pd.DataFrame({"VALUE": [commodity.id for commodity in commodities]})
-        commodities_df.to_csv(os.path.join(output_directory, "FUEL.csv"), index=False)
+        dfs["FUEL"] = pd.DataFrame({"VALUE": [commodity.id for commodity in commodities]})
 
         # Parameters
         # collect demand dataframes
@@ -187,34 +181,41 @@ class OtooleCommodity(BaseModel):
                 else:
                     accumulated_demand_dfs.append(df)
 
-        if any(
-            [
-                ("SpecifiedDemandProfile" not in commodity.otoole_cfg.empty_dfs)
-                for commodity in commodities
-            ]
-        ):
-            pd.concat(demand_profile_dfs).to_csv(
-                os.path.join(output_directory, "SpecifiedDemandProfile.csv"), index=False
-            )
+        dfs["SpecifiedAnnualDemand"] = (
+            pd.concat(annual_demand_dfs)
+            if annual_demand_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["SpecifiedAnnualDemand"]["columns"])
+        )
+        dfs["AccumulatedAnnualDemand"] = (
+            pd.concat(accumulated_demand_dfs)
+            if accumulated_demand_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["AccumulatedAnnualDemand"]["columns"])
+        )
+        dfs["SpecifiedDemandProfile"] = (
+            pd.concat(demand_profile_dfs)
+            if demand_profile_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["SpecifiedDemandProfile"]["columns"])
+        )
 
-        if any(
-            [
-                ("SpecifiedAnnualDemand" not in commodity.otoole_cfg.empty_dfs)
-                for commodity in commodities
-            ]
-        ):
-            pd.concat(annual_demand_dfs).to_csv(
-                os.path.join(output_directory, "SpecifiedAnnualDemand.csv"), index=False
-            )
+        return dfs
 
-        if any(
-            [
-                ("AccumulatedAnnualDemand" not in commodity.otoole_cfg.empty_dfs)
-                for commodity in commodities
-            ]
-        ):
-            pd.concat(accumulated_demand_dfs).to_csv(
-                os.path.join(output_directory, "AccumulatedAnnualDemand.csv"), index=False
-            )
+    @classmethod
+    def to_otoole_csv(cls, commodities: List["Commodity"], output_directory: str):
+        """Write a number of Commodity objects to otoole-organised csvs.
+
+        Args:
+            commodities (List[Commodity]): A list of Commodity instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
+
+        dfs = cls.to_dataframes(commodities=commodities)
+
+        # Sets
+        dfs["FUEL"].to_csv(os.path.join(output_directory, "FUEL.csv"), index=False)
+
+        # params to csv where appropriate
+        for stem, _params in cls.otoole_stems.items():
+            if any([(stem not in commodity.otoole_cfg.empty_dfs) for commodity in commodities]):
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True

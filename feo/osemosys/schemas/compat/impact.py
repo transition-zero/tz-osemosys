@@ -171,21 +171,16 @@ class OtooleImpact(BaseModel):
         return impact_instances
 
     @classmethod
-    def to_otoole_csv(cls, impacts: List["Impact"], output_directory: str):
-        """Write a number of Impact objects to otoole-organised csvs.
+    def to_dataframes(cls, impacts: List["Impact"]) -> dict[str, pd.DataFrame]:
+        """Write a number of Impact objects to otoole-organised dataframes.
 
         Args:
             impacts (List[Impact]): A list of Impact instances
-            output_directory (str): Path to the root of the otoole csv directory
+
+        Returns:
+            dict[str, pd.DataFrame]: A dictionary of dataframes
         """
 
-        # TODO: it's getting wet. Refactor into functions alongside other compat methods
-
-        # Sets
-        impacts_df = pd.DataFrame({"VALUE": [impact.id for impact in impacts]})
-        impacts_df.to_csv(os.path.join(output_directory, "EMISSION.csv"), index=False)
-
-        # Parameters
         # collect constraint, exogenous, and penalty dataframes
         penalty_dfs = []
         annual_constraint_dfs = []
@@ -226,38 +221,43 @@ class OtooleImpact(BaseModel):
                 df["REGION"] = df.index
                 total_exogenous_dfs.append(df)
 
-        if any([("EmissionsPenalty" not in impact.otoole_cfg.empty_dfs) for impact in impacts]):
-            pd.concat(penalty_dfs).to_csv(
-                os.path.join(output_directory, "EmissionsPenalty.csv"), index=False
-            )
+        # collect concatenaed dfs
+        dfs = {}
+        if penalty_dfs:
+            dfs["EmissionsPenalty"] = pd.concat(penalty_dfs)
+        if annual_constraint_dfs:
+            dfs["AnnualEmissionLimit"] = pd.concat(annual_constraint_dfs)
+        if total_constraint_dfs:
+            dfs["ModelPeriodEmissionLimit"] = pd.concat(total_constraint_dfs)
+        if annual_exogenous_dfs:
+            dfs["AnnualExogenousEmission"] = pd.concat(annual_exogenous_dfs)
+        if total_exogenous_dfs:
+            dfs["ModelPeriodExogenousEmission"] = pd.concat(total_exogenous_dfs)
 
-        if any([("AnnualEmissionLimit" not in impact.otoole_cfg.empty_dfs) for impact in impacts]):
-            pd.concat(annual_constraint_dfs).to_csv(
-                os.path.join(output_directory, "AnnualEmissionLimit.csv"), index=False
-            )
+        # SETS
+        dfs["EMISSION"] = pd.DataFrame({"VALUE": [impact.id for impact in impacts]})
 
-        if any(
-            [("AnnualExogenousEmission" not in impact.otoole_cfg.empty_dfs) for impact in impacts]
-        ):
-            pd.concat(annual_exogenous_dfs).to_csv(
-                os.path.join(output_directory, "AnnualExogenousEmission.csv"), index=False
-            )
+        return dfs
 
-        if any(
-            [("ModelPeriodEmissionLimit" not in impact.otoole_cfg.empty_dfs) for impact in impacts]
-        ):
-            pd.concat(total_constraint_dfs).to_csv(
-                os.path.join(output_directory, "ModelPeriodEmissionLimit.csv"), index=False
-            )
+    @classmethod
+    def to_otoole_csv(cls, impacts: List["Impact"], output_directory: str):
+        """Write a number of Impact objects to otoole-organised csvs.
 
-        if any(
-            [
-                ("ModelPeriodExogenousEmission" not in impact.otoole_cfg.empty_dfs)
-                for impact in impacts
-            ]
-        ):
-            pd.concat(total_exogenous_dfs).to_csv(
-                os.path.join(output_directory, "ModelPeriodExogenousEmission.csv"), index=False
-            )
+        Args:
+            impacts (List[Impact]): A list of Impact instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
+
+        # TODO: it's getting wet. Refactor into functions alongside other compat methods
+
+        dfs = cls.to_dataframes(impacts)
+
+        # set to csv
+        dfs["IMPACT"].to_csv(os.path.join(output_directory, "IMPACT.csv"), index=False)
+
+        # params to csv where appropriate
+        for stem, _params in cls.otoole_stems.items():
+            if any([(stem not in impact.otoole_cfg.empty_dfs) for impact in impacts]):
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True
