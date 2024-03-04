@@ -2,7 +2,7 @@ import xarray as xr
 from linopy import Model
 
 
-def add_emissions_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: float) -> Model:
+def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
     """Add Emissions constraints to the model.
     Applies (1) user-defined emission limits annually and for the entire model period,
     (2) Emission penalities, and
@@ -84,6 +84,11 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: flo
         ModelPeriodEmissionLimit[r,e];
         ```
     """
+
+    discount_factor_mid = (1 + ds["DiscountRate"]) ** (
+        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
+    )
+
     mask = ds["EmissionActivityRatio"].notnull()
     con = (
         ds["EmissionActivityRatio"] * m["TotalAnnualTechnologyActivityByMode"]

@@ -5,9 +5,6 @@ from linopy import Model
 def add_capital_costs_constraints(
     ds: xr.Dataset,
     m: Model,
-    capital_recovery_factor: float,
-    pv_annuity: float,
-    discount_factor: float,
 ) -> Model:
     """Add Capital Costs constraint to the model.
     Calculates the total capital expenditure - both discounted and undiscounted - of new technology
@@ -45,6 +42,19 @@ def add_capital_costs_constraints(
         CapitalInvestment[r,t,y]  / DiscountFactor[r,y] = DiscountedCapitalInvestment[r,t,y];
     ```
     """
+
+    discount_factor = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
+
+    pv_annuity = (
+        (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
+        * (1 + ds["DiscountRateIdv"])
+        / ds["DiscountRateIdv"]
+    )
+
+    capital_recovery_factor = (1 - (1 + ds["DiscountRateIdv"]) ** (-1)) / (
+        1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
+    )
+
     con = (
         ds["CapitalCost"].fillna(0) * m["NewCapacity"] * capital_recovery_factor * pv_annuity
         - m["CapitalInvestment"]
