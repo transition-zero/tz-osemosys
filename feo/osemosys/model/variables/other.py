@@ -43,6 +43,7 @@ def add_margin_variables(ds: xr.Dataset, m: Model) -> Model:
     m.add_variables(
         lower=0, upper=inf, coords=coords, name="DemandNeedingReserveMargin", integer=False
     )
+    return m
 
 
 def add_re_variables(ds: xr.Dataset, m: Model) -> Model:
