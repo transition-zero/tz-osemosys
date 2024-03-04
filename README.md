@@ -52,7 +52,7 @@ FEO-OSeMOSYS provides several entrypoints to get started quickly, however your m
 **From Pydantic objects**
 
 ```
-from feo.osemosys import Model, Technology, TimeDefinition, Commodity, Region, Impact, OperatingMode
+from feo.osemosys import Model, Technology, TimeDefinition, Commodity, Region, OperatingMode
 
 time_definition=TimeDefinition(id="years-only", years=range(2020,2051))
 regions = [Region(id="single-region")]
