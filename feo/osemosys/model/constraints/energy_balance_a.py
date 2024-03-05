@@ -99,6 +99,7 @@ def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
         Demand[r,l,f,y] + Use[r,l,f,y] + sum{rr in REGION} Trade[r,rr,l,f,y] * TradeRoute[r,rr,f,y];
     ```
     """
+    """
     mask = ds["OutputActivityRatio"].notnull()
     con = (
         m["RateOfActivity"] * ds["OutputActivityRatio"] - m["RateOfProductionByTechnologyByMode"]
@@ -137,10 +138,12 @@ def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
     mask = ds["OutputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0
     m.add_constraints(con, name="EBa7_EnergyBalanceEachTS1", mask=mask)
 
+
     con = (m["RateOfUse"] * ds["YearSplit"]) - m["Use"] == 0
     mask = ds["InputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0
     m.add_constraints(con, name="EBa8_EnergyBalanceEachTS2", mask=mask)
 
+    """
     con = (m["RateOfDemand"] * ds["YearSplit"]) - m["Demand"] == 0
     mask = ds["SpecifiedAnnualDemand"].notnull()
     m.add_constraints(con, name="EBa9_EnergyBalanceEachTS3", mask=mask)
@@ -151,10 +154,29 @@ def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
     con = m["Trade"].where(from_mask) + m["Trade"].where(to_mask) == 0
     m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4")
 
+    """
     con = (
         m["Production"]
         - (m["Demand"] + m["Use"] + (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION"))
         >= 0
     )
     m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5")
+    """
+    production = (
+        ds["OutputActivityRatio"].where(
+            ds["OutputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0
+        )
+        * ds["YearSplit"]
+    )
+
+    con = (m["RateOfActivity"] * production.sum(["TECHNOLOGY", "MODE_OF_OPERATION"])) - (
+        m["Demand"]
+        + (m["RateOfActivity"] * ds["InputActivityRatio"] * ds["YearSplit"])
+        .fillna(0)
+        .where(ds["InputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0)
+        .sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
+        + (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION")
+    ) >= 0
+    # mask = production.notnull()
+    m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_alt")
     return m

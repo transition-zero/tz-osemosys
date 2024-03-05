@@ -43,22 +43,49 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalCapacityInReserveMargin[r,y];
     ```
     """
-    con = (
-        ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"] * m["TotalCapacityAnnual"]
-        - m["TotalCapacityInReserveMargin"]
-        == 0
-    )
-    mask = (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagTechnology"] == 1)
-    m.add_constraints(
-        con, name="RM1_ReserveMargin_TechnologiesIncluded_In_Activity_Units", mask=mask
-    )
+    # con = (
+    #     ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"] * m["TotalCapacityAnnual"]
+    #     - m["TotalCapacityInReserveMargin"]
+    #     == 0
+    # )
+    # mask = (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagTechnology"] == 1)
+    # m.add_constraints(
+    #     con, name="RM1_ReserveMargin_TechnologiesIncluded_In_Activity_Units", mask=mask
+    # )
 
-    con = ds["ReserveMarginTagFuel"] * m["RateOfProduction"] - m["DemandNeedingReserveMargin"] == 0
-    mask = (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1)
-    m.add_constraints(con, name="RM2_ReserveMargin_FuelsIncluded", mask=mask)
+    # con = (ds["ReserveMarginTagFuel"] * m["RateOfProduction"] -
+    # m["DemandNeedingReserveMargin"] == 0)
+    # con = (ds["ReserveMarginTagFuel"] *
+    #        (((m["RateOfActivity"] * ds["OutputActivityRatio"]).
+    #          where(ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0).
+    #          sum(dims="MODE_OF_OPERATION")).
+    #         sum(dims="TECHNOLOGY")) -
+    #        m["DemandNeedingReserveMargin"]
+    #        == 0)
+    # mask = (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1)
+    # m.add_constraints(con, name="RM2_ReserveMargin_FuelsIncluded", mask=mask)
 
+    # con = (
+    #     ds["ReserveMargin"] * m["DemandNeedingReserveMargin"] - m["TotalCapacityInReserveMargin"]
+    #     == 0
+    # )
     con = (
-        ds["ReserveMargin"] * m["DemandNeedingReserveMargin"] - m["TotalCapacityInReserveMargin"]
+        ds["ReserveMargin"]
+        * (
+            ds["ReserveMarginTagFuel"]
+            * (
+                (
+                    (m["RateOfActivity"] * ds["OutputActivityRatio"])
+                    .where(ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0)
+                    .sum(dims="MODE_OF_OPERATION")
+                ).sum(dims="TECHNOLOGY")
+            )
+        )
+        - (
+            ds["ReserveMarginTagTechnology"]
+            * ds["CapacityToActivityUnit"]
+            * m["TotalCapacityAnnual"]
+        )
         == 0
     )
     mask = ds["ReserveMargin"] > 0

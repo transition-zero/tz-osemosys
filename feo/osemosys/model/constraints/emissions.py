@@ -14,9 +14,6 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: flo
         The parameters dataset
     m: linopy.Model
         A linopy model
-    discount_factor_mid: float
-        The discount factor for operational costs, taken from the midpoint of the year to account
-        for ongoing discounting
 
     Returns
     -------

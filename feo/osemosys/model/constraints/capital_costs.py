@@ -19,12 +19,6 @@ def add_capital_costs_constraints(
         The parameters dataset
     m: linopy.Model
         A linopy model
-    capital_recovery_factor: float
-        The capital recovery factor used in the calculation of capital costs
-    pv_annuity: float
-        The present value annuity factor
-    discount_factor: float
-        The discount factor for capital costs
 
     Returns
     -------
