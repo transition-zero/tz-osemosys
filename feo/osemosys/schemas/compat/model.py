@@ -311,7 +311,7 @@ class RunSpecOtoole(BaseModel):
 
         # reserve margins
         if self.reserve_margin:
-            df = pd.json_normalize(self.reserve_margin).T.rename(columns={0: "VALUE"})
+            df = pd.json_normalize(self.reserve_margin.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
             dfs["ReserveMargin"] = df
 
@@ -346,9 +346,11 @@ class RunSpecOtoole(BaseModel):
 
         # min renewable production targets
         if self.renewable_production_target:
-            df = pd.json_normalize(self.renewable_production_target).T.rename(columns={0: "VALUE"})
+            df = pd.json_normalize(self.renewable_production_target.data).T.rename(
+                columns={0: "VALUE"}
+            )
             df[["REGION", "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
-            dfs["ReserveMargin"] = df
+            dfs["REMinProductionTarget"] = df
 
             dfs_tag_technology = []
             for technology in self.technologies:
