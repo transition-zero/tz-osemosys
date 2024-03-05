@@ -3,7 +3,7 @@ from linopy import Model
 from numpy import inf
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
+def add_storage_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add storage variables to the model
 
         Arguments

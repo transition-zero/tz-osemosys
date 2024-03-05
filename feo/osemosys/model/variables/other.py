@@ -3,7 +3,7 @@ from linopy import Model
 from numpy import inf
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
+def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add all variables to the model
 
     Arguments

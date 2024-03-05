@@ -5,7 +5,7 @@ from numpy import inf
 # object oriented?
 
 
-def add(ds: xr.Dataset, m: Model) -> Model:
+def add_demand_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add demand variables to the model
 
     Arguments
