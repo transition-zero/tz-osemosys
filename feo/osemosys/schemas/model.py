@@ -1,4 +1,5 @@
 import warnings
+from copy import deepcopy
 from typing import Any, List
 
 from pydantic import Field, model_validator
@@ -33,12 +34,33 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     depreciation_method: OSeMOSYSData.R.DM | None = Field(
         OSeMOSYSData.R.DM(defaults.depreciation_method)
     )
-    discount_rate: OSeMOSYSData.RT | None = Field(OSeMOSYSData.RT(defaults.discount_rate))
+    # DiscountRateIdv
+    cost_of_capital: OSeMOSYSData.RT | None = Field(None)
+    discount_rate: OSeMOSYSData.R | None = Field(OSeMOSYSData.RT(defaults.discount_rate))
     reserve_margin: OSeMOSYSData.RY | None = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 
     # TARGETS
     # -------
     renewable_production_target: OSeMOSYSData.RY | None = Field(None)
+
+    def maybe_mixin_discount_rate(self, regions, technologies, **sets):
+        if self.cost_of_capital is None:
+            # if cost_of_capital is not provided, use discount_rate
+            return deepcopy(self.discount_rate)
+        else:
+            # cost-of-capital exists but we may need to mixin
+            if isinstance(self.cost_of_capital.data, float):
+                # if cost_of_capital is a float, return it, it'll cast on composition
+                return self.cost_of_capital
+            elif isinstance(self.cost_of_capital.data, dict):
+                # first compose to fill any wild vals
+
+                # then mix back in the discount rate or default val
+                # jsut for now do this
+                return 1
+
+            else:
+                raise ValueError(f"Wrong datatype for cost_of_capital: {self.cost_of_capital.data}")
 
     @model_validator(mode="after")
     def compose(self):
@@ -63,7 +85,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
                 self.depreciation_method.compose(self.id, self.depreciation_method.data, **sets)
             )
         if self.discount_rate:
-            self.discount_rate = OSeMOSYSData.RT(
+            self.discount_rate = OSeMOSYSData.R(
                 self.discount_rate.compose(self.id, self.discount_rate.data, **sets)
             )
         if self.reserve_margin:
@@ -76,6 +98,12 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
                     self.id, self.renewable_production_target.data, **sets
                 )
             )
+
+        self.cost_of_capital = self.maybe_mixin_discount_rate()
+
+        self.cost_of_capital = OSeMOSYSData.RT(
+            self.cost_of_capital.compose(self.id, self.cost_of_capital.data, **sets)
+        )
 
         return self
 
