@@ -409,9 +409,7 @@ class OtooleTechnology(BaseModel):
         # write dataframes
         for stem, _params in cls.otoole_stems.items():
             if any([(stem not in technology.otoole_cfg.empty_dfs) for technology in technologies]):
-                pd.concat(dfs[stem]).to_csv(
-                    os.path.join(output_directory, f"{stem}.csv"), index=False
-                )
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True
 
