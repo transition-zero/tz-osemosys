@@ -2,12 +2,10 @@ import glob
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from feo.osemosys.schemas import RunSpec
 
 
-@pytest.mark.skip(reason="Many forthcoming changes with object construction.")
 def test_files_equality():
     """
     Check CSVs are equivalent after creating a RunSpec object from CSVs and writing to CSVs
@@ -18,10 +16,10 @@ def test_files_equality():
     create_output_directory(output_directory)
 
     # uses the class method on the base class to instantiate itself
-    run_spec_object = RunSpec.from_otoole(root_dir=root_dir)
+    run_spec_object = RunSpec.from_otoole_csv(root_dir=root_dir)
 
     # Write output CSVs
-    run_spec_object.to_otoole(output_directory=output_directory)
+    run_spec_object.to_otoole_csv(output_directory=output_directory)
 
     comparison_files = glob.glob(output_directory + "*.csv")
     comparison_files = {Path(f).stem: f for f in comparison_files}
@@ -46,10 +44,11 @@ def check_files_equality(original_files, comparison_files):
     Check if the files from original and comparison directories are equal.
     """
     for stem, original_file in original_files.items():
+        original_cols = pd.read_csv(original_file).columns.tolist()
         try:
             original_df_sorted = (
-                pd.read_csv(original_file)
-                .sort_values(by=pd.read_csv(original_file).columns.tolist())
+                pd.read_csv(original_file)[original_cols]
+                .sort_values(by=original_cols)
                 .reset_index(drop=True)
             )
             # Cast all parameter values to floats
@@ -57,8 +56,8 @@ def check_files_equality(original_files, comparison_files):
                 original_df_sorted["VALUE"] = original_df_sorted["VALUE"].astype(float)
 
             comparison_df_sorted = (
-                pd.read_csv(comparison_files[stem])
-                .sort_values(by=pd.read_csv(comparison_files[stem]).columns.tolist())
+                pd.read_csv(comparison_files[stem])[original_cols]
+                .sort_values(by=original_cols)
                 .reset_index(drop=True)
             )
             # Cast all parameter values to floats
@@ -77,7 +76,7 @@ def check_files_equality(original_files, comparison_files):
         except AssertionError as e:
             print(f"Assertion Error: {e}")
             print("---------- original_df_sorted ----------")
-            print(original_df_sorted.head(10))
+            print(original_df_sorted)
             print("---------- comparison_df_sorted ----------")
-            print(comparison_df_sorted.head(10))
+            print(comparison_df_sorted)
             raise

@@ -1,5 +1,6 @@
 import pytest
 
+from feo.osemosys.schemas.base import _check_set_membership
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.technology import Technology
@@ -119,6 +120,23 @@ FAILING_IMPACTS = dict(
         ),
     )
 )
+
+
+def test_compose_logic():
+    _id = ("no-id",)
+    data = {
+        "R1": {"T1": 1},
+        "R2": {"*": 2},
+        "*": {"T1": 5},
+    }
+    sets = {
+        "regions": ["R1", "R2", "R3"],
+        "technologies": ["T1", "T2", "T3"],
+    }
+
+    new_data = _check_set_membership(_id, data, sets)
+
+    assert new_data == {"R1": {"T1": 1}, "R2": {"T1": 1, "T2": 2, "T3": 5}, "R3": {"T1": 5}}
 
 
 def test_compose_impact():
