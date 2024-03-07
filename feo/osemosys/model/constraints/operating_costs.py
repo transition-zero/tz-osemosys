@@ -49,24 +49,18 @@ def add_operating_costs_constraints(ds: xr.Dataset, m: Model, discount_factor_mi
         DiscountedOperatingCost[r,t,y];
     ```
     """
-    con = (m["TotalAnnualTechnologyActivityByMode"] * ds["VariableCost"].fillna(0)).sum(
-        dims="MODE_OF_OPERATION"
-    ) - m["AnnualVariableOperatingCost"] == 0
-    mask = (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0) & (
-        ~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()
+    TotalAnnualTechnologyActivityByMode = (m["RateOfActivity"] * ds["YearSplit"]).sum("TIMESLICE")
+    AnnualVariableOperatingCost = (
+        (TotalAnnualTechnologyActivityByMode * ds["VariableCost"].fillna(0))
+        .sum(dims="MODE_OF_OPERATION")
+        .where(
+            (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
+            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
+        )
     )
-    m.add_constraints(con, name="OC1_OperatingCostsVariable", mask=mask)
+    AnnualFixedOperatingCost = m["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
+    OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
-    con = (m["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)) - m[
-        "AnnualFixedOperatingCost"
-    ] == 0
-    # mask = ~ds['FixedCost'].isnull()
-    m.add_constraints(con, name="OC2_OperatingCostsFixedAnnual")
-
-    con = m["AnnualFixedOperatingCost"] + m["AnnualVariableOperatingCost"] - m["OperatingCost"] == 0
-    # mask = (ds['VariableCost'].sum(dim='MODE_OF_OPERATION') != 0) & (~ds['FixedCost'].isnull())
-    m.add_constraints(con, name="OC3_OperatingCostsTotalAnnual")
-
-    con = (m["OperatingCost"] / discount_factor_mid) - m["DiscountedOperatingCost"] == 0
+    con = (OperatingCost / discount_factor_mid) - m["DiscountedOperatingCost"] == 0
     m.add_constraints(con, name="OC4_DiscountedOperatingCostsTotalAnnual")
     return m

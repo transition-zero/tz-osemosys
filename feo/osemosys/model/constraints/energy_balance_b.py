@@ -48,45 +48,30 @@ def add_energy_balance_b_constraints(ds: xr.Dataset, m: Model) -> Model:
         AccumulatedAnnualDemand[r,f,y];
     ```
     """
-    # con = m["Production"].sum(dims="TIMESLICE") - m["ProductionAnnual"] == 0
-    # con = ((m["RateOfActivity"] *
-    #        ds["OutputActivityRatio"] *
-    #        ds["YearSplit"]).fillna(0).sum(["TECHNOLOGY",
-    #                                        "MODE_OF_OPERATION"]).sum(dims="TIMESLICE") -
-    #        m["ProductionAnnual"] == 0)
-    # m.add_constraints(con, name="EBb1_EnergyBalanceEachYear1")
-
-    # con = m["Use"].sum("TIMESLICE") - m["UseAnnual"] == 0
-    # con = ((m["RateOfActivity"] *
-    #        ds["InputActivityRatio"] *
-    #        ds["YearSplit"]).fillna(0).sum(["TECHNOLOGY",
-    #                                        "MODE_OF_OPERATION"]).sum(dims="TIMESLICE") -
-    #        m["UseAnnual"] == 0)
-    # m.add_constraints(con, name="EBb2_EnergyBalanceEachYear2")
-
-    # con = m["Trade"].sum("TIMESLICE") - m["TradeAnnual"] == 0
-    # mask = ds.coords["REGION"] != ds.coords["_REGION"]
-    # m.add_constraints(con, name="EBb3_EnergyBalanceEachYear3", mask=mask)
-
-    # con = m["ProductionAnnual"] - m["UseAnnual"] - (
-    #     m["TradeAnnual"].sum("_REGION") * ds["TradeRoute"].sum("_REGION")
-    # ) >= ds["AccumulatedAnnualDemand"].fillna(0)
-    con = (
-        (m["RateOfActivity"] * ds["OutputActivityRatio"] * ds["YearSplit"])
-        .fillna(0)
-        .where(ds["OutputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0)
-        .sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-    ) - (
-        (m["RateOfActivity"] * ds["InputActivityRatio"] * ds["YearSplit"])
-        .fillna(0)
-        .where(ds["InputActivityRatio"].sum(dim=["TECHNOLOGY", "MODE_OF_OPERATION"]) != 0)
-        .sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-    ) - (
-        (m["Trade"].sum(["TIMESLICE", "_REGION"])) * ds["TradeRoute"].sum("_REGION")
-    ) >= ds[
-        "AccumulatedAnnualDemand"
-    ].fillna(
-        0
+    # Production
+    RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
+        ds["OutputActivityRatio"].notnull()
     )
+    RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
+        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0
+    ).sum(dims="MODE_OF_OPERATION")
+    RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
+    Production = RateOfProduction * ds["YearSplit"]
+    ProductionAnnual = Production.sum(dims="TIMESLICE")
+
+    # Use
+    RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
+        ds["InputActivityRatio"].notnull()
+    )
+    RateOfUseByTechnology = RateOfUseByTechnologyByMode.where(
+        ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0
+    ).sum(dims="MODE_OF_OPERATION")
+    RateOfUse = RateOfUseByTechnology.sum(dims="TECHNOLOGY")
+    Use = RateOfUse * ds["YearSplit"]
+    UseAnnual = Use.sum(dims="TIMESLICE")
+
+    con = ProductionAnnual - UseAnnual - (
+        (m["Trade"].sum(["TIMESLICE", "_REGION"])) * ds["TradeRoute"].sum("_REGION")
+    ) >= ds["AccumulatedAnnualDemand"].fillna(0)
     m.add_constraints(con, name="EBb4_EnergyBalanceEachYear4")
     return m

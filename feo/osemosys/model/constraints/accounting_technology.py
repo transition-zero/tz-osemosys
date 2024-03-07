@@ -45,19 +45,5 @@ def add_accounting_technology_constraints(ds: xr.Dataset, m: Model) -> Model:
         sum{y in YEAR}TotalDiscountedCost[r,y] = ModelPeriodCostByRegion[r];
     ```
     """
-    # con = (m["RateOfProductionByTechnology"] * ds["YearSplit"]) - m["ProductionByTechnology"] == 0
-    # mask = ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    # m.add_constraints(con, name="Acc1_FuelProductionByTechnology", mask=mask)
 
-    # con = (m["RateOfUseByTechnology"] * ds["YearSplit"]) - m["UseByTechnology"] == 0
-    # mask = ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    # m.add_constraints(con, name="Acc2_FuelUseByTechnology", mask=mask)
-
-    con = (m["RateOfActivity"] * ds["YearSplit"]).sum("TIMESLICE") - m[
-        "TotalAnnualTechnologyActivityByMode"
-    ] == 0
-    m.add_constraints(con, name="Acc3_AverageAnnualRateOfActivity")
-
-    con = m["TotalDiscountedCost"].sum("YEAR") - m["ModelPeriodCostByRegion"] == 0
-    m.add_constraints(con, name="Acc4_ModelPeriodCostByRegion")
     return m

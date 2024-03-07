@@ -62,11 +62,10 @@ def add_capacity_adequacy_a_constraints(ds: xr.Dataset, m: Model) -> Model:
     con = m["TotalCapacityAnnual"] - m["AccumulatedNewCapacity"] == ds["ResidualCapacity"].fillna(0)
     m.add_constraints(con, name="CAa2_TotalAnnualCapacity")
 
-    con = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION") - m["RateOfTotalActivity"] == 0
-    m.add_constraints(con, name="CAa3_TotalActivityOfEachTechnology")
+    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
 
     con = (
-        m["RateOfTotalActivity"]
+        RateOfTotalActivity
         - (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["CapacityToActivityUnit"])
         <= 0
     )
