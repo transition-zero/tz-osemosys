@@ -1,46 +1,39 @@
+import logging
 import os
 import re
-
-# Suppress FutureWarning messages
 import warnings
-
-from otoole import read
-from otoole.utils import _read_file
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
-
-import logging
 
 import xarray as xr
 from linopy import Model
+from memory_profiler import profile
+from otoole import read
+from otoole.utils import _read_file
 
-from feo.osemosys.model.constraints.accounting_technology import *
-from feo.osemosys.model.constraints.annual_activity import *
-from feo.osemosys.model.constraints.capacity_adequacy_a import *
-from feo.osemosys.model.constraints.capacity_adequacy_b import *
-from feo.osemosys.model.constraints.capital_costs import *
+from feo.osemosys.model.variables.activity import add_activity_variables
+from feo.osemosys.model.variables.capacity import add_capacity_variables
+from feo.osemosys.model.variables.demand import add_demand_variables
+from feo.osemosys.model.variables.emissions import add_emission_variables
+from feo.osemosys.model.variables.other import add_other_variables
 
-# Constraints
-from feo.osemosys.model.constraints.demand import *
-from feo.osemosys.model.constraints.emissions import *
-from feo.osemosys.model.constraints.energy_balance_a import *
-from feo.osemosys.model.constraints.energy_balance_b import *
-from feo.osemosys.model.constraints.new_capacity import *
-from feo.osemosys.model.constraints.operating_costs import *
-from feo.osemosys.model.constraints.re_targets import *
-from feo.osemosys.model.constraints.reserve_margin import *
-from feo.osemosys.model.constraints.salvage_value import *
-from feo.osemosys.model.constraints.total_activity import *
-from feo.osemosys.model.constraints.total_capacity import *
-from feo.osemosys.model.constraints.total_discounted_costs import *
+from .constraints.accounting_technology import add_accounting_technology_constraints
+from .constraints.annual_activity import add_annual_activity_constraints
+from .constraints.capacity_adequacy_a import add_capacity_adequacy_a_constraints
+from .constraints.capacity_adequacy_b import add_capacity_adequacy_b_constraints
+from .constraints.capital_costs import add_capital_costs_constraints
+from .constraints.demand import add_demand_constraints
+from .constraints.emissions import add_emissions_constraints
+from .constraints.energy_balance_a import add_energy_balance_a_constraints
+from .constraints.energy_balance_b import add_energy_balance_b_constraints
+from .constraints.new_capacity import add_new_capacity_constraints
+from .constraints.operating_costs import add_operating_costs_constraints
+from .constraints.re_targets import add_re_targets_constraints
+from .constraints.reserve_margin import add_reserve_margin_constraints
+from .constraints.salvage_value import add_salvage_value_constraints
+from .constraints.total_activity import add_total_activity_constraints
+from .constraints.total_capacity import add_total_capacity_constraints
+from .constraints.total_discounted_costs import add_total_discounted_costs_constraints
 
-# Variables
-from feo.osemosys.model.variables.activity import *
-from feo.osemosys.model.variables.capacity import *
-from feo.osemosys.model.variables.demand import *
-from feo.osemosys.model.variables.emissions import *
-from feo.osemosys.model.variables.other import *
-from feo.osemosys.model.variables.storage import *
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 # RunSpec
 
@@ -48,7 +41,26 @@ from feo.osemosys.model.variables.storage import *
 logger = logging.getLogger(__name__)
 
 
-def create_and_run_linopy(model_name: str, annotated_lp=False):
+@profile
+def create_and_run_linopy(model_name: str, annotated_lp=False) -> Model:
+    """Add demand constraint to the model
+
+    Arguments
+    ---------
+    m: linopy.Model
+        A linopy model
+    annotated_lp: True / False
+        Set whether to write an annotated LP file. Default is False.
+
+    Returns
+    -------
+    linopy.Model
+
+
+    Notes
+    -----
+
+    """
     config_path = os.path.join("examples/otoole_config_files", f"{model_name}.yaml")
 
     folder_path = os.path.join("examples/otoole_csvs", model_name)
@@ -56,25 +68,16 @@ def create_and_run_linopy(model_name: str, annotated_lp=False):
     (
         ds,
         m,
+        capital_recovery_factor,
+        pv_annuity,
         discount_factor,
         discount_factor_mid,
-        discount_factor_idv,
-        discount_factor_mid_idv,
-        pv_annuity,
-        capital_recovery_factor,
     ) = create_base_linopy_model(config_path, folder_path)
 
     m = add_linopy_variables(ds, m)
 
     m = add_linopy_constraints(
-        ds,
-        m,
-        discount_factor,
-        discount_factor_mid,
-        discount_factor_idv,
-        discount_factor_mid_idv,
-        pv_annuity,
-        capital_recovery_factor,
+        ds, m, capital_recovery_factor, pv_annuity, discount_factor, discount_factor_mid
     )
 
     m = run_linopy_model(m, model_name)
@@ -84,7 +87,31 @@ def create_and_run_linopy(model_name: str, annotated_lp=False):
     return m
 
 
+@profile
 def create_base_linopy_model(config_path: str, folder_path: str):
+    """Create a Linopy model
+
+    Arguments
+    ---------
+    m: linopy.Model
+        A linopy model
+    annotated_lp: True / False
+        Set whether to write an annotated LP file. Default is False.
+
+    Returns
+    -------
+    xarray.Dataset
+    Linopy.Model
+    capital_recovery_factor: float
+    pv_annuity: float
+    discount_factor: float
+    discount_factor_mid: float
+
+
+    Notes
+    -----
+
+    """
     # Open input data files
     with open(config_path) as config_file:
         config = _read_file(config_file, ".yaml")
@@ -113,12 +140,7 @@ def create_base_linopy_model(config_path: str, folder_path: str):
     discount_factor_mid = (1 + ds["DiscountRate"]) ** (
         ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
     )
-    discount_factor_idv = (1 + ds["DiscountRateIdv"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"])
-    )
-    discount_factor_mid_idv = (1 + ds["DiscountRateIdv"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
-    )
+
     pv_annuity = (
         (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
         * (1 + ds["DiscountRateIdv"])
@@ -129,19 +151,28 @@ def create_base_linopy_model(config_path: str, folder_path: str):
     capital_recovery_factor_den = 1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
 
     capital_recovery_factor = capital_recovery_factor_num / capital_recovery_factor_den
-    return (
-        ds,
-        m,
-        discount_factor,
-        discount_factor_mid,
-        discount_factor_idv,
-        discount_factor_mid_idv,
-        pv_annuity,
-        capital_recovery_factor,
-    )
+    return (ds, m, capital_recovery_factor, pv_annuity, discount_factor, discount_factor_mid)
 
 
+@profile
 def add_linopy_variables(ds: xr.Dataset, m: Model) -> Model:
+    """Add Linopy variables to the model
+
+    Arguments
+    ---------
+    ds: xarray.Dataset
+        The parameters dataset
+    m: linopy.Model
+        A linopy model
+
+    Returns
+    -------
+    linopy.Model
+
+    Notes
+    -----
+
+    """
     m = add_activity_variables(ds, m)
     m = add_capacity_variables(ds, m)
     m = add_demand_variables(ds, m)
@@ -151,16 +182,40 @@ def add_linopy_variables(ds: xr.Dataset, m: Model) -> Model:
     return m
 
 
+@profile
 def add_linopy_constraints(
     ds: xr.Dataset,
     m: Model,
+    capital_recovery_factor: float,
+    pv_annuity: float,
     discount_factor: float,
     discount_factor_mid: float,
-    discount_factor_idv: float,
-    discount_factor_mid_idv: float,
-    pv_annuity: float,
-    capital_recovery_factor: float,
 ) -> Model:
+    """Add Linopy constraints to the model
+
+    Arguments
+    ---------
+    ds: xarray.Dataset
+        The parameters dataset
+    m: linopy.Model
+        A linopy model
+    capital_recovery_factor: float
+        Capital Recovery Factor
+    pv_annuity: float
+        PV Annuity
+    discount_factor: float
+        Discount factor
+    discount_factor_mid: float
+        Discount factor - mid-year
+
+    Returns
+    -------
+    linopy.Model
+
+    Notes
+    -----
+
+    """
     m = add_demand_constraints(ds, m)
     m = add_capacity_adequacy_a_constraints(ds, m)
     m = add_capacity_adequacy_b_constraints(ds, m)
@@ -184,7 +239,26 @@ def add_linopy_constraints(
     return m
 
 
-def run_linopy_model(m: Model, model_name: str):
+@profile
+def run_linopy_model(m: Model, model_name: str) -> Model:
+    """Run Linopy model
+
+    Arguments
+    ---------
+    m: linopy.Model
+        A linopy model
+    model_name: str
+        Name of reference model
+
+    Returns
+    -------
+    linopy.Model
+
+
+    Notes
+    -----
+
+    """
     # Solve Model
     results_path = f"../results/{model_name}/"
     if not os.path.exists(results_path):
@@ -196,7 +270,25 @@ def run_linopy_model(m: Model, model_name: str):
     return m
 
 
-def write_annotated_lp(m: Model, model_name: str):
+@profile
+def write_annotated_lp(m: Model, model_name: str) -> Model:
+    """Write an annotated LP file
+
+    Arguments
+    ---------
+    m: linopy.Model
+        A linopy model
+    model_name: str
+        Name of reference model
+
+    Returns
+    -------
+    linopy.Model
+
+    Notes
+    -----
+
+    """
     variable = re.compile("x[0-9]+")
     constraint = re.compile("c[0-9]+")
 
@@ -215,7 +307,5 @@ def write_annotated_lp(m: Model, model_name: str):
                     name = m.variables.get_name_by_label(label)
                     line = line.replace(var, name)
                 annotated.write(line)
-                # if idx > 1789554:
-                #    break
-
-
+                if idx > 1789554:
+                    break

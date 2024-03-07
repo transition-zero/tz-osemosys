@@ -22,18 +22,13 @@ def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
 
     # Costing Variables
 
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="CapitalInvestment", integer=False)
     m.add_variables(
         lower=0, upper=inf, coords=RTeY, name="DiscountedCapitalInvestment", integer=False
     )
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="SalvageValue", integer=False)
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="DiscountedSalvageValue", integer=False)
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="OperatingCost", integer=False)
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="DiscountedOperatingCost", integer=False)
-    m.add_variables(
-        lower=0, upper=inf, coords=RTeY, name="AnnualVariableOperatingCost", integer=False
-    )
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="AnnualFixedOperatingCost", integer=False)
+
     m.add_variables(
         lower=0, upper=inf, coords=RTeY, name="TotalDiscountedCostByTechnology", integer=False
     )
