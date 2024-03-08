@@ -26,7 +26,7 @@ class OtooleRegion(BaseModel):
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "TradeRoute": {
             "attribute": "trade_route",
-            "column_structure": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
     }
 
@@ -84,6 +84,12 @@ class OtooleRegion(BaseModel):
                 dfs["TradeRoute"]["_REGION"].isin(dst_regions["VALUE"]).all()
             ), "_REGION in trade_route missing from _REGION.csv"
 
+        # Rename "_REGION" to account for it not being valid in itertuples() in utils
+        dfs["TradeRoute"] = dfs["TradeRoute"].rename(columns={"_REGION": "LINKED_REGION"})
+
+        # Convert TradeRoute binary linking value to bool
+        dfs["TradeRoute"]["VALUE"] = dfs["TradeRoute"]["VALUE"].replace({1: True, 0: False})
+
         ##########################
         # Define class instances #
         ##########################
@@ -95,13 +101,13 @@ class OtooleRegion(BaseModel):
                     id=region["VALUE"],
                     otoole_cfg=otoole_cfg,
                     trade_routes=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.RCY.Bool(
                             group_to_json(
                                 g=dfs["TradeRoute"].loc[
                                     dfs["TradeRoute"]["REGION"] == region["VALUE"]
                                 ],
                                 root_column="REGION",
-                                data_columns=["_REGION", "FUEL", "YEAR"],
+                                data_columns=["LINKED_REGION", "FUEL", "YEAR"],
                                 target_column="VALUE",
                             )
                         )
@@ -133,8 +139,8 @@ class OtooleRegion(BaseModel):
             trade_route_dfs = []
             for region in regions:
                 if region.trade_routes is not None:
-                    for neighbour, trade_route in region.trade_routes.items():
-                        df = pd.json_normalize(trade_route.data).T.rename(columns={0: "VALUE"})
+                    for neighbour, trade_route in region.trade_routes.data.items():
+                        df = pd.json_normalize(trade_route).T.rename(columns={0: "VALUE"})
                         df["REGION"] = region.id
                         df["_REGION"] = neighbour
                         df[["FUEL", "YEAR"]] = pd.DataFrame(
@@ -143,6 +149,13 @@ class OtooleRegion(BaseModel):
                         trade_route_dfs.append(df)
 
             trade_routes = pd.concat(trade_route_dfs)
+
+            # Replace bool with binary tag
+            trade_routes["VALUE"] = trade_routes["VALUE"].replace({True: 1, False: 0})
+
+            # Reorder columns
+            trade_routes = trade_routes[regions[0].otoole_stems["TradeRoute"]["columns"]]
+
             trade_routes.to_csv(os.path.join(output_directory, "TradeRoute.csv"), index=False)
 
         return True

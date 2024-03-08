@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.compat.base import OtooleCfg
-from feo.osemosys.utils import group_to_json
 
 if TYPE_CHECKING:
     from feo.osemosys.schemas.time_definition import TimeDefinition
@@ -110,10 +108,11 @@ class OtooleTimeDefinition(BaseModel):
             if "TIMESLICE" not in otoole_cfg.empty_dfs
             else None
         )
+
         if "YearSplit" not in otoole_cfg.empty_dfs:
             # check there are not different splits in different years
             if (dfs["YearSplit"].groupby("TIMESLICE").nunique()["VALUE"] > 1).any():
-                raise ValueError("Different splits in different years")
+                raise ValueError("YearSplit must be consistent across years")
 
             year_split = (
                 dfs["YearSplit"]
@@ -124,6 +123,21 @@ class OtooleTimeDefinition(BaseModel):
             )
         else:
             year_split = None
+        if "DaySplit" not in otoole_cfg.empty_dfs:
+            # check there are not different splits in different years
+            if (dfs["DaySplit"].groupby("DAILYTIMEBRACKET").nunique()["VALUE"] > 1).any():
+                raise ValueError("DaySplit must be consistent across years")
+
+            day_split = (
+                dfs["DaySplit"]
+                .groupby(["DAILYTIMEBRACKET"])
+                .nth(0)
+                .set_index("DAILYTIMEBRACKET")["VALUE"]
+                .to_dict()
+            )
+        else:
+            day_split = None
+
         if "Conversionld" not in otoole_cfg.empty_dfs:
             timeslice_in_daytype = (
                 dfs["Conversionld"]
@@ -144,6 +158,17 @@ class OtooleTimeDefinition(BaseModel):
             )
         else:
             timeslice_in_season = None
+        if "Conversionlh" not in otoole_cfg.empty_dfs:
+            timeslice_in_timebracket = (
+                dfs["Conversionlh"]
+                .loc[dfs["Conversionlh"]["VALUE"] == 1, ["TIMESLICE", "DAILYTIMEBRACKET"]]
+                .set_index("TIMESLICE")["DAILYTIMEBRACKET"]
+                .astype(str)
+                .to_dict()
+            )
+        else:
+            timeslice_in_timebracket = None
+
         if "DaysInDayType" not in otoole_cfg.empty_dfs:
             # check if there are different numbers of daytypes in different seasons or years
             if (dfs["DaysInDayType"].groupby("DAYTYPE").nunique()["VALUE"] > 1).any():
@@ -166,30 +191,10 @@ class OtooleTimeDefinition(BaseModel):
             otoole_cfg=otoole_cfg,
             daily_time_brackets=daily_time_brackets,
             year_split=year_split,
-            day_split=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["DaySplit"],
-                        data_columns=["DAILYTIMEBRACKET", "YEAR"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "DaySplit" not in otoole_cfg.empty_dfs
-                else None
-            ),
+            day_split=day_split,
             days_in_day_type=days_in_day_type,
             timeslice_in_daytype=timeslice_in_daytype,
-            timeslice_in_timebracket=(
-                OSeMOSYSData(
-                    data=group_to_json(
-                        g=dfs["Conversionlh"],
-                        data_columns=["TIMESLICE", "DAILYTIMEBRACKET"],
-                        target_column="VALUE",
-                    )
-                ).model_dump()["data"]
-                if "Conversionlh" not in otoole_cfg.empty_dfs
-                else None
-            ),
+            timeslice_in_timebracket=timeslice_in_timebracket,
             timeslice_in_season=timeslice_in_season,
         )
 
@@ -202,6 +207,8 @@ class OtooleTimeDefinition(BaseModel):
             return pd.DataFrame(data={"VALUE": sorted(self.timeslices)})
         elif stem == "DAYTYPE":
             return pd.DataFrame(data={"VALUE": sorted(self.day_types)})
+        elif stem == "DAILYTIMEBRACKET":
+            return pd.DataFrame(data={"VALUE": sorted(self.day_split)})
         elif stem == "DaysInDayType":
             return pd.DataFrame.from_records(
                 [
@@ -221,6 +228,13 @@ class OtooleTimeDefinition(BaseModel):
                 [
                     {"TIMESLICE": ts, "YEAR": year, "VALUE": self.year_split[ts]}
                     for ts, year in product(list(self.year_split.keys()), self.years)
+                ]
+            )
+        elif stem == "DaySplit":
+            return pd.DataFrame.from_records(
+                [
+                    {"DAILYTIMEBRACKET": d, "YEAR": year, "VALUE": self.day_split[d]}
+                    for d, year in product(list(self.day_split.keys()), self.years)
                 ]
             )
         elif stem == "Conversionld":
@@ -243,6 +257,17 @@ class OtooleTimeDefinition(BaseModel):
                         "VALUE": 1,
                     }
                     for timeslice, season in self.timeslice_in_season.items()
+                ]
+            )
+        elif stem == "Conversionlh":
+            return pd.DataFrame.from_records(
+                [
+                    {
+                        "TIMESLICE": timeslice,
+                        "DAILYTIMEBRACKET": daily_time_bracket,
+                        "VALUE": 1,
+                    }
+                    for timeslice, daily_time_bracket in self.timeslice_in_timebracket.items()
                 ]
             )
         else:
