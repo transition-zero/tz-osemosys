@@ -401,6 +401,7 @@ class OtooleTechnology(BaseModel):
 
 
 class OtooleTechnologyStorage:
+    otoole_cfg: OtooleCfg | None = Field(None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "CapitalCostStorage": {
             "attribute": "capex",
@@ -494,10 +495,8 @@ class OtooleTechnologyStorage:
             storage_instances.append(
                 cls(
                     id=storage,
-                    long_name=None,
-                    description=None,
                     otoole_cfg=otoole_cfg,
-                    capex=OSeMOSYSData(data=data_json_format["CapitalCostStorage"])
+                    capex=OSeMOSYSData.RY(data=data_json_format["CapitalCostStorage"])
                     if data_json_format["CapitalCostStorage"] is not None
                     else None,
                     operating_life=OSeMOSYSData.RY.Int(
@@ -505,24 +504,73 @@ class OtooleTechnologyStorage:
                     )
                     if data_json_format["OperationalLifeStorage"] is not None
                     else None,
-                    minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
+                    minimum_charge=OSeMOSYSData.RY(data=data_json_format["MinStorageCharge"])
                     if data_json_format["MinStorageCharge"] is not None
                     else None,
-                    initial_level=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
+                    initial_level=OSeMOSYSData.R(data=data_json_format["StorageLevelStart"])
                     if data_json_format["StorageLevelStart"] is not None
                     else None,
-                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
+                    residual_capacity=OSeMOSYSData.RY(
+                        data=data_json_format["ResidualStorageCapacity"]
+                    )
                     if data_json_format["ResidualStorageCapacity"] is not None
                     else None,
-                    max_discharge_rate=OSeMOSYSData(
+                    max_discharge_rate=OSeMOSYSData.R(
                         data=data_json_format["StorageMaxDischargeRate"]
                     )
                     if data_json_format["StorageMaxDischargeRate"] is not None
                     else None,
-                    max_charge_rate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
+                    max_charge_rate=OSeMOSYSData.R(data=data_json_format["StorageMaxChargeRate"])
                     if data_json_format["StorageMaxChargeRate"] is not None
                     else None,
                 )
             )
 
         return storage_instances
+
+    @classmethod
+    def to_otoole_csv(cls, storage_technologies: List["TechnologyStorage"], output_directory: str):
+        """Write a number of TechnologyStorage objects to otoole-organised csvs.
+
+        Args:
+            storage_technologies (List[TechnologyStorage]): A list of TechnologyStorage instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
+
+        # Sets
+        storage_technologies_df = pd.DataFrame(
+            {"VALUE": [storage.id for storage in storage_technologies]}
+        )
+        storage_technologies_df.to_csv(os.path.join(output_directory, "STORAGE.csv"), index=False)
+
+        # Parameters
+        # collect dataframes
+        dfs = {}
+
+        for storage in storage_technologies:
+            for stem, params in cls.otoole_stems.items():
+                # if stem not in cls.operating_mode_stem_translation.keys():
+                if getattr(storage, params["attribute"]) is not None:
+                    columns = [c for c in params["columns"] if c not in ["STORAGE", "VALUE"]]
+                    df = pd.json_normalize(getattr(storage, params["attribute"]).data).T.rename(
+                        columns={0: "VALUE"}
+                    )
+                    df["STORAGE"] = storage.id
+                    df[columns] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+                    if stem in dfs:
+                        dfs[stem].append(df)
+                    else:
+                        dfs[stem] = [df]
+
+        # write dataframes
+        for stem, _params in cls.otoole_stems.items():
+            if any(
+                [(stem not in storage.otoole_cfg.empty_dfs) for storage in storage_technologies]
+            ):
+                (
+                    pd.concat(dfs[stem])
+                    .replace({True: 1, False: 0})
+                    .to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
+                )
+
+        return True

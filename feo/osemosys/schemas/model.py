@@ -9,7 +9,7 @@ from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.model import RunSpecOtoole
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
-from feo.osemosys.schemas.technology import Technology
+from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 
 # filter this pandas-3 dep warning for now
@@ -26,7 +26,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     technologies: List[Technology]  # just production technologies for now
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
-    # storage_technologies: List[TechnologyStorage] | None = Field(None)
+    storage_technologies: List[TechnologyStorage] | None = Field(None)
 
     # ASSUMPIONS
     # ----------
@@ -49,12 +49,16 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             "commodities": [commodity.id for commodity in self.commodities],
             "regions": [region.id for region in self.regions],
             "technologies": [technology.id for technology in self.technologies],
+            "storage_technologies": [storage.id for storage in self.storage_technologies],
             "impacts": [impact.id for impact in self.impacts],
         }
 
         self.commodities = [commodity.compose(**sets) for commodity in self.commodities]
         self.regions = [region.compose(**sets) for region in self.regions]
         self.technologies = [technology.compose(**sets) for technology in self.technologies]
+        self.storage_technologies = [
+            storage.compose(**sets) for storage in self.storage_technologies
+        ]
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
 
         return self

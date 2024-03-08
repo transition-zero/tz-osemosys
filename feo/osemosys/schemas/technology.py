@@ -4,7 +4,7 @@ from pydantic import Field, conlist, model_validator
 
 from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
-from feo.osemosys.schemas.compat.technology import OtooleTechnology
+from feo.osemosys.schemas.compat.technology import OtooleTechnology, OtooleTechnologyStorage
 from feo.osemosys.schemas.validation.technology_validation import technology_storage_validation
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
@@ -200,7 +200,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
         return self
 
 
-class TechnologyStorage(OSeMOSYSBase):
+class TechnologyStorage(OSeMOSYSBase, OtooleTechnologyStorage):
     """
     Class to contain all information pertaining to storage technologies
     # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
@@ -216,13 +216,15 @@ class TechnologyStorage(OSeMOSYSBase):
 
     # NON-REQUIRED PARAMETERS
     # -----------------------
-    minimum_charge: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_minimum_charge))
-    initial_level: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_initial_level))
-    residual_capacity: OSeMOSYSData = Field(
+    minimum_charge: OSeMOSYSData.RY = Field(
+        OSeMOSYSData(defaults.technology_storage_minimum_charge)
+    )
+    initial_level: OSeMOSYSData.R = Field(OSeMOSYSData(defaults.technology_storage_initial_level))
+    residual_capacity: OSeMOSYSData.RY = Field(
         OSeMOSYSData(defaults.technology_storage_residual_capacity)
     )
-    max_discharge_rate: OSeMOSYSData | None = Field(None)
-    max_charge_rate: OSeMOSYSData | None = Field(None)
+    max_discharge_rate: OSeMOSYSData.R | None = Field(None)
+    max_charge_rate: OSeMOSYSData.R | None = Field(None)
 
     @model_validator(mode="before")
     def validator(cls, values):

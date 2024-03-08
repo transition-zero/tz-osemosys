@@ -12,7 +12,7 @@ from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
-from feo.osemosys.schemas.technology import Technology
+from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.utils import group_to_json, merge, to_df_helper
 
@@ -132,6 +132,7 @@ class RunSpecOtoole(BaseModel):
         impacts = Impact.from_otoole_csv(root_dir=root_dir)
         regions = Region.from_otoole_csv(root_dir=root_dir)
         technologies = Technology.from_otoole_csv(root_dir=root_dir)
+        storage_technologies = TechnologyStorage.from_otoole_csv(root_dir=root_dir)
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
 
@@ -261,6 +262,7 @@ class RunSpecOtoole(BaseModel):
             impacts=impacts,
             regions=regions,
             technologies=technologies,
+            storage_technologies=storage_technologies,
             commodities=commodities,
             time_definition=time_definition,
             otoole_cfg=otoole_cfg,
@@ -278,6 +280,9 @@ class RunSpecOtoole(BaseModel):
 
         # do subsidiary objects
         Technology.to_otoole_csv(technologies=self.technologies, output_directory=output_directory)
+        TechnologyStorage.to_otoole_csv(
+            storage_technologies=self.storage_technologies, output_directory=output_directory
+        )
         Impact.to_otoole_csv(impacts=self.impacts, output_directory=output_directory)
         Commodity.to_otoole_csv(commodities=self.commodities, output_directory=output_directory)
         Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
