@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas.technology import Technology
+from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
 
 
@@ -14,6 +14,10 @@ def test_otoole_roundtrip():
         output_directory = Path(comparison_root + comparison_model)
         output_directory.mkdir(parents=True, exist_ok=True)
 
+        ################
+        # Technologies #
+        ################
+
         technologies = Technology.from_otoole_csv(root_dir=path)
 
         Technology.to_otoole_csv(technologies=technologies, output_directory=output_directory)
@@ -21,6 +25,39 @@ def test_otoole_roundtrip():
         if technologies:
             for stem, params in technologies[0].otoole_stems.items():
                 if stem not in technologies[0].otoole_cfg.empty_dfs:
+                    left = (
+                        pd.read_csv(Path(path) / (stem + ".csv"))
+                        .sort_values(params["columns"])
+                        .reset_index(drop=True)
+                        .sort_index(axis=1)
+                    )
+                    right = (
+                        pd.read_csv(Path(output_directory) / Path(stem + ".csv"))
+                        .sort_values(params["columns"])
+                        .reset_index(drop=True)
+                        .sort_index(axis=1)
+                    )
+                    print("LEFT")
+                    print(left)
+                    print("RIGHT")
+                    print(right)
+                    print("ASSERT", stem, left.equals(right))
+
+                    assert left.equals(right)
+
+        ########################
+        # Storage Technologies #
+        ########################
+
+        storage_technologies = TechnologyStorage.from_otoole_csv(root_dir=path)
+
+        TechnologyStorage.to_otoole_csv(
+            storage_technologies=storage_technologies, output_directory=output_directory
+        )
+
+        if storage_technologies:
+            for stem, params in storage_technologies[0].otoole_stems.items():
+                if stem not in storage_technologies[0].otoole_cfg.empty_dfs:
                     left = (
                         pd.read_csv(Path(path) / (stem + ".csv"))
                         .sort_values(params["columns"])
