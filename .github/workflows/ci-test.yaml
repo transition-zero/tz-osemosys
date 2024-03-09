@@ -22,7 +22,7 @@ jobs:
         python-version: "3.11"
     - name: build HiGHS
       run: |
-        chmod +x ./public/scripts/test.sh
+        chmod +x build_highs.sh
         .build_highs.sh
       shell: bash
     - name: Install dependencies
