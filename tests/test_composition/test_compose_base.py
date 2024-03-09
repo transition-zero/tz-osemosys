@@ -122,12 +122,12 @@ FAILING_IMPACTS = dict(
 )
 
 
-def test_compose_logic():
+def test_compose_dim2():
     _id = ("no-id",)
     data = {
         "R1": {"T1": 1},
         "R2": {"*": 2},
-        "*": {"T1": 5},
+        "*": {"T3": 5},
     }
     sets = {
         "regions": ["R1", "R2", "R3"],
@@ -136,7 +136,29 @@ def test_compose_logic():
 
     new_data = _check_set_membership(_id, data, sets)
 
-    assert new_data == {"R1": {"T1": 1}, "R2": {"T1": 1, "T2": 2, "T3": 5}, "R3": {"T1": 5}}
+    assert new_data == {"R1": {"T1": 1}, "R2": {"T1": 2, "T2": 2, "T3": 2}, "R3": {"T3": 5}}
+
+
+def test_compose_dim3():
+    _id = ("no-id",)
+    data = {
+        "R1": {"T1": {"C2": 1, "*": 6}, "*": {"*": 2}},
+        "*": {"*": {"C1": 4, "*": 5}},
+    }
+    sets = {
+        "regions": ["R1", "R2"],
+        "technologies": ["T1", "T2", "T3"],
+        "commodities": ["C1", "C2"],
+    }
+
+    new_data = _check_set_membership(_id, data, sets)
+
+    target = {
+        "R1": {"T1": {"C1": 6, "C2": 1}, "T2": {"C1": 2, "C2": 2}, "T3": {"C1": 2, "C2": 2}},
+        "R2": {"T1": {"C1": 4, "C2": 5}, "T2": {"C1": 4, "C2": 5}, "T3": {"C1": 4, "C2": 5}},
+    }
+
+    assert new_data == target
 
 
 def test_compose_impact():
