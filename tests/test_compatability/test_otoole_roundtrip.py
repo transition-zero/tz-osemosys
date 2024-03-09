@@ -33,8 +33,6 @@ def test_files_equality():
 
     # uses the class method on the base class to instantiate itself
     run_spec_object = RunSpec.from_otoole_csv(root_dir=root_dir)
-    print("OTOOLE")
-    print(run_spec_object.otoole_cfg)
 
     # Write output CSVs
     run_spec_object.to_otoole_csv(output_directory=output_directory)
