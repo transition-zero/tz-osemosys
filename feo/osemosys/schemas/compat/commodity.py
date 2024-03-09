@@ -202,10 +202,18 @@ class OtooleCommodity(BaseModel):
                             )
                         else:
                             accumulated_demand_dfs.append(df.loc[df["REGION"] == region])
-
                 # If no demand_profile, put all data in accumulated demand
                 else:
                     accumulated_demand_dfs.append(df)
+
+            if commodity.is_renewable is not None:
+                df = pd.json_normalize(commodity.is_renewable.data).T.rename(columns={0: "VALUE"})
+                df["FUEL"] = commodity.id
+                df[["REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
+                is_renewable_dfs.append(df)
 
         dfs["SpecifiedAnnualDemand"] = (
             pd.concat(annual_demand_dfs)
@@ -222,9 +230,13 @@ class OtooleCommodity(BaseModel):
             if demand_profile_dfs
             else pd.DataFrame(columns=cls.otoole_stems["SpecifiedDemandProfile"]["columns"])
         )
+        dfs["RETagFuel"] = (
+            pd.concat(is_renewable_dfs)
+            if is_renewable_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["RETagFuel"]["columns"])
+        )
 
         return dfs
-
 
     @classmethod
     def to_otoole_csv(cls, commodities: List["Commodity"], output_directory: str):

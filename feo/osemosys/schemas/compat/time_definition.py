@@ -128,6 +128,8 @@ class OtooleTimeDefinition(BaseModel):
             if (dfs["DaySplit"].groupby("DAILYTIMEBRACKET").nunique()["VALUE"] > 1).any():
                 raise ValueError("DaySplit must be consistent across years")
 
+            dfs["DaySplit"]["DAILYTIMEBRACKET"] = dfs["DaySplit"]["DAILYTIMEBRACKET"].astype(str)
+
             day_split = (
                 dfs["DaySplit"]
                 .groupby(["DAILYTIMEBRACKET"])

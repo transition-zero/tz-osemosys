@@ -39,7 +39,6 @@ class OperatingMode(OSeMOSYSBase):
 
             if field_val is not None:
                 if isinstance(field_val, OSeMOSYSData):
-                    print(field, "val:", field_val)
                     setattr(
                         self,
                         field,
