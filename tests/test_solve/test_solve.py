@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from feo.osemosys import Model
@@ -44,3 +45,6 @@ def test_most_simple():
     model._build()
 
     model._m.solve()
+
+    assert model._m.termination_condition == "optimal"
+    assert np.round(model._m.objective.value) == 40312.0
