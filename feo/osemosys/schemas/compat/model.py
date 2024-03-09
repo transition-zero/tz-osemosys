@@ -6,6 +6,7 @@ import pandas as pd
 import xarray as xr
 from pydantic import BaseModel, Field
 
+from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
@@ -13,7 +14,7 @@ from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import group_to_json, merge
+from feo.osemosys.utils import flatten, group_to_json
 
 
 class RunSpecOtoole(BaseModel):
@@ -169,6 +170,20 @@ class RunSpecOtoole(BaseModel):
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
 
+        otoole_cfg.empty_dfs += list(
+            set(flatten([impact.otoole_cfg.empty_dfs for impact in impacts]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([region.otoole_cfg.empty_dfs for region in regions]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([technology.otoole_cfg.empty_dfs for technology in technologies]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([commodity.otoole_cfg.empty_dfs for commodity in commodities]))
+        )
+        otoole_cfg.empty_dfs += list(set(time_definition.otoole_cfg.empty_dfs))
+
         # read in depreciation_method and replace enum
         if "DepreciationMethod" not in otoole_cfg.empty_dfs:
             dfs["DepreciationMethod"]["VALUE"] = dfs["DepreciationMethod"]["VALUE"].map(
@@ -185,22 +200,14 @@ class RunSpecOtoole(BaseModel):
             else None
         )
         if "DiscountRateIdv" not in otoole_cfg.empty_dfs:
-            discount_rate_idv = group_to_json(
+            cost_of_capital = group_to_json(
                 g=dfs["DiscountRateIdv"],
                 root_column=None,
                 data_columns=["REGION", "TECHNOLOGY"],
                 target_column="VALUE",
             )
         else:
-            discount_rate_idv = None
-
-        # merge with Idv if necessary or just take discount_rate_idv
-        if discount_rate is not None and discount_rate_idv is not None:
-            # merge together
-            discount_rate = {k: {"*": v} for k, v in discount_rate.items()}
-            discount_rate = merge(discount_rate, discount_rate_idv)
-        elif discount_rate is None and discount_rate_idv is not None:
-            discount_rate = discount_rate_idv
+            cost_of_capital = None
 
         # reserve margin and renewable production target
         reserve_margin = (
@@ -288,9 +295,10 @@ class RunSpecOtoole(BaseModel):
 
         return cls(
             id=id if id else Path(root_dir).name,
-            discount_rate=discount_rate,
-            depreciation_method=depreciation_method,
-            reserve_margin=reserve_margin,
+            discount_rate=discount_rate or defaults.discount_rate,
+            cost_of_capital=cost_of_capital,
+            depreciation_method=depreciation_method or defaults.depreciation_method,
+            reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
             impacts=impacts,
             regions=regions,
@@ -318,21 +326,14 @@ class RunSpecOtoole(BaseModel):
         # discount rate
         if self.discount_rate:
             df = pd.json_normalize(self.discount_rate.data).T.rename(columns={0: "VALUE"})
+            df[["REGION"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+            dfs["DiscountRate"] = df
+
+        if self.cost_of_capital:
+            df = pd.json_normalize(self.cost_of_capital.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "TECHNOLOGY"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-
-            # # if there are different discount rates per technology, use Idv
-            # TODO: Ask Abhi about this
-            # if (df.groupby(["REGION"])["VALUE"].nunique() > 1).any():
-            #     idv_regions = (df.groupby(["REGION"])["VALUE"].nunique() > 1).index
-            #     dfs["DiscountRateIdv"] = df.loc[df["REGIONS"].isin(idv_regions)]
-            #     dfs["DiscountRate"] = df.loc[~df["REGIONS"].isin(idv_regions)].drop(
-            #         columns=["TECHNOLOGY"]
-            #     )
-            # else:
-            #     dfs["DiscountRate"] = df.groupby(["REGION"]).nth(0).drop(columns=["TECHNOLOGY"])
-            dfs["DiscountRate"] = df.groupby(["REGION"]).nth(0).drop(columns=["TECHNOLOGY"])
             dfs["DiscountRateIdv"] = df
 
         # reserve margins

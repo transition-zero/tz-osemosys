@@ -60,6 +60,6 @@ class Impact(OSeMOSYSBase, OtooleImpact):
                     setattr(
                         self,
                         field,
-                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                        field_val.compose(self.id, field_val.data, **sets),
                     )
         return self

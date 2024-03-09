@@ -253,7 +253,7 @@ class OtooleImpact(BaseModel):
         dfs = cls.to_dataframes(impacts)
 
         # set to csv
-        dfs["EMISSION"].to_csv(os.path.join(output_directory, "IMPACT.csv"), index=False)
+        dfs["EMISSION"].to_csv(os.path.join(output_directory, "EMISSION.csv"), index=False)
 
         # params to csv where appropriate
         for stem, _params in cls.otoole_stems.items():

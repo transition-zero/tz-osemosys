@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Dict, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from feo.osemosys.logger import logging
 from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.compat.base import OtooleCfg
 from feo.osemosys.utils import flatten, group_to_json
@@ -148,12 +149,16 @@ class OtooleTechnology(BaseModel):
         df_technologies = pd.read_csv(os.path.join(root_dir, "TECHNOLOGY.csv"))
 
         dfs = {}
-        otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in list(cls.otoole_stems):
+        otoole_cfg = OtooleCfg(empty_dfs=[], non_default_idx={})
+        for key, params in list(cls.otoole_stems.items()):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
                 if dfs[key].empty:
                     otoole_cfg.empty_dfs.append(key)
+                else:
+                    otoole_cfg.non_default_idx[key] = (
+                        dfs[key].set_index([c for c in params["columns"] if c != "VALUE"]).index
+                    )
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
@@ -344,24 +349,38 @@ class OtooleTechnology(BaseModel):
 
         # add sets
         dfs["TECHNOLOGY"] = pd.DataFrame({"VALUE": [technology.id for technology in technologies]})
+        dfs["MODE_OF_OPERATION"] = pd.DataFrame(
+            {
+                "VALUE": list(
+                    {mode.id for technology in technologies for mode in technology.operating_modes}
+                )
+            }
+        )
 
         # Parameters
         for technology in technologies:
+            omitted_fields = []
             for stem, params in cls.otoole_stems.items():
                 if stem not in cls.operating_mode_stem_translation.keys():
                     if getattr(technology, params["attribute"]) is not None:
-                        columns = [c for c in params["columns"] if c not in ["TECHNOLOGY", "VALUE"]]
-                        df = pd.json_normalize(
-                            getattr(technology, params["attribute"]).data
-                        ).T.rename(columns={0: "VALUE"})
-                        df["TECHNOLOGY"] = technology.id
-                        df[columns] = pd.DataFrame(
-                            df.index.str.split(".").to_list(), index=df.index
-                        )
-                        if stem in dfs:
-                            dfs[stem].append(df)
+                        if getattr(technology, params["attribute"]).is_composed:
+                            columns = [
+                                c for c in params["columns"] if c not in ["TECHNOLOGY", "VALUE"]
+                            ]
+                            df = pd.json_normalize(
+                                getattr(technology, params["attribute"]).data
+                            ).T.rename(columns={0: "VALUE"})
+                            df["TECHNOLOGY"] = technology.id
+                            df[columns] = pd.DataFrame(
+                                df.index.str.split(".").to_list(), index=df.index
+                            )
+                            if stem in dfs:
+                                dfs[stem].append(df)
+                            else:
+                                dfs[stem] = [df]
                         else:
-                            dfs[stem] = [df]
+                            # do something else or nothing with non-composed data
+                            omitted_fields.append(stem)
 
             for stem, (
                 attribute,
@@ -370,23 +389,31 @@ class OtooleTechnology(BaseModel):
                 for mode in technology.operating_modes:
                     # for MINURNINT in particular it's empty
                     if getattr(mode, attribute) is not None:
-                        df = pd.json_normalize(getattr(mode, attribute).data).T.rename(
-                            columns={0: "VALUE"}
-                        )
-                        df["TECHNOLOGY"] = technology.id
-                        df["MODE_OF_OPERATION"] = mode.id
-                        columns = [
-                            c
-                            for c in cls.otoole_stems[stem]["columns"]
-                            if c not in ["TECHNOLOGY", "VALUE", "MODE_OF_OPERATION"]
-                        ]
-                        df[columns] = pd.DataFrame(
-                            df.index.str.split(".").to_list(), index=df.index
-                        )
-                        if stem in dfs:
-                            dfs[stem].append(df)
+                        if getattr(mode, attribute).is_composed:
+                            df = pd.json_normalize(getattr(mode, attribute).data).T.rename(
+                                columns={0: "VALUE"}
+                            )
+                            df["TECHNOLOGY"] = technology.id
+                            df["MODE_OF_OPERATION"] = mode.id
+                            columns = [
+                                c
+                                for c in cls.otoole_stems[stem]["columns"]
+                                if c not in ["TECHNOLOGY", "VALUE", "MODE_OF_OPERATION"]
+                            ]
+                            df[columns] = pd.DataFrame(
+                                df.index.str.split(".").to_list(), index=df.index
+                            )
+                            if stem in dfs:
+                                dfs[stem].append(df)
+                            else:
+                                dfs[stem] = [df]
                         else:
-                            dfs[stem] = [df]
+                            omitted_fields.append(stem)
+
+            if omitted_fields:
+                logging.warning(
+                    f"{technology.id}: Data for {omitted_fields} not composed - omitting."
+                )
 
         for stem in cls.operating_mode_stem_translation.keys():
             if stem in dfs:
@@ -405,11 +432,30 @@ class OtooleTechnology(BaseModel):
 
         # Sets
         dfs["TECHNOLOGY"].to_csv(os.path.join(output_directory, "TECHNOLOGY.csv"), index=False)
+        dfs["MODE_OF_OPERATION"].to_csv(
+            os.path.join(output_directory, "MODE_OF_OPERATION.csv"), index=False
+        )
 
         # write dataframes
-        for stem, _params in cls.otoole_stems.items():
-            if any([(stem not in technology.otoole_cfg.empty_dfs) for technology in technologies]):
-                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
+        for stem, params in cls.otoole_stems.items():
+            print("STEM")
+            print(stem)
+
+            if (
+                any([(stem not in technology.otoole_cfg.empty_dfs) for technology in technologies])
+                and stem in dfs
+            ):
+                # cast OPERATING_MODE and YEAR back to int
+                for col in ["YEAR", "MODE_OF_OPERATION"]:
+                    if col in dfs[stem].columns:
+                        dfs[stem][col] = dfs[stem][col].astype(int)
+                (
+                    dfs[stem]
+                    .set_index([c for c in params["columns"] if c != "VALUE"])
+                    .loc[technologies[0].otoole_cfg.non_default_idx[stem]]
+                    .reset_index()
+                    .to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
+                )
 
         return True
 

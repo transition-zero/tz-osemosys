@@ -39,10 +39,11 @@ class OperatingMode(OSeMOSYSBase):
 
             if field_val is not None:
                 if isinstance(field_val, OSeMOSYSData):
+                    print(field, "val:", field_val)
                     setattr(
                         self,
                         field,
-                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                        field_val.compose(self.id, field_val.data, **sets),
                     )
 
         return self
@@ -142,7 +143,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
                     setattr(
                         self,
                         field,
-                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                        field_val.compose(self.id, field_val.data, **sets),
                     )
 
         # compose operating modes
