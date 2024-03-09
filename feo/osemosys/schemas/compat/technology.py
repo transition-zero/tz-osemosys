@@ -438,8 +438,6 @@ class OtooleTechnology(BaseModel):
 
         # write dataframes
         for stem, params in cls.otoole_stems.items():
-            print("STEM")
-            print(stem)
 
             if (
                 any([(stem not in technology.otoole_cfg.empty_dfs) for technology in technologies])

@@ -120,7 +120,7 @@ def validate_parts_from_splits(timeslices, day_types, time_brackets, values):
         if split is not None:
             if part_list is not None:
                 # validate keys match
-                if set(split.keys()) != set(part_list):
+                if {str(item) for item in set(split.keys())} != set(part_list):
                     raise ValueError(f"provided '{name}_split' keys do not match '{name}'")
                 return split
             else:

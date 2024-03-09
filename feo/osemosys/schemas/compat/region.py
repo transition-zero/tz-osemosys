@@ -84,6 +84,12 @@ class OtooleRegion(BaseModel):
                 dfs["TradeRoute"]["_REGION"].isin(dst_regions["VALUE"]).all()
             ), "_REGION in trade_route missing from _REGION.csv"
 
+        # Rename "_REGION" to account for it not being valid in itertuples() in utils
+        dfs["TradeRoute"] = dfs["TradeRoute"].rename(columns={"_REGION": "LINKED_REGION"})
+
+        # Convert TradeRoute binary linking value to bool
+        dfs["TradeRoute"]["VALUE"] = dfs["TradeRoute"]["VALUE"].replace({1: True, 0: False})
+
         ##########################
         # Define class instances #
         ##########################
@@ -95,13 +101,13 @@ class OtooleRegion(BaseModel):
                     id=region["VALUE"],
                     otoole_cfg=otoole_cfg,
                     trade_routes=(
-                        OSeMOSYSData(
+                        OSeMOSYSData.RCY.Bool(
                             group_to_json(
                                 g=dfs["TradeRoute"].loc[
                                     dfs["TradeRoute"]["REGION"] == region["VALUE"]
                                 ],
                                 root_column="REGION",
-                                data_columns=["_REGION", "FUEL", "YEAR"],
+                                data_columns=["LINKED_REGION", "FUEL", "YEAR"],
                                 target_column="VALUE",
                             )
                         )

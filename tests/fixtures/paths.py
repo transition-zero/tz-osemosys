@@ -4,4 +4,5 @@ YAML_SAMPLE_PATHS = [
 OTOOLE_SAMPLE_PATHS = [
     "examples/otoole_csvs/otoole-simple-hydro",
     "examples/otoole_csvs/otoole-full-electricity",
+    "examples/otoole_csvs/otoole-full-electricity-complete",
 ]

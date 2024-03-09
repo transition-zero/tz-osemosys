@@ -319,7 +319,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     day_types: conlist(int | str, min_length=1) | int | None
     daily_time_brackets: conlist(int | str, min_length=1) | int | None
     year_split: MappingSumOne | None
-    day_split: MappingSumOne | None
+    day_split: Mapping | None
     days_in_day_type: Mapping | None
     timeslice_in_timebracket: Mapping | None
     timeslice_in_daytype: Mapping | None

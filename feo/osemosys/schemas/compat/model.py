@@ -387,7 +387,7 @@ class RunSpecOtoole(BaseModel):
                 columns={0: "VALUE"}
             )
             df[["REGION", "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
-            dfs["ReserveMargin"] = df
+            dfs["REMinProductionTarget"] = df
 
             dfs_tag_technology = []
             for technology in self.technologies:
