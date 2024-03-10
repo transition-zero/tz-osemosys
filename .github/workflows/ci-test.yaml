@@ -14,12 +14,10 @@ permissions:
 jobs:
   ci-test:
     runs-on: ubuntu-latest
+    container:
+      image: lucastz/tz-highs-python:latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.11"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
