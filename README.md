@@ -43,7 +43,24 @@ OSeMOSYS Docs
 
 ## Installation
 
-FEO-OSeMOSYS can be installed with a simple `pip install feo-osemosys`.
+FEO-OSeMOSYS can be installed with a simple `pip install feo-osemosys`. To solve a model, however, you'll need a solver. Any solver compatible with [Linopy](https://linopy.readthedocs.io/en/latest/) will work: [Coin-OR CBC](https://github.com/coin-or/Cbc), [GLPK](https://www.gnu.org/software/glpk/), [HiGHS](https://highs.dev/), [Gurobi](https://www.gurobi.com/solutions/gurobi-optimizer/), [CPLEX](https://dev.ampl.com/solvers/cplex/index.html), and more. We recommend HiGHS, the leading open-source solver.
+
+### Solver Installation - HiGHS
+
+HiGHS can be installed from source using `cmake` following the instructions [here](https://github.com/ERGO-Code/HiGHS?tab=readme-ov-file#installation). You'll need to install a cmake distribution for your relevant operating system.
+
+*common issue: make sure you have write-privileges to default directory for `cmake --install build`, or either run this command with administrator privileges (`sudo cmake --install build` on mac and linux) or specify a different build directory*
+
+### Docker installation
+
+A docker container is provided that contains Python 3.11 and an installed version of HiGHS. You'll nedd to [install a docker distribution](https://docs.docker.com/engine/install/) relevant for your operating system.
+
+The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directoy, and change directory within the container to this directory.
+
+    docker run -v $(pwd):/home -it lucastz/tz-highs-python /bin/bash -c 'c
+d /home && /bin/bash'
+
+*note! Any files changed within this mounted directory will persist, but any changes to environments, installed packes, etc. will not!*
 
 ## Quickstart
 
