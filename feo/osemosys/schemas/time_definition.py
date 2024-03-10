@@ -182,9 +182,9 @@ def construction_from_years_only(values: Any):
     values["day_split"] = {1: 1.0}
     values["days_in_day_type"] = {1: 1.0}
 
-    values["timeslice_in_timebracket"] = {1: [1]}
-    values["timeslice_in_daytype"] = {1: [1]}
-    values["timeslice_in_season"] = {1: [1]}
+    values["timeslice_in_timebracket"] = {1: 1}
+    values["timeslice_in_daytype"] = {1: 1}
+    values["timeslice_in_season"] = {1: 1}
     values["adj"] = TimeAdjacency.from_years(years)
     values["adj_inv"] = TimeAdjacency.from_years(years).inv()
 

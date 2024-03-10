@@ -7,7 +7,7 @@ from feo.osemosys import utils
 from feo.osemosys.schemas import RunSpec
 
 
-def load_model(*spec_files):
+def load_cfg(*spec_files):
     """
     Instantiate an OSeMOSYS RunSpec from one or more yaml files.
 
@@ -109,5 +109,11 @@ def load_model(*spec_files):
 
     # eval strings
     cfg = utils.walk_dict(cfg, utils.maybe_eval_string)
+
+    return cfg
+
+
+def load_model(*spec_files):
+    cfg = load_cfg(*spec_files)
 
     return RunSpec(**cfg)

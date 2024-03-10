@@ -1,8 +1,9 @@
 import os
 from typing import Dict, List, Union
 
+import pandas as pd
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from feo.osemosys.schemas.base import OSeMOSYSBase
 
@@ -13,6 +14,10 @@ class OtooleCfg(BaseModel):
     """
 
     empty_dfs: List[str] | None
+    non_default_idx: Dict[str, pd.Index] | None = Field(None)
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class DefaultsOtoole(OSeMOSYSBase):

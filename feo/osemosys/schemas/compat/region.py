@@ -88,7 +88,7 @@ class OtooleRegion(BaseModel):
         dfs["TradeRoute"] = dfs["TradeRoute"].rename(columns={"_REGION": "LINKED_REGION"})
 
         # Convert TradeRoute binary linking value to bool
-        dfs["TradeRoute"]["VALUE"] = dfs["TradeRoute"]["VALUE"].replace({1: True, 0: False})
+        dfs["TradeRoute"]["VALUE"] = dfs["TradeRoute"]["VALUE"].map({1: True, 0: False})
 
         ##########################
         # Define class instances #
@@ -120,6 +120,34 @@ class OtooleRegion(BaseModel):
         return region_instances
 
     @classmethod
+    def to_dataframes(cls, regions: List["Region"]):
+        # collect dataframes
+        dfs = {}
+
+        # Parameters
+        # collect TradeRoutes
+        trade_route_dfs = []
+        for region in regions:
+            if region.trade_routes is not None:
+                for neighbour, trade_route in region.trade_routes.data.items():
+                    df = pd.json_normalize(trade_route).T.rename(columns={0: "VALUE"})
+                    df["REGION"] = region.id
+                    df["_REGION"] = neighbour
+                    df[["FUEL", "YEAR"]] = pd.DataFrame(
+                        df.index.str.split(".").to_list(), index=df.index
+                    )
+                    trade_route_dfs.append(df)
+
+        if trade_route_dfs:
+            dfs["TradeRoute"] = pd.concat(trade_route_dfs)
+
+        # SETS
+        dfs["REGION"] = pd.DataFrame({"VALUE": [r.id for r in regions]})
+        dfs["_REGION"] = pd.DataFrame({"VALUE": [r.id for r in regions]})
+
+        return dfs
+
+    @classmethod
     def to_otoole_csv(cls, regions: List["Region"], output_directory: str):
         """Write a number of Region objects to otoole-organised csvs.
 
@@ -128,34 +156,18 @@ class OtooleRegion(BaseModel):
             output_directory (str): Path to the root of the otoole csv directory
         """
 
+        dfs = cls.to_dataframes(regions)
+
         # Sets
-        regions_df = pd.DataFrame({"VALUE": [r.id for r in regions]})
-        regions_df.to_csv(os.path.join(output_directory, "REGION.csv"), index=False)
-        regions_df.to_csv(os.path.join(output_directory, "_REGION.csv"), index=False)
+        dfs["REGION"].to_csv(os.path.join(output_directory, "REGION.csv"), index=False)
+        dfs["_REGION"].to_csv(os.path.join(output_directory, "_REGION.csv"), index=False)
 
-        # Parameters
-        # collect TradeRoutes
-        if any([("TradeRoute" not in r.otoole_cfg.empty_dfs) for r in regions]):
-            trade_route_dfs = []
-            for region in regions:
-                if region.trade_routes is not None:
-                    for neighbour, trade_route in region.trade_routes.data.items():
-                        df = pd.json_normalize(trade_route).T.rename(columns={0: "VALUE"})
-                        df["REGION"] = region.id
-                        df["_REGION"] = neighbour
-                        df[["FUEL", "YEAR"]] = pd.DataFrame(
-                            df.index.str.split(".").to_list(), index=df.index
-                        )
-                        trade_route_dfs.append(df)
+        if "TradeRoute" in dfs:
+            dfs["TradeRoute"]["VALUE"] = dfs["TradeRoute"]["VALUE"].astype(int)
 
-            trade_routes = pd.concat(trade_route_dfs)
-
-            # Replace bool with binary tag
-            trade_routes["VALUE"] = trade_routes["VALUE"].replace({True: 1, False: 0})
-
-            # Reorder columns
-            trade_routes = trade_routes[regions[0].otoole_stems["TradeRoute"]["columns"]]
-
-            trade_routes.to_csv(os.path.join(output_directory, "TradeRoute.csv"), index=False)
+        # write dataframes
+        for stem, _params in cls.otoole_stems.items():
+            if any([(stem not in region.otoole_cfg.empty_dfs) for region in regions]):
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True
