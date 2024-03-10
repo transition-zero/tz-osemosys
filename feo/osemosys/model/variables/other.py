@@ -19,7 +19,7 @@ def add_cost_variables(ds: xr.Dataset, m: Model) -> Model:
     """
     RTeY = [ds.coords["REGION"], ds.coords["TECHNOLOGY"], ds.coords["YEAR"]]
     RY = [ds.coords["REGION"], ds.coords["YEAR"]]
-    
+
     m.add_variables(
         lower=0, upper=inf, coords=RTeY, name="DiscountedCapitalInvestment", integer=False
     )
