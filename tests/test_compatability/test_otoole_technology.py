@@ -19,6 +19,7 @@ def test_otoole_roundtrip():
         ################
 
         technologies = Technology.from_otoole_csv(root_dir=path)
+        print(technologies[0].otoole_cfg)
 
         Technology.to_otoole_csv(technologies=technologies, output_directory=output_directory)
 

@@ -1,14 +1,13 @@
 from typing import Any
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
-from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.impact import OtooleImpact
 from feo.osemosys.schemas.validation.impact_validation import (
     exogenous_annual_within_constraint,
     exogenous_total_within_constraint,
 )
-from feo.osemosys.utils import isnumeric
 
 
 class Impact(OSeMOSYSBase, OtooleImpact):
@@ -31,12 +30,15 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     # E.g. used to model carbon prices
     penalty: OSeMOSYSData.RY | None = Field(None)
 
-    @field_validator("*", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def passthrough_float(cls, v: Any) -> OSeMOSYSData:
-        if isnumeric(v):
-            return OSeMOSYSData(float(v))
-        return v
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
+
+        return values
 
     @model_validator(mode="after")
     def validate_exogenous_lt_constraint(self):
@@ -58,6 +60,6 @@ class Impact(OSeMOSYSBase, OtooleImpact):
                     setattr(
                         self,
                         field,
-                        field_val.__class__(field_val.compose(self.id, field_val.data, **sets)),
+                        field_val.compose(self.id, field_val.data, **sets),
                     )
         return self

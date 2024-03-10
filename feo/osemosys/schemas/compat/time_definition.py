@@ -128,6 +128,8 @@ class OtooleTimeDefinition(BaseModel):
             if (dfs["DaySplit"].groupby("DAILYTIMEBRACKET").nunique()["VALUE"] > 1).any():
                 raise ValueError("DaySplit must be consistent across years")
 
+            dfs["DaySplit"]["DAILYTIMEBRACKET"] = dfs["DaySplit"]["DAILYTIMEBRACKET"].astype(str)
+
             day_split = (
                 dfs["DaySplit"]
                 .groupby(["DAILYTIMEBRACKET"])
@@ -198,13 +200,15 @@ class OtooleTimeDefinition(BaseModel):
             timeslice_in_season=timeslice_in_season,
         )
 
-    def _to_otoole(self, stem: str) -> pd.DataFrame:
+    def _to_dataframe(self, stem: str) -> pd.DataFrame:
         if stem == "YEAR":
             return pd.DataFrame(data={"VALUE": sorted(self.years)})
         elif stem == "SEASON":
             return pd.DataFrame(data={"VALUE": sorted(self.seasons)})
         elif stem == "TIMESLICE":
             return pd.DataFrame(data={"VALUE": sorted(self.timeslices)})
+        elif stem == "DAILYTIMEBRACKET":
+            return pd.DataFrame(data={"VALUE": sorted(self.daily_time_brackets)})
         elif stem == "DAYTYPE":
             return pd.DataFrame(data={"VALUE": sorted(self.day_types)})
         elif stem == "DAILYTIMEBRACKET":
@@ -233,8 +237,12 @@ class OtooleTimeDefinition(BaseModel):
         elif stem == "DaySplit":
             return pd.DataFrame.from_records(
                 [
-                    {"DAILYTIMEBRACKET": d, "YEAR": year, "VALUE": self.day_split[d]}
-                    for d, year in product(list(self.day_split.keys()), self.years)
+                    {
+                        "DAILYTIMEBRACKET": dtb,
+                        "YEAR": year,
+                        "VALUE": self.day_split[dtb],
+                    }
+                    for dtb, year in product(self.daily_time_brackets, self.years)
                 ]
             )
         elif stem == "Conversionld":
@@ -264,16 +272,23 @@ class OtooleTimeDefinition(BaseModel):
                 [
                     {
                         "TIMESLICE": timeslice,
-                        "DAILYTIMEBRACKET": daily_time_bracket,
+                        "DAILYTIMEBRACKET": dtb,
                         "VALUE": 1,
                     }
-                    for timeslice, daily_time_bracket in self.timeslice_in_timebracket.items()
+                    for timeslice, dtb in self.timeslice_in_timebracket.items()
                 ]
             )
         else:
             raise ValueError(f"no otoole compatibility method for '{stem}'")
 
+    def to_dataframes(self):
+        dfs = {}
+        for stem, _params in self.otoole_stems.items():
+            dfs[stem] = self._to_dataframe(stem)
+
+        return dfs
+
     def to_otoole_csv(self, output_directory):
         for stem, _params in self.otoole_stems.items():
             if stem not in self.otoole_cfg.empty_dfs:
-                self._to_otoole(stem).to_csv(Path(output_directory) / f"{stem}.csv", index=False)
+                self._to_dataframe(stem).to_csv(Path(output_directory) / f"{stem}.csv", index=False)

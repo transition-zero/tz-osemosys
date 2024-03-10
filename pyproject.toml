@@ -34,7 +34,9 @@ dependencies = [
   "pydantic>2",
   "pydantic-settings",
   "xarray",
-  "orjson"
+  "orjson",
+  "linopy",
+  "highspy",
 ]
 
 [project.optional-dependencies] # Optional

@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import ClassVar, Union
+from typing import ClassVar, Dict, Union
 
 import pandas as pd
 import xarray as xr
@@ -14,7 +14,7 @@ from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.technology import Technology, TechnologyStorage
 from feo.osemosys.schemas.time_definition import TimeDefinition
-from feo.osemosys.utils import group_to_json, merge, to_df_helper
+from feo.osemosys.utils import flatten, group_to_json
 
 
 class RunSpecOtoole(BaseModel):
@@ -62,6 +62,17 @@ class RunSpecOtoole(BaseModel):
         },
     }
 
+    def map_datatypes(self, df: pd.DataFrame):
+        index_cols = df.index.names
+        df = df.reset_index()
+        for c in df.columns:
+            if c == "YEAR":
+                df[c] = df[c].astype(int)
+            elif c != "VALUE":
+                df[c] = df[c].astype(str)
+        df = df.set_index(index_cols)
+        return df
+
     def to_xr_ds(self):
         """
         Return the current RunSpec as an xarray dataset
@@ -74,45 +85,69 @@ class RunSpecOtoole(BaseModel):
         """
 
         # Convert Runspec data to dfs
-        data_dfs = to_df_helper(self)
+        data_dfs = self.to_dataframes()
+
+        # cast any YEAR to year
+        for _df_name, df in data_dfs.items():
+            if "YEAR" in df.columns:
+                df["YEAR"] = df["YEAR"].astype(int)
 
         # Set index to columns other than "VALUE" (only for parameter dataframes)
         for df_name, df in data_dfs.items():
             if not df_name.isupper():
                 data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
+
+        for obj in Impact, Region, Technology, Commodity, TimeDefinition, self:
+            for stem, params in obj.otoole_stems.items():
+                if stem not in data_dfs.keys():
+                    data_dfs[stem] = pd.DataFrame(columns=params["columns"]).set_index(
+                        [c for c in params["columns"] if c != "VALUE"]
+                    )
+
         # Convert params to data arrays
-        data_arrays = {x: y.to_xarray()["VALUE"] for x, y in data_dfs.items() if not x.isupper()}
-        # Create dataset
-        ds = xr.Dataset(data_vars=data_arrays)
+        data_arrays = {
+            var_name: self.map_datatypes(df).to_xarray()["VALUE"]
+            for var_name, df in data_dfs.items()
+            if not var_name.isupper()
+        }
 
-        # If runspec not generated using otoole config yaml, use linopy defaults
-        if self.defaults_otoole is None:
-            default_values = defaults.otoole_name_defaults
-            # If storage technologies present, use additional relevant default values
-            if self.storage_technologies:
-                default_values = {**default_values, **defaults.otoole_name_storage_defaults}
-            # Extract defaults data from OSeMOSYSData objects
-            for name, osemosys_data in default_values.items():
-                default_values[name] = osemosys_data.data
-        # Otherwise take defaults from otoole config yaml file
-        else:
-            default_values = {}
-            for name, data in self.defaults_otoole.values.items():
-                if data["type"] == "param":
-                    default_values[name] = data["default"]
+        coords = {
+            var_name: df["VALUE"].astype(str).tolist()
+            for var_name, df in data_dfs.items()
+            if var_name.isupper() and var_name != "YEAR"
+        }
+        coords["YEAR"] = data_dfs["YEAR"]["VALUE"].astype(int).tolist()
 
-        # Replace any nan values in ds with default values (or None) for corresponding param,
-        # adding default values as attribute of each data array
-        for name in ds.data_vars.keys():
-            # Replace nan values with default values if available
-            if name in default_values.keys():
-                ds[name].attrs["default"] = default_values[name]
-                ds[name] = ds[name].fillna(default_values[name])
-            # Replace all other nan values with None
-            # TODO: remove this code if nan values wanted in the ds
-            # else:
-            #    ds[name].attrs["default"] = None
-            #    ds[name] = ds[name].fillna(None)
+        ds = xr.Dataset(data_vars=data_arrays, coords=coords)
+
+        # # If runspec not generated using otoole config yaml, use linopy defaults
+        # if self.defaults_otoole is None:
+        #     default_values = defaults.otoole_name_defaults
+        #     # If storage technologies present, use additional relevant default values
+        #     if self.storage_technologies:
+        #         default_values = {**default_values, **defaults.otoole_name_storage_defaults}
+        #     # Extract defaults data from OSeMOSYSData objects
+        #     for name, osemosys_data in default_values.items():
+        #         default_values[name] = osemosys_data.data
+        # # Otherwise take defaults from otoole config yaml file
+        # else:
+        #     default_values = {}
+        #     for name, data in self.defaults_otoole.values.items():
+        #         if data["type"] == "param":
+        #             default_values[name] = data["default"]
+
+        # # Replace any nan values in ds with default values (or None) for corresponding param,
+        # # adding default values as attribute of each data array
+        # for name in ds.data_vars.keys():
+        #     # Replace nan values with default values if available
+        #     if name in default_values.keys():
+        #         ds[name].attrs["default"] = default_values[name]
+        #         ds[name] = ds[name].fillna(default_values[name])
+        #     # Replace all other nan values with None
+        #     # TODO: remove this code if nan values wanted in the ds
+        #     # else:
+        #     #    ds[name].attrs["default"] = None
+        #     #    ds[name] = ds[name].fillna(None)
 
         return ds
 
@@ -136,6 +171,20 @@ class RunSpecOtoole(BaseModel):
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
 
+        otoole_cfg.empty_dfs += list(
+            set(flatten([impact.otoole_cfg.empty_dfs for impact in impacts]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([region.otoole_cfg.empty_dfs for region in regions]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([technology.otoole_cfg.empty_dfs for technology in technologies]))
+        )
+        otoole_cfg.empty_dfs += list(
+            set(flatten([commodity.otoole_cfg.empty_dfs for commodity in commodities]))
+        )
+        otoole_cfg.empty_dfs += list(set(time_definition.otoole_cfg.empty_dfs))
+
         # read in depreciation_method and replace enum
         if "DepreciationMethod" not in otoole_cfg.empty_dfs:
             dfs["DepreciationMethod"]["VALUE"] = dfs["DepreciationMethod"]["VALUE"].map(
@@ -152,22 +201,14 @@ class RunSpecOtoole(BaseModel):
             else None
         )
         if "DiscountRateIdv" not in otoole_cfg.empty_dfs:
-            discount_rate_idv = group_to_json(
+            cost_of_capital = group_to_json(
                 g=dfs["DiscountRateIdv"],
                 root_column=None,
                 data_columns=["REGION", "TECHNOLOGY"],
                 target_column="VALUE",
             )
         else:
-            discount_rate_idv = None
-
-        # merge with Idv if necessary or just take discount_rate_idv
-        if discount_rate is not None and discount_rate_idv is not None:
-            # merge together
-            discount_rate = {k: {"*": v} for k, v in discount_rate.items()}
-            discount_rate = merge(discount_rate, discount_rate_idv)
-        elif discount_rate is None and discount_rate_idv is not None:
-            discount_rate = discount_rate_idv
+            cost_of_capital = None
 
         # reserve margin and renewable production target
         reserve_margin = (
@@ -255,9 +296,10 @@ class RunSpecOtoole(BaseModel):
 
         return cls(
             id=id if id else Path(root_dir).name,
-            discount_rate=discount_rate,
-            depreciation_method=depreciation_method,
-            reserve_margin=reserve_margin,
+            discount_rate=discount_rate or defaults.discount_rate,
+            cost_of_capital=cost_of_capital,
+            depreciation_method=depreciation_method or defaults.depreciation_method,
+            reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
             impacts=impacts,
             regions=regions,
@@ -268,25 +310,10 @@ class RunSpecOtoole(BaseModel):
             otoole_cfg=otoole_cfg,
         )
 
-    def to_otoole_csv(self, output_directory):
+    def to_model_dataframes(self) -> Dict[str, pd.DataFrame]:
         """
-        Convert Runspec to otoole style output CSVs and config.yaml
-
-        Parameters
-        ----------
-        output_directory: str
-            Path to the output directory for CSV files to be placed
+        Convert RunSpec to otoole style output CSVs, only for parameters created on the model object
         """
-
-        # do subsidiary objects
-        Technology.to_otoole_csv(technologies=self.technologies, output_directory=output_directory)
-        TechnologyStorage.to_otoole_csv(
-            storage_technologies=self.storage_technologies, output_directory=output_directory
-        )
-        Impact.to_otoole_csv(impacts=self.impacts, output_directory=output_directory)
-        Commodity.to_otoole_csv(commodities=self.commodities, output_directory=output_directory)
-        Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
-        self.time_definition.to_otoole_csv(output_directory=output_directory)
 
         # collect dataframes
         dfs = {}
@@ -301,18 +328,15 @@ class RunSpecOtoole(BaseModel):
         # discount rate
         if self.discount_rate:
             df = pd.json_normalize(self.discount_rate.data).T.rename(columns={0: "VALUE"})
+            df[["REGION"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+            dfs["DiscountRate"] = df
+
+        if self.cost_of_capital:
+            df = pd.json_normalize(self.cost_of_capital.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "TECHNOLOGY"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            # if there are different discount rates per technology, use Idv
-            if (df.groupby(["REGION"])["VALUE"].nunique() > 1).any():
-                idv_regions = (df.groupby(["REGION"])["VALUE"].nunique() > 1).index
-                dfs["DiscountRateIdv"] = df.loc[df["REGIONS"].isin(idv_regions)]
-                dfs["DiscountRate"] = df.loc[~df["REGIONS"].isin(idv_regions)].drop(
-                    columns=["TECHNOLOGY"]
-                )
-            else:
-                dfs["DiscountRate"] = df.drop(columns=["TECHNOLOGY"])
+            dfs["DiscountRateIdv"] = df
 
         # reserve margins
         if self.reserve_margin:
@@ -346,8 +370,18 @@ class RunSpecOtoole(BaseModel):
                     df["VALUE"] = df["VALUE"].astype(int)
                     dfs_tag_fuel.append(df)
 
-            dfs["ReserveMarginTagTechnology"] = pd.concat(dfs_tag_technology)
-            dfs["ReserveMarginTagFuel"] = pd.concat(dfs_tag_fuel)
+            dfs["ReserveMarginTagTechnology"] = (
+                pd.concat(dfs_tag_technology)
+                if dfs_tag_technology
+                else pd.DataFrame(
+                    columns=self.otoole_stems["ReserveMarginTagTechnology"]["columns"]
+                )
+            )
+            dfs["ReserveMarginTagFuel"] = (
+                pd.concat(dfs_tag_fuel)
+                if dfs_tag_fuel
+                else pd.DataFrame(columns=self.otoole_stems["ReserveMarginTagFuel"]["columns"])
+            )
 
         # min renewable production targets
         if self.renewable_production_target:
@@ -385,6 +419,40 @@ class RunSpecOtoole(BaseModel):
 
             dfs["RETagTechnology"] = pd.concat(dfs_tag_technology)
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
+
+        return dfs
+
+    def to_dataframes(self) -> Dict[str, pd.DataFrame]:
+        """
+        Convert Runspec to otoole style output CSVs and config.yaml
+
+        Parameters
+        ----------
+        output_directory: str
+            Path to the output directory for CSV files to be placed
+        """
+
+        # collect dataframes
+        dfs = self.to_model_dataframes()
+
+        # do subsidiary objects
+        dfs.update(Technology.to_dataframes(technologies=self.technologies))
+        dfs.update(Impact.to_dataframes(impacts=self.impacts))
+        dfs.update(Commodity.to_dataframes(commodities=self.commodities))
+        dfs.update(Region.to_dataframes(regions=self.regions))
+        dfs.update(self.time_definition.to_dataframes())
+
+        return dfs
+
+    def to_otoole_csv(self, output_directory):
+        dfs = self.to_model_dataframes()
+
+        # do subsidiary objects
+        Technology.to_otoole_csv(technologies=self.technologies, output_directory=output_directory)
+        Impact.to_otoole_csv(impacts=self.impacts, output_directory=output_directory)
+        Commodity.to_otoole_csv(commodities=self.commodities, output_directory=output_directory)
+        Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
+        self.time_definition.to_otoole_csv(output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

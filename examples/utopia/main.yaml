@@ -1,0 +1,691 @@
+# Model Nameplate
+id: utopia
+long_name: "Utopia Model - an OSeMOSYS starter template"
+description: >
+  Based on the utopia.txt model file available at: https://github.com/KTH-dESA/utopia/blob/main/utopia.txt
+
+impacts:
+  - id: CO2
+    long_name: equivalent carbon dioxide emissions
+    description: equivalent carbon dioxide emissions
+    exogenous_annual: 0.
+    exogenous_total: null
+    constraint_annual: null
+    constraint_total: null
+  - id: NOX
+    long_name: Nitrous Oxide Emissions
+    description: Nitrous Oxide Emissions
+    exogenous_annual: 0.
+    exogenous_total: null
+    constraint_annual: null
+    constraint_total: null
+
+technologies:
+  - id: E01
+    long_name: Coal fuelled power plant
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 40
+    capex: 1400
+    include_in_joint_reserve_margin: true
+    operating_life: 40
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          HCO: 3.125
+        output_activity_ratio:
+          ELC: 1.
+        opex_variable: 0.3
+    capacity_factor: 0.8
+    residual_capacity:
+      1990: 0.5
+      1991: 0.5
+      1992: 0.5
+      1993: 0.4
+      1994: 0.4
+      1995: 0.4
+      1996: 0.4
+      1997: 0.4
+      1998: 0.4
+      1999: 0.3
+      2000: 0.32
+      2001: 0.3
+      2002: 0.3
+      2003: 0.3
+      2004: 0.3
+      2005: 0.2
+      2006: 0.2
+      2007: 0.2
+      2008: 0.2
+      2009: 0.2
+      2010: 0.2
+  - id: E21
+    long_name: Nuclear power plant
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 500
+    capex: 5000
+    include_in_joint_reserve_margin: true
+    residual_capacity: 0
+    capacity_factor: 0.8
+    operating_life: 40
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          URN: 1.
+        output_activity_ratio:
+          ELC: 1.
+        opex_variable: 1.5
+  - id: E31
+    long_name: Hydro power plant
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 75
+    residual_capacity: 0.1
+    capacity_factor: 0.27
+    operating_life: 100
+    include_in_joint_reserve_margin: true
+    capex: 3000
+    capacity_gross_max:
+      1990: 0.1301
+      1991: 0.1401
+      1992: 0.1401
+      1993: 0.1501
+      1994: 0.1501
+      1995: 0.1501
+      1996: 0.1601
+      1997: 0.1601
+      1998: 0.1601
+      1999: 0.1601
+      2000: 0.1701
+      2001: 0.201
+      2002: 0.201
+      2003: 0.201
+      2004: 0.201
+      2005: 0.201
+      2006: 0.201
+      2007: 0.201
+      2008: 0.201
+      2009: 0.201
+      2010: 0.201
+    capacity_gross_min:
+      1990: 0.13
+      1991: 0.14
+      1992: 0.14
+      1993: 0.15
+      1994: 0.15
+      1995: 0.15
+      1996: 0.16
+      1997: 0.16
+      1998: 0.16
+      1999: 0.16
+      2000: 0.17
+      2001: 0.2
+      2002: 0.2
+      2003: 0.2
+      2004: 0.2
+      2005: 0.2
+      2006: 0.2
+      2007: 0.2
+      2008: 0.2
+      2009: 0.2
+      2010: 0.21
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          HYD: 1.
+        output_activity_ratio:
+          ELC: 1.
+  - id: E51
+    long_name: Consumes and generates electricity
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 30
+    residual_capacity: 0.5
+    capacity_factor: 0.17
+    operating_life: 100
+    include_in_joint_reserve_margin: true
+    capex: 900
+    capacity_gross_max: 3
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          ELC: 1.3889
+        output_activity_ratio:
+          ELC: 1.
+    activity_total_max: 0. # don't use this technology for some reason?
+  - id: E70
+    long_name: Diesel fuelled power plant
+    capacity_activity_unit_ratio: 31.536
+    capacity_factor: 0.8
+    opex_fixed: 30
+    operating_life: 40
+    include_in_joint_reserve_margin: true
+    residual_capacity:
+      1990: 0.3
+      1991: 0.3
+      1992: 0.29
+      1993: 0.29
+      1994: 0.28
+      1995: 0.28
+      1996: 0.27
+      1997: 0.27
+      1998: 0.26
+      1999: 0.26
+      2000: 0.25
+      2001: 0.26
+      2002: 0.26
+      2003: 0.27
+      2004: 0.27
+      2005: 0.28
+      2006: 0.28
+      2007: 0.29
+      2008: 0.29
+      2009: 0.3
+      2010: 0.2
+    capex: 1000
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          DSL: 3.4
+        output_activity_ratio:
+          ELC: 1.
+        opex_variable: 0.4
+  - id: IMPDSL1
+    long_name: Diesel supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: diesel_supply mode
+        description: default diesel_supply mode
+        output_activity_ratio:
+          DSL: 1.
+        opex_variable: 10
+        emissions_activity_ratio:
+          CO2: 0.075
+  - id: IMPGSL1
+    long_name: Gasoline supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: gasoline_supply mode
+        description: default gasoline_supply mode
+        output_activity_ratio:
+          GSL: 1.
+        opex_variable: 15
+        emissions_activity_ratio:
+          CO2: 0.075
+  - id: IMPHCO1
+    long_name: Coal supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: coal_supply mode
+        description: default coal_supply mode
+        output_activity_ratio:
+          HCO: 1.
+        opex_variable: 2
+        emissions_activity_ratio:
+          CO2: 0.089
+  - id: IMPOIL1
+    long_name: Crude oil supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: crude_oil_supply mode
+        description: default crude_oil_supply mode
+        output_activity_ratio:
+          OIL: 1.
+        opex_variable: 8
+        emissions_activity_ratio:
+          CO2: 0.075
+  - id: IMPURN1
+    long_name: Uranium supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: uranium_supply mode
+        description: default uranium_supply mode
+        output_activity_ratio:
+          URN: 1.
+        opex_variable: 2
+  - id: RHE
+    long_name: Residential electricity heating consuming electricity
+    capex: 90
+    operating_life: 30
+    operating_modes:
+      - id: HEAT
+        long_name: heating mode
+        description: default heating mode
+        input_activity_ratio:
+          ELC: 1.
+        output_activity_ratio:
+          RH: 1.
+    capacity_gross_max:
+      1990: 0
+      1991: 0
+      1992: 0
+      1993: 0
+      1994: 0
+      1995: 0
+      1996: 0
+      1997: 0
+      1998: 0
+      1999: 0
+      "*": 999999
+    residual_capacity: 0
+  - id: RHO
+    long_name: Residential heating consuming oil
+    capex: 100
+    opex_fixed: 1.
+    operating_life: 30
+    operating_modes:
+      - id: HEAT
+        long_name: heating mode
+        description: default heating mode
+        input_activity_ratio:
+          DSL: 1.428571429
+        output_activity_ratio:
+          RH: 1.
+    residual_capacity:
+      1990: 25
+      1991: 23.8
+      1992: 22.5
+      1993: 21.3
+      1994: 20
+      1995: 18.8
+      1996: 17.5
+      1997: 16.3
+      1998: 15
+      1999: 13.8
+      2000: 12.5
+      2001: 11.3
+      2002: 10
+      2003: 8.8
+      2004: 7.5
+      2005: 6.3
+      2006: 5
+      2007: 3.8
+      2008: 2.5
+      2009: 1.3
+      2010: 0
+  - id: RL1
+    long_name: Residential lighting consuming electricity
+    capex: 0
+    opex_fixed: 9.46
+    operating_life: 10
+    operating_modes:
+      - id: LIGHT
+        long_name: lighting mode
+        description: default lighting mode
+        input_activity_ratio:
+          ELC: 1.
+        output_activity_ratio:
+          RH: 1.
+    residual_capacity:
+      1990: 5.6
+      1991: 5
+      1992: 4.5
+      1993: 3.9
+      1994: 3.4
+      1995: 2.8
+      1996: 2.2
+      1997: 1.7
+      1998: 1.1
+      1999: 0.6
+      2000: 0
+      "*": 0
+  - id: SRE
+    long_name: Refinery
+    capex: 100
+    operating_life: 50
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio:
+          OIL: 1.
+        output_activity_ratio:
+          DSL: 0.7
+          GSL: 0.3
+        opex_variable: 10
+    capacity_gross_max:
+      1990: 0.1001
+      1991: 0.1001
+      1992: 0.1001
+      1993: 0.1001
+      1994: 0.1001
+      1995: 0.1001
+      1996: 0.1001
+      1997: 0.1001
+      1998: 0.1001
+      1999: 0.1001
+      "*": 999999
+    capacity_gross_min:
+      1990: 0.1
+      1991: 0.1
+      1992: 0.1
+      1993: 0.1
+      1994: 0.1
+      1995: 0.1
+      1996: 0.1
+      1997: 0.1
+      1998: 0.1
+      1999: 0.1
+      2000: 0
+      2001: 0
+      2002: 0
+      2003: 0
+      2004: 0
+      2005: 0
+      2006: 0
+      2007: 0
+      2008: 0
+      2009: 0
+      2010: 0
+  - id: TXD
+    long_name: Transport in passenger km consuming diesel
+    opex_fixed: 52
+    capex: 1044
+    operating_life: 15
+    operating_modes:
+      - id: TRAVEL
+        long_name: transport mode
+        description: transport in passenger-km
+        input_activity_ratio:
+          DSL: 1
+        output_activity_ratio:
+          TX: 1.
+        emissions_activity_ratio:
+          NOX: 1
+    residual_capacity:
+      1990: 0.6
+      1991: 0.6
+      1992: 0.5
+      1993: 0.5
+      1994: 0.4
+      1995: 0.4
+      1996: 0.4
+      1997: 0.3
+      1998: 0.3
+      1999: 0.2
+      2000: 0.2
+      2001: 0.2
+      2002: 0.2
+      2003: 0.1
+      2004: 0.1
+      2005: 0.1
+      2006: 0.1
+      2007: 0.1
+      "*": 0
+  - id: TXE
+    long_name: Transport in passenger km consuming electricity
+    opex_fixed: 100
+    capex: 2000
+    operating_life: 15
+    operating_modes:
+      - id: TRAVEL
+        long_name: transport mode
+        description: transport in passenger-km
+        input_activity_ratio:
+          ELC: 1.
+        output_activity_ratio:
+          TX: 1.
+    capacity_gross_max:
+      1990: 0
+      1991: 0.4
+      1992: 0.8
+      1993: 1.2
+      1994: 1.6
+      1995: 2.
+      1996: 2.4
+      1997: 2.8
+      1998: 3.2
+      1999: 3.6
+      2000: 4.
+      2001: 4.6
+      2002: 5.2
+      2003: 5.8
+      2004: 6.4
+      2005: 7.
+      2006: 7.6
+      2007: 8.2
+      2008: 8.8
+      2009: 9.4
+      2010: 10.
+  - id: TXG
+    long_name: Transport in passenger km consuming gasoline
+    opex_fixed: 48 # mn.eur/GW
+    capex: 1044
+    operating_life: 15
+    operating_modes:
+      - id: TRAVEL
+        long_name: transport mode
+        description: transport in passenger-km
+        input_activity_ratio:
+          GSL: 1.
+        output_activity_ratio:
+          TX: 1.
+        emissions_activity_ratio:
+          NOX: 1
+  - id: RIV
+    long_name: River to supply hydro power plants
+    capex: 0
+    operating_life: 100
+    operating_modes:
+      - id: SUPPLY
+        long_name: river_supply mode
+        description: default river_supply mode
+        output_activity_ratio:
+          HYD: 1.
+  - id: RHu
+    long_name: Unmet heating demand
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: HEAT
+        long_name: unmet heat slac
+        description: unmet heat slack
+        output_activity_ratio:
+          RH: 1.
+        opex_variable: 99999
+  - id: RLu
+    long_name: Unmet lighting demand
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: LIGHT
+        long_name: unmet light slack
+        description: unmet light slack
+        output_activity_ratio:
+          RL: 1.
+        opex_variable: 99999
+  - id: TXu
+    long_name: Unmet transport demand
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: TRAVEL
+        long_name: unmet travel slack
+        description: unmet travel slack
+        output_activity_ratio:
+          TX: 1.
+        opex_variable: 99999
+
+storage_technologies:
+  - id: DAM
+    capex: 0
+    operating_life: 100
+    residual_capacity: 999
+    operating_modes:
+      - id: charge
+        long_name: charge mode
+        description: default store mode
+        input_activity_ratio:
+          ELC: 1.
+      - id: discharge
+        long_name: discharge mode
+        description: default discharge mode
+        output_activity_ratio:
+          ELC: 1.
+
+
+commodities:
+  - id: DSL
+    long_name: Diesel
+  - id: ELC
+    long_name: Electricity
+    include_in_joint_reserve_margin: true
+  - id: GSL
+    long_name: Gasoline
+  - id: HCO
+    long_name: Coal
+  - id: HYD
+    long_name: Hydro
+  - id: OIL
+    long_name: Oil
+  - id: URN
+    long_name: Uranium
+  - id: RH
+    long_name: Heating demand
+    demand_annual:
+      1990: 25.2
+      1991: 26.46
+      1992: 27.72
+      1993: 28.98
+      1994: 30.24
+      1995: 31.5
+      1996: 32.76
+      1997: 34.02
+      1998: 35.28
+      1999: 36.54
+      2000: 37.8
+      2001: 39.69
+      2002: 41.58
+      2003: 43.47
+      2004: 45.36
+      2005: 47.25
+      2006: 49.14
+      2007: 51.03
+      2008: 52.92
+      2009: 54.81
+      2010: 56.7
+    demand_profile:
+      ID: 0.12
+      IN: 0.06
+      SD: 0
+      SN: 0
+      WD: 0.5467
+      WN: 0.2733
+  - id: RL
+    long_name: Lighting demand
+    demand_annual:
+      1990: 5.6
+      1991: 5.88
+      1992: 6.16
+      1993: 6.44
+      1994: 6.72
+      1995: 7
+      1996: 7.28
+      1997: 7.56
+      1998: 7.84
+      1999: 8.12
+      2000: 8.4
+      2001: 8.82
+      2002: 9.24
+      2003: 9.66
+      2004: 10.08
+      2005: 10.5
+      2006: 10.92
+      2007: 11.34
+      2008: 11.76
+      2009: 12.18
+      2010: 12.6
+    demand_profile:
+      ID: 0.15
+      IN: 0.05
+      SD: 0.15
+      SN: 0.05
+      WD: 0.5
+      WN: 0.1
+  - id: TX
+    long_name: Transport demand
+    demand_annual:
+      1990: 5.2
+      1991: 5.46
+      1992: 5.72
+      1993: 5.98
+      1994: 6.24
+      1995: 6.5
+      1996: 6.76
+      1997: 7.02
+      1998: 7.28
+      1999: 7.54
+      2000: 7.8
+      2001: 8.189
+      2002: 8.578
+      2003: 8.967
+      2004: 9.356
+      2005: 9.745
+      2006: 10.134
+      2007: 10.523
+      2008: 10.912
+      2009: 11.301
+      2010: 11.69
+
+regions:
+  - id: UTOPIA
+
+time_definition:
+  id: utopia_3yrpt_2daypt
+  years: "range(1990,2021)"
+  seasons: [1,2,3]
+  day_types: [1]
+  daily_time_brackets: [1,2]
+  timeslices: ["ID", "IN", "SD", "SN", "WD", "WN"]
+  timeslice_in_season:
+    ID: 1
+    IN: 1
+    SD: 2
+    SN: 2
+    WD: 3
+    WN: 3
+  timeslice_in_daytype:
+    ID: 1
+    IN: 1
+    SD: 1
+    SN: 1
+    WD: 1
+    WN: 1
+  timeslice_in_timebracket:
+    ID: 1
+    IN: 2
+    SD: 1
+    SN: 2
+    WD: 1
+    WN: 2
+  year_split:
+    ID: 0.1667
+    IN: 0.0833
+    SD: 0.1667
+    SN: 0.0833
+    WD: 0.3333
+    WN: 0.1667
+
+# FINANCIALS
+depreciation_method: "straight-line"
+discount_rate: 0.05
+
+# targets and constraints
+reserve_margin: 1.18
