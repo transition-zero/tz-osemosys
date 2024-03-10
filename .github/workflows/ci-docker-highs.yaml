@@ -1,9 +1,9 @@
 name: build-highs-docker
 
 on:
-  # push:
-  #   branches: ['main']
-  #   paths: ['DockerFileHiGHS']
+  push:
+    branches: ['main']
+    paths: ['DockerFileHiGHS']
   workflow_dispatch:
 
 jobs:
