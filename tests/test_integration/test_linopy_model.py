@@ -1,26 +1,32 @@
-import os
+from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
-from feo.osemosys.model.full_linopy_run import create_and_run_linopy
-from tests.fixtures.paths import OTOOLE_SAMPLE_RESULTS
+from feo.osemosys import Model
+from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS, OTOOLE_SAMPLE_RESULTS
+
+TOL = 0.0001  # 0.01% tolerance, results within 99.99% similar
 
 
 def test_linopy_model():
-    for sample_path in OTOOLE_SAMPLE_RESULTS:
-        sample_name = sample_path.split("/")[-1]
-        # sample_name = 'otoole-simple-hydro'
-        m = create_and_run_linopy(sample_name)
-        ref_result_obj_df = pd.read_csv(
-            os.path.join("examples/otoole_results/", sample_name, "TotalDiscountedCost.csv")
+    otoole_sample_results = {Path(path).stem: path for path in OTOOLE_SAMPLE_RESULTS}
+
+    for sample_path in OTOOLE_SAMPLE_PATHS:
+        model_name = Path(sample_path).stem
+
+        if model_name in otoole_sample_results:
+            results_path = otoole_sample_results[model_name]
+
+            model = Model.from_otoole_csv(sample_path)
+            model.solve()
+
+            ref_results_df = pd.read_csv(Path(results_path) / "TotalDiscountedCost.csv")
+
+            print(model._m.solution.TotalDiscountedCost.sum().values, ref_results_df["VALUE"].sum())
+
+        assert np.isclose(
+            model._m.solution.TotalDiscountedCost.sum().values,
+            ref_results_df["VALUE"].sum(),
+            rtol=TOL,
         )
-        result_tolerance = 0.001  # 0.01% tolerance, results within 99.99% similar
-        test_result_obj = m.solution.TotalDiscountedCost.sum().values
-        ref_result_obj = ref_result_obj_df["VALUE"].sum()
-        result_diff = (test_result_obj - ref_result_obj) / ref_result_obj
-
-        print(result_tolerance, result_diff, sample_name)
-        assert result_diff <= result_tolerance
-
-
-test_linopy_model()
