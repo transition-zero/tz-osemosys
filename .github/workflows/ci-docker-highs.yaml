@@ -1,3 +1,5 @@
+name: build-highs-docker
+
 on:
   # push:
   #   branches: ['main']
@@ -30,4 +32,4 @@ jobs:
           context: .
           push: true
           file: DockerFileHiGHS
-          tags: tz-highs-python:latest
+          tags: lucastz/tz-highs-python:latest
