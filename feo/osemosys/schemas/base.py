@@ -4,7 +4,14 @@ from typing import Annotated, Any, Dict, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import AfterValidator, BaseModel, create_model, field_validator, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ValidationInfo,
+    create_model,
+    field_validator,
+    model_validator,
+)
 from pydantic.fields import FieldInfo
 
 from feo.osemosys.defaults import defaults
@@ -23,7 +30,9 @@ from feo.osemosys.utils import (
 
 
 def values_sum_one(values: Mapping) -> bool:
-    assert sum(values.values()) == 1.0, "Mapping values must sum to 1.0."
+    assert np.allclose(
+        sum(values.values()), 1.0, atol=defaults.equals_one_tolerance
+    ), "Mapping values must sum to 1.0."
     return values
 
 
@@ -52,22 +61,23 @@ def cast_osemosysdata_value(val: Any, info: FieldInfo):
         elif isnumeric(val):
             return getattr(OSeMOSYSData, coords)(data=val)
         elif isinstance(val, dict):
-            if validator == "SumOne":
+            if validator == "Int":
+                return getattr(OSeMOSYSData, coords).Int(data={str(k): v for k, v in val.items()})
+            elif validator == "Bool":
+                return getattr(OSeMOSYSData, coords).Bool(data={str(k): v for k, v in val.items()})
+            elif validator == "DM":
+                return getattr(OSeMOSYSData, coords).DM(data={str(k): v for k, v in val.items()})
+            elif validator == "SumOne":
                 return getattr(OSeMOSYSData, coords).SumOne(
                     data={str(k): v for k, v in val.items()}
                 )
-            elif validator == "Bool":
-                return getattr(OSeMOSYSData, coords).Bool(data={str(k): v for k, v in val.items()})
-            elif validator == "Int":
-                return getattr(OSeMOSYSData, coords).Int(data={str(k): v for k, v in val.items()})
-            elif validator == "DM":
-                return getattr(OSeMOSYSData, coords).DM(data={str(k): v for k, v in val.items()})
-            return getattr(OSeMOSYSData, coords)(data={str(k): v for k, v in val.items()})
+            else:
+                return getattr(OSeMOSYSData, coords)(data={str(k): v for k, v in val.items()})
 
     return val
 
 
-def nested_sum_one(values: Mapping) -> bool:
+def nested_sum_one(values: Mapping, info: ValidationInfo) -> bool:
     if isinstance(values, OSeMOSYSData):
         data = values.data
     elif isinstance(values, dict):
@@ -87,16 +97,25 @@ def nested_sum_one(values: Mapping) -> bool:
     df = pd.json_normalize(data).T
     assert (
         df.index.str.split(".").str.len().unique().size == 1
-    ), "Nested dictionary must have consistent depth"
+    ), f"{info.field_name}: Nested dictionary must have consistent depth"
     cols = [f"L{ii}" for ii in range(1, max(df.index.str.split(".").str.len()) + 1)]
     df[cols] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
 
-    if not np.allclose(
-        df.groupby(cols[:-1])[0].sum(),
-        1.0,
-        atol=defaults.equals_one_tolerance,
-    ):
-        raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+    if len(cols[:-1]) >= 1:
+        if not np.allclose(
+            df.groupby(cols[:-1]).sum()[0],
+            1.0,
+            atol=defaults.equals_one_tolerance,
+        ):
+            raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+    else:
+        if not np.allclose(
+            df[0].sum(),
+            1.0,
+            atol=defaults.equals_one_tolerance,
+        ):
+            raise ValueError("Nested data must sum to 1.0 along the last indexing level.")
+
     return values
 
 
@@ -259,6 +278,7 @@ class OSeMOSYSData(BaseModel):
             else:
                 super().__init__(data=data)
 
+    is_composed: bool = False
     data: Union[
         DataVar,  # {data: 6.}
         Dict[IdxVar, DataVar],
@@ -339,14 +359,37 @@ def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
         if set_name not in df.columns:
             df[set_name] = "*"
 
-    # explode wildcards
-    for col in df.columns:
-        if col in sets.keys():
-            explode_vals = [val for val in sets[col] if val not in df[col].values.tolist()]
-            df.loc[df[col] == "*", col] = df.loc[df[col] == "*", col].apply(
-                lambda x: explode_vals  # noqa: B023
-            )
-            df = df.explode(col)
+    # explode wildcards - need to do each set separately within group
+    ordered_columns = [c for c in df.columns if c in sets.keys()]
+
+    for col_idx in reversed(range(len(ordered_columns))):
+        group_columns = ordered_columns[:col_idx]
+        if group_columns:
+            explode_col = ordered_columns[col_idx]
+
+            # explode wildcards
+            recombine_groups = []
+            for _idx, g in df.groupby(group_columns):
+                explode_vals = [
+                    val for val in sets[explode_col] if val not in g[explode_col].values.tolist()
+                ]
+                g.loc[g[explode_col] == "*", explode_col] = g.loc[
+                    g[explode_col] == "*", explode_col
+                ].apply(
+                    lambda x: explode_vals  # noqa: B023
+                )
+                g = g.explode(explode_col)
+                recombine_groups.append(g)
+
+            df = pd.concat(recombine_groups)
+
+    # then do the root column
+    root_col = ordered_columns[0]
+    explode_vals = [val for val in sets[root_col] if val not in df[root_col].values.tolist()]
+    df.loc[df[root_col] == "*", root_col] = df.loc[df[root_col] == "*", root_col].apply(
+        lambda x: explode_vals  # noqa: B023
+    )
+    df = df.explode(root_col)
 
     # re-json
     data = group_to_json(df, data_columns=list(sets.keys()), target_column="value")
@@ -356,71 +399,79 @@ def _check_set_membership(obj_id: str, data: Any, sets: Dict[str, List[str]]):
 
 def _compose_R(self, obj_id, data, regions, **sets):
     # Region
-
     _check_nesting_depth(obj_id, data, 1)
-    data = _check_set_membership(obj_id, data, {"regions": regions})
+    self.data = _check_set_membership(obj_id, data, {"regions": regions})
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RY(self, obj_id, data, regions, years, **sets):
     # Region-Year
 
     _check_nesting_depth(obj_id, data, 2)
-    data = _check_set_membership(obj_id, data, {"regions": regions, "years": years})
+    self.data = _check_set_membership(obj_id, data, {"regions": regions, "years": years})
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RT(self, obj_id, data, regions, technologies, **sets):
     # Region-Technology
 
     _check_nesting_depth(obj_id, data, 2)
-    data = _check_set_membership(obj_id, data, {"regions": regions, "technologies": technologies})
+    self.data = _check_set_membership(
+        obj_id, data, {"regions": regions, "technologies": technologies}
+    )
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
     # Region-Year-TimeSlice
 
     _check_nesting_depth(obj_id, data, 3)
-    data = _check_set_membership(
+    self.data = _check_set_membership(
         obj_id, data, {"regions": regions, "years": years, "timeslices": timeslices}
     )
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
     # Region-Technology-Year
 
     _check_nesting_depth(obj_id, data, 3)
-    data = _check_set_membership(
+    self.data = _check_set_membership(
         obj_id, data, {"regions": regions, "technologies": technologies, "years": years}
     )
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
     # Region-Commodity-Year
     _check_nesting_depth(obj_id, data, 3)
-    data = _check_set_membership(
+    self.data = _check_set_membership(
         obj_id, data, {"regions": regions, "commodities": commodities, "years": years}
     )
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
     # Region-Impact-Year
     _check_nesting_depth(obj_id, data, 3)
-    data = _check_set_membership(
+    self.data = _check_set_membership(
         obj_id, data, {"regions": regions, "impacts": impacts, "years": years}
     )
+    self.is_composed = True
 
-    return data
+    return self
 
 
 def _null(self, values):

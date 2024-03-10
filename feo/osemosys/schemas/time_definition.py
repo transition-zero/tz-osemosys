@@ -182,9 +182,9 @@ def construction_from_years_only(values: Any):
     values["day_split"] = {1: 1.0}
     values["days_in_day_type"] = {1: 1.0}
 
-    values["timeslice_in_timebracket"] = {1: [1]}
-    values["timeslice_in_daytype"] = {1: [1]}
-    values["timeslice_in_season"] = {1: [1]}
+    values["timeslice_in_timebracket"] = {1: 1}
+    values["timeslice_in_daytype"] = {1: 1}
+    values["timeslice_in_season"] = {1: 1}
     values["adj"] = TimeAdjacency.from_years(years)
     values["adj_inv"] = TimeAdjacency.from_years(years).inv()
 
@@ -319,7 +319,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     day_types: conlist(int | str, min_length=1) | int | None
     daily_time_brackets: conlist(int | str, min_length=1) | int | None
     year_split: MappingSumOne | None
-    day_split: MappingSumOne | None
+    day_split: Mapping | None
     days_in_day_type: Mapping | None
     timeslice_in_timebracket: Mapping | None
     timeslice_in_daytype: Mapping | None

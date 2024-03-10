@@ -2,8 +2,6 @@ import xarray as xr
 from linopy import Model
 from numpy import inf
 
-# object oriented?
-
 
 def add_demand_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add demand variables to the model

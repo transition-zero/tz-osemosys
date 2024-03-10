@@ -2,7 +2,7 @@ import xarray as xr
 from linopy import Model
 
 
-def add_operating_costs_constraints(ds: xr.Dataset, m: Model, discount_factor_mid: float) -> Model:
+def add_operating_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
     """Add Operating Costs constraint to the model.
     Calculates the total operating expenditure - both discounted and undiscounted - of total (new
     and existing) capacity.
@@ -49,6 +49,11 @@ def add_operating_costs_constraints(ds: xr.Dataset, m: Model, discount_factor_mi
         DiscountedOperatingCost[r,t,y];
     ```
     """
+
+    discount_factor_mid = (1 + ds["DiscountRate"]) ** (
+        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
+    )
+
     TotalAnnualTechnologyActivityByMode = (m["RateOfActivity"] * ds["YearSplit"]).sum("TIMESLICE")
     AnnualVariableOperatingCost = (
         (TotalAnnualTechnologyActivityByMode * ds["VariableCost"].fillna(0))

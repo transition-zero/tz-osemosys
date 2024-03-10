@@ -3,7 +3,7 @@ from linopy import Model
 from numpy import inf
 
 
-def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
+def add_cost_variables(ds: xr.Dataset, m: Model) -> Model:
     """Add all variables to the model
 
     Arguments
@@ -19,9 +19,7 @@ def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
     """
     RTeY = [ds.coords["REGION"], ds.coords["TECHNOLOGY"], ds.coords["YEAR"]]
     RY = [ds.coords["REGION"], ds.coords["YEAR"]]
-
-    # Costing Variables
-
+    
     m.add_variables(
         lower=0, upper=inf, coords=RTeY, name="DiscountedCapitalInvestment", integer=False
     )
@@ -38,6 +36,12 @@ def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
         lower=0, upper=inf, coords=coords, name="ModelPeriodCostByRegion", integer=False
     )
 
+    return m
+
+
+def add_margin_variables(ds: xr.Dataset, m: Model) -> Model:
+    RY = [ds.coords["REGION"], ds.coords["YEAR"]]
+
     # Reserve Margin
 
     m.add_variables(
@@ -47,6 +51,11 @@ def add_other_variables(ds: xr.Dataset, m: Model) -> Model:
     m.add_variables(
         lower=0, upper=inf, coords=coords, name="DemandNeedingReserveMargin", integer=False
     )
+    return m
+
+
+def add_re_variables(ds: xr.Dataset, m: Model) -> Model:
+    RY = [ds.coords["REGION"], ds.coords["YEAR"]]
 
     # RE Gen Target
 

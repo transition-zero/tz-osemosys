@@ -1,0 +1,21 @@
+# Use the official lightweight Python image.
+# https://hub.docker.com/_/python
+FROM python:3.11-slim
+
+# install curl - we need it to checkout our api health on gateway
+RUN apt-get -y update && apt-get -y install build-essential curl git cmake protobuf-compiler
+
+# clone HiGHS
+RUN git clone https://github.com/ERGO-Code/HiGHS.git
+
+# change into the highs direcory
+WORKDIR HiGHS
+
+# build the highs library
+RUN cmake -S . -B build
+RUN cmake --build build
+RUN cmake --install build
+
+WORKDIR ..
+
+CMD bash
