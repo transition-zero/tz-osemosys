@@ -19,7 +19,6 @@ def test_model_construction_from_yaml():
     model._m.solve()
 
 
-@pytest.mark.skip(reason="no solver yet")
 def test_most_simple():
     model = Model(
         id="test-feasibility",

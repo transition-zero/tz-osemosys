@@ -3,7 +3,7 @@ name: build-highs-docker
 on:
   push:
     branches: ['main']
-    paths: ['DockerFileHiGHS']
+    paths: ['DockerfileHiGHS']
   workflow_dispatch:
 
 jobs:
@@ -31,5 +31,5 @@ jobs:
         with:
           context: .
           push: true
-          file: DockerFileHiGHS
+          file: DockerfileHiGHS
           tags: lucastz/tz-highs-python:latest
