@@ -230,6 +230,21 @@ class TechnologyStorage(OSeMOSYSBase, OtooleTechnologyStorage):
     max_discharge_rate: OSeMOSYSData.R | None = Field(None)
     max_charge_rate: OSeMOSYSData.R | None = Field(None)
 
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.compose(self.id, field_val.data, **sets),
+                    )
+
+        return self
+
     @model_validator(mode="before")
     def validator(cls, values):
         values = technology_storage_validation(values)
