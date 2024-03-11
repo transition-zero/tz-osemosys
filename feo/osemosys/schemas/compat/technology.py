@@ -457,7 +457,7 @@ class OtooleTechnology(BaseModel):
         return True
 
 
-class OtooleTechnologyStorage:
+class OtooleTechnologyStorage(BaseModel):
     otoole_cfg: OtooleCfg | None = Field(None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "CapitalCostStorage": {
