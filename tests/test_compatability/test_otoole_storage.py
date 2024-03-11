@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas.technology import Technology
+from feo.osemosys.schemas.storage import Storage
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
 
 
@@ -14,14 +14,15 @@ def test_otoole_roundtrip():
         output_directory = Path(comparison_root + comparison_model)
         output_directory.mkdir(parents=True, exist_ok=True)
 
-        technologies = Technology.from_otoole_csv(root_dir=path)
-        print(technologies[0].otoole_cfg)
+        storage_technologies = Storage.from_otoole_csv(root_dir=path)
 
-        Technology.to_otoole_csv(technologies=technologies, output_directory=output_directory)
+        Storage.to_otoole_csv(
+            storage_technologies=storage_technologies, output_directory=output_directory
+        )
 
-        if technologies:
-            for stem, params in technologies[0].otoole_stems.items():
-                if stem not in technologies[0].otoole_cfg.empty_dfs:
+        if storage_technologies:
+            for stem, params in storage_technologies[0].otoole_stems.items():
+                if stem not in storage_technologies[0].otoole_cfg.empty_dfs:
                     left = (
                         pd.read_csv(Path(path) / (stem + ".csv"))
                         .sort_values(params["columns"])
