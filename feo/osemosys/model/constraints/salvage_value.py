@@ -82,7 +82,7 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
 
     def salvage_cost_sv2(ds):
         return ds["CapitalCost"].fillna(0) * (
-            1 - (numerator_sv2(ds.coords["YEAR"]) / denominator_sv2())
+            1 + (numerator_sv2(ds.coords["YEAR"]) / denominator_sv2())
         )
 
     con = m["SalvageValue"] - (m["NewCapacity"] * salvage_cost_sv2(ds)) == 0
