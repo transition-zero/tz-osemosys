@@ -75,7 +75,7 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
     m.add_constraints(con, name="SV1_SalvageValueAtEndOfPeriod1", mask=mask)
 
     def numerator_sv2(y: int):
-        return 1 - (max(ds.coords["YEAR"]) - y + 1) - 1
+        return max(ds.coords["YEAR"]) - y + 1
 
     def denominator_sv2():
         return ds["OperationalLife"]
