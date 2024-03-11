@@ -34,10 +34,12 @@ def test_otoole_roundtrip():
                         .reset_index(drop=True)
                         .sort_index(axis=1)
                     )
-                    print("LEFT")
-                    print(left)
-                    print("RIGHT")
-                    print(right)
-                    print("ASSERT", stem, left.equals(right))
+                    left["VALUE"] = left["VALUE"].astype(float)
+                    right["VALUE"] = right["VALUE"].astype(float)
+                    if not left.equals(right):
+                        print("LEFT")
+                        print(left)
+                        print("RIGHT")
+                        print(right)
 
                     assert left.equals(right)

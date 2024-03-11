@@ -122,6 +122,7 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
             "AnnualExogenousEmission"
         ].fillna(0)
         mask = (ds["AnnualEmissionLimit"] != -1) & (ds["AnnualEmissionLimit"].notnull())
+
         m.add_constraints(con, name="E8_AnnualEmissionsLimit", mask=mask)
 
         con = ModelPeriodEmissions.fillna(0) <= ds["ModelPeriodEmissionLimit"]
