@@ -36,13 +36,11 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     # ASSUMPIONS
     # ----------
-    depreciation_method: OSeMOSYSData.R.DM | None = Field(
-        OSeMOSYSData.R.DM(defaults.depreciation_method)
-    )
+    depreciation_method: OSeMOSYSData.R.DM = Field(OSeMOSYSData.R.DM(defaults.depreciation_method))
     # DiscountRateIdv
     cost_of_capital: OSeMOSYSData.RT | None = Field(None)
-    discount_rate: OSeMOSYSData.R | None = Field(OSeMOSYSData.R(defaults.discount_rate))
-    reserve_margin: OSeMOSYSData.RY | None = Field(OSeMOSYSData.RY(defaults.reserve_margin))
+    discount_rate: OSeMOSYSData.R = Field(OSeMOSYSData.R(defaults.discount_rate))
+    reserve_margin: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 
     # TARGETS
     # -------
