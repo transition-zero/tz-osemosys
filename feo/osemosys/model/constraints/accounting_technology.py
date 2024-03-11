@@ -46,4 +46,7 @@ def add_accounting_technology_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
 
+    # NOTE: These constraints have all been replaced by linear expressions in other constraints
+    #       This file remains just for reference
+
     return m

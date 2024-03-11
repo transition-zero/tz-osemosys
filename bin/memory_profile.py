@@ -5,33 +5,46 @@ import warnings
 
 import xarray as xr
 from linopy import Model
-from memory_profiler import profile
-from otoole import read
+
+try:
+    from memory_profiler import profile
+except ImportError:
+    raise ImportError(
+        "Please install memory_profiler to run this script: pip install memory_profiler"
+    )
+try:
+    from otoole import read
+except ImportError:
+    raise ImportError("Please install otoole to run this script: pip install otoole")
+
 from otoole.utils import _read_file
 
+from feo.osemosys.model.constraints.accounting_technology import (
+    add_accounting_technology_constraints,
+)
+from feo.osemosys.model.constraints.annual_activity import add_annual_activity_constraints
+from feo.osemosys.model.constraints.capacity_adequacy_a import add_capacity_adequacy_a_constraints
+from feo.osemosys.model.constraints.capacity_adequacy_b import add_capacity_adequacy_b_constraints
+from feo.osemosys.model.constraints.capital_costs import add_capital_costs_constraints
+from feo.osemosys.model.constraints.demand import add_demand_constraints
+from feo.osemosys.model.constraints.emissions import add_emissions_constraints
+from feo.osemosys.model.constraints.energy_balance_a import add_energy_balance_a_constraints
+from feo.osemosys.model.constraints.energy_balance_b import add_energy_balance_b_constraints
+from feo.osemosys.model.constraints.new_capacity import add_new_capacity_constraints
+from feo.osemosys.model.constraints.operating_costs import add_operating_costs_constraints
+from feo.osemosys.model.constraints.re_targets import add_re_targets_constraints
+from feo.osemosys.model.constraints.reserve_margin import add_reserve_margin_constraints
+from feo.osemosys.model.constraints.salvage_value import add_salvage_value_constraints
+from feo.osemosys.model.constraints.total_activity import add_total_activity_constraints
+from feo.osemosys.model.constraints.total_capacity import add_total_capacity_constraints
+from feo.osemosys.model.constraints.total_discounted_costs import (
+    add_total_discounted_costs_constraints,
+)
 from feo.osemosys.model.variables.activity import add_activity_variables
 from feo.osemosys.model.variables.capacity import add_capacity_variables
 from feo.osemosys.model.variables.demand import add_demand_variables
 from feo.osemosys.model.variables.emissions import add_emission_variables
 from feo.osemosys.model.variables.other import add_other_variables
-
-from .constraints.accounting_technology import add_accounting_technology_constraints
-from .constraints.annual_activity import add_annual_activity_constraints
-from .constraints.capacity_adequacy_a import add_capacity_adequacy_a_constraints
-from .constraints.capacity_adequacy_b import add_capacity_adequacy_b_constraints
-from .constraints.capital_costs import add_capital_costs_constraints
-from .constraints.demand import add_demand_constraints
-from .constraints.emissions import add_emissions_constraints
-from .constraints.energy_balance_a import add_energy_balance_a_constraints
-from .constraints.energy_balance_b import add_energy_balance_b_constraints
-from .constraints.new_capacity import add_new_capacity_constraints
-from .constraints.operating_costs import add_operating_costs_constraints
-from .constraints.re_targets import add_re_targets_constraints
-from .constraints.reserve_margin import add_reserve_margin_constraints
-from .constraints.salvage_value import add_salvage_value_constraints
-from .constraints.total_activity import add_total_activity_constraints
-from .constraints.total_capacity import add_total_capacity_constraints
-from .constraints.total_discounted_costs import add_total_discounted_costs_constraints
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
