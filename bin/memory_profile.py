@@ -44,7 +44,7 @@ from feo.osemosys.model.variables.activity import add_activity_variables
 from feo.osemosys.model.variables.capacity import add_capacity_variables
 from feo.osemosys.model.variables.demand import add_demand_variables
 from feo.osemosys.model.variables.emissions import add_emission_variables
-from feo.osemosys.model.variables.other import add_other_variables
+from feo.osemosys.model.variables.other import add_cost_variables
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -190,7 +190,7 @@ def add_linopy_variables(ds: xr.Dataset, m: Model) -> Model:
     m = add_capacity_variables(ds, m)
     m = add_demand_variables(ds, m)
     m = add_emission_variables(ds, m)
-    m = add_other_variables(ds, m)
+    m = add_cost_variables(ds, m)
     # m = add_storage_variables(ds, m)
     return m
 
