@@ -37,16 +37,14 @@ def add_annual_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalTechnologyAnnualActivity[r,t,y] >= TotalTechnologyAnnualActivityLowerLimit[r,t,y] ;
     ```
     """
-    con = (m["RateOfTotalActivity"] * ds["YearSplit"]).sum("TIMESLICE") - m[
-        "TotalTechnologyAnnualActivity"
-    ] == 0
-    m.add_constraints(con, name="AAC1_TotalAnnualTechnologyActivity")
+    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
+    TotalTechnologyAnnualActivity = (RateOfTotalActivity * ds["YearSplit"]).sum("TIMESLICE")
 
-    con = m["TotalTechnologyAnnualActivity"] <= ds["TotalTechnologyAnnualActivityUpperLimit"]
+    con = TotalTechnologyAnnualActivity <= ds["TotalTechnologyAnnualActivityUpperLimit"]
     mask = ds["TotalTechnologyAnnualActivityUpperLimit"] >= 0
     m.add_constraints(con, name="AAC2_TotalAnnualTechnologyActivityUpperLimit", mask=mask)
 
-    con = m["TotalTechnologyAnnualActivity"] >= ds["TotalTechnologyAnnualActivityLowerLimit"]
+    con = TotalTechnologyAnnualActivity >= ds["TotalTechnologyAnnualActivityLowerLimit"]
     mask = ds["TotalTechnologyAnnualActivityLowerLimit"] > 0
     m.add_constraints(con, name="AAC3_TotalAnnualTechnologyActivityLowerLimit", mask=mask)
     return m

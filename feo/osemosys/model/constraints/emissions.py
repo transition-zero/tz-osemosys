@@ -14,9 +14,6 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
-    discount_factor_mid: float
-        The discount factor for operational costs, taken from the midpoint of the year to account
-        for ongoing discounting
 
     Returns
     -------
@@ -89,66 +86,46 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
         ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
     )
 
-    mask = ds["EmissionActivityRatio"].notnull()
-    con = (
-        ds["EmissionActivityRatio"] * m["TotalAnnualTechnologyActivityByMode"]
-        - m["AnnualTechnologyEmissionByMode"]
-        == 0
-    )
-    m.add_constraints(con, name="E1_AnnualEmissionProductionByMode", mask=mask)
-
     if ds["EMISSION"].size > 0:
-        mask = ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0
-        con = (
-            m["AnnualTechnologyEmissionByMode"].sum(dims="MODE_OF_OPERATION")
-            - m["AnnualTechnologyEmission"]
-            == 0
+        TotalAnnualTechnologyActivityByMode = (m["RateOfActivity"] * ds["YearSplit"]).sum(
+            "TIMESLICE"
         )
-        m.add_constraints(con, name="E2_AnnualEmissionProduction", mask=mask)
+        AnnualTechnologyEmissionByMode = (
+            ds["EmissionActivityRatio"] * TotalAnnualTechnologyActivityByMode
+        ).where(ds["EmissionActivityRatio"].notnull())
+        AnnualTechnologyEmission = AnnualTechnologyEmissionByMode.sum(
+            dims="MODE_OF_OPERATION"
+        ).where(ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0)
+        AnnualTechnologyEmissionPenaltyByEmission = (
+            AnnualTechnologyEmission * ds["EmissionsPenalty"]
+        ).where(
+            ds["EmissionsPenalty"].notnull()
+            & (ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0)
+        )
+        AnnualTechnologyEmissionsPenalty = AnnualTechnologyEmissionPenaltyByEmission.sum(
+            dims="EMISSION"
+        )
 
-    mask = (ds["EmissionsPenalty"].notnull()) & (
-        ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    )
-    con = (m["AnnualTechnologyEmission"] * ds["EmissionsPenalty"]) - m[
-        "AnnualTechnologyEmissionPenaltyByEmission"
-    ] == 0
-    m.add_constraints(con, name="E3_EmissionsPenaltyByTechAndEmission", mask=mask)
-
-    con = (
-        m["AnnualTechnologyEmissionPenaltyByEmission"].sum("EMISSION")
-        - m["AnnualTechnologyEmissionsPenalty"]
-        == 0
-    )
-    m.add_constraints(con, name="E4_EmissionsPenaltyByTechnology")
-
-    con = (
-        m["AnnualTechnologyEmissionsPenalty"] / discount_factor_mid
-        - m["DiscountedTechnologyEmissionsPenalty"]
-        == 0
-    )
-    m.add_constraints(con, name="E5_DiscountedEmissionsPenaltyByTechnology")
-
-    if ds["EMISSION"].size > 0:
-        con = m["AnnualTechnologyEmission"].sum(dims=["TECHNOLOGY"]) - m["AnnualEmissions"] == 0
-        m.add_constraints(con, name="E6_EmissionsAccounting1")
-
-    if ds["EMISSION"].size > 0:
-        con = m["ModelPeriodEmissions"] - m["AnnualEmissions"].sum("YEAR") == ds[
+        AnnualEmissions = AnnualTechnologyEmission.sum(dims="TECHNOLOGY")
+        ModelPeriodEmissions = AnnualEmissions.sum(dims="YEAR") + ds[
             "ModelPeriodExogenousEmission"
         ].fillna(0)
-        m.add_constraints(con, name="E7_EmissionsAccounting2")
 
-    if "E8_AnnualEmissionsLimit" in m.constraints:
-        m.remove_constraints("E8_AnnualEmissionsLimit")
+        con = (
+            AnnualTechnologyEmissionsPenalty / discount_factor_mid
+            - m["DiscountedTechnologyEmissionsPenalty"]
+            == 0
+        )
+        m.add_constraints(con, name="E5_DiscountedEmissionsPenaltyByTechnology")
 
-    con = m["AnnualEmissions"] <= ds["AnnualEmissionLimit"] - ds["AnnualExogenousEmission"].fillna(
-        0
-    )
-    mask = ds["AnnualEmissionLimit"] != -1
-    m.add_constraints(con, name="E8_AnnualEmissionsLimit", mask=mask)
+        con = AnnualEmissions.fillna(0) <= ds["AnnualEmissionLimit"] - ds[
+            "AnnualExogenousEmission"
+        ].fillna(0)
+        mask = ds["AnnualEmissionLimit"] != -1
+        m.add_constraints(con, name="E8_AnnualEmissionsLimit", mask=mask)
 
-    con = m["ModelPeriodEmissions"] <= ds["ModelPeriodEmissionLimit"]
-    mask = ds["ModelPeriodEmissionLimit"] != -1
-    m.add_constraints(con, name="E9_ModelPeriodEmissionsLimit", mask=mask)
+        con = ModelPeriodEmissions.fillna(0) <= ds["ModelPeriodEmissionLimit"]
+        mask = ds["ModelPeriodEmissionLimit"] != -1
+        m.add_constraints(con, name="E9_ModelPeriodEmissionsLimit", mask=mask)
 
     return m
