@@ -3,6 +3,7 @@ import pytest
 from feo.osemosys.schemas.base import _check_set_membership
 from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.impact import Impact
+from feo.osemosys.schemas.storage import Storage
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.utils import recursive_keys
 
@@ -57,6 +58,30 @@ PASSING_IMPACTS = dict(
     )
 )
 
+PASSING_STORAGE = dict(
+    basic_wildcard=dict(
+        params=dict(
+            id="STO",
+            capex={"*": {"*": 100}},
+            operating_life={"*": 10},
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026, 2027],
+        ),
+    ),
+    basic_explicit=dict(
+        params=dict(
+            id="STO",
+            capex={"R1": {"2025": 100, "2026": 100}, "R2": {"2025": 100, "2026": 100}},
+            operating_life={"R1": 10, "R2": 10},
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026],
+        ),
+    ),
+)
 
 FAILING_COMMODITIES = dict(
     non_matching_timeslices=dict(
@@ -119,6 +144,31 @@ FAILING_IMPACTS = dict(
             commodities=["COAL"],
         ),
     )
+)
+
+FAILING_STORAGE = dict(
+    too_deep_nesting=dict(
+        params=dict(
+            id="STO",
+            capex={"*": {"*": {"*": 100}}},
+            operating_life={"*": {"*": 10}},
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026, 2027],
+        ),
+    ),
+    non_matching_regions=dict(
+        params=dict(
+            id="STO",
+            capex={"R3": {"*": 100}},
+            operating_life={"R3": {"*": 10}},
+        ),
+        sets=dict(
+            regions=["R1", "R2"],
+            years=[2025, 2026, 2027],
+        ),
+    ),
 )
 
 
@@ -208,6 +258,18 @@ def test_compose_technology():
             assert str(year) in [k[2] for k in input_activity_ratio]
 
 
+def test_compose_storage():
+    for _name, data in PASSING_STORAGE.items():
+        storage = Storage(**data["params"])
+        storage.compose(**data["sets"])
+
+        capex_keys = [k for k in recursive_keys(storage.capex.data)]
+        for region in data["sets"]["regions"]:
+            assert region in [k[0] for k in capex_keys]
+        for year in data["sets"]["years"]:
+            assert str(year) in [k[1] for k in capex_keys]
+
+
 def test_failing_commodity():
     for _name, data in FAILING_COMMODITIES.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
@@ -227,3 +289,10 @@ def test_failing_impact():
         with pytest.raises(ValueError) as e:  # noqa: F841
             impact = Impact(**data["params"])
             impact.compose(**data["sets"])
+
+
+def test_failing_storage():
+    for _name, data in FAILING_STORAGE.items():
+        with pytest.raises(ValueError) as e:  # noqa: F841
+            storage = Storage(**data["params"])
+            storage.compose(**data["sets"])
