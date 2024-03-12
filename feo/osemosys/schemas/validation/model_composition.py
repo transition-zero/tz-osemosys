@@ -51,3 +51,30 @@ def check_tech_consuming_commodity(values):
                 )
 
     return values
+
+
+def check_tech_linked_to_storage(values):
+    """
+    For each storage technology, check it is linked to at least one technology for charge/discharge
+    """
+    for storage in values.storage:
+        techs_to_storage = []
+        techs_from_storage = []
+        for technology in values.technologies:
+            for mode in technology.operating_modes:
+                if mode.to_storage is not None:
+                    for region in mode.to_storage.data.keys():
+                        if storage.id in mode.to_storage.data[region].keys():
+                            techs_to_storage.append(storage.id)
+                if mode.from_storage is not None:
+                    for region in mode.from_storage.data.keys():
+                        if storage.id in mode.from_storage.data[region].keys():
+                            techs_from_storage.append(storage.id)
+
+        if not techs_to_storage:
+            raise ValueError(f"Storage '{storage.id}' has no associated to_storage technologies")
+
+        if not techs_from_storage:
+            raise ValueError(f"Storage '{storage.id}' has no associated from_storage technologies")
+
+    return values

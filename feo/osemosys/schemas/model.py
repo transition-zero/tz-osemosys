@@ -17,6 +17,7 @@ from feo.osemosys.schemas.region import Region
 from feo.osemosys.schemas.storage import Storage
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
+from feo.osemosys.schemas.validation.model_composition import check_tech_linked_to_storage
 from feo.osemosys.utils import merge, recursive_keys
 
 # filter this pandas-3 dep warning for now
@@ -130,6 +131,15 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.id, self.cost_of_capital.data, **sets
         )
 
+        return self
+
+    @model_validator(mode="after")
+    def composition_validation(self):
+        # self = check_tech_producing_commodity(self)
+        # self = check_tech_producing_impact(self)
+        # self = check_tech_consuming_commodity(self)
+        if self.storage:
+            self = check_tech_linked_to_storage(self)
         return self
 
     @model_validator(mode="before")
