@@ -55,9 +55,9 @@ HiGHS can be installed from source using `cmake` following the instructions [her
 
 A docker container is provided that contains Python 3.11 and an installed version of HiGHS. You'll nedd to [install a docker distribution](https://docs.docker.com/engine/install/) relevant for your operating system.
 
-The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directoy, and change directory within the container to this directory.
+The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directory, and change directory within the container to this directory.
 
-    docker run -v $(pwd):/home -it lucastz/tz-highs-python /bin/bash -c 'c
+    docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'c
 d /home && /bin/bash'
 
 *note! Any files changed within this mounted directory will persist, but any changes to environments, installed packes, etc. will not!*
