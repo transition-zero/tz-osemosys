@@ -23,11 +23,11 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     # NON-REQUIRED PARAMETERS
     # -----------------------
     minimum_charge: OSeMOSYSData.RY = Field(
-        OSeMOSYSData(defaults.technology_storage_minimum_charge)
+        OSeMOSYSData.RY(defaults.technology_storage_minimum_charge)
     )
-    initial_level: OSeMOSYSData.R = Field(OSeMOSYSData(defaults.technology_storage_initial_level))
+    initial_level: OSeMOSYSData.R = Field(OSeMOSYSData.R(defaults.technology_storage_initial_level))
     residual_capacity: OSeMOSYSData.RY = Field(
-        OSeMOSYSData(defaults.technology_storage_residual_capacity)
+        OSeMOSYSData.RY(defaults.technology_storage_residual_capacity)
     )
     max_discharge_rate: OSeMOSYSData.R | None = Field(None)
     max_charge_rate: OSeMOSYSData.R | None = Field(None)

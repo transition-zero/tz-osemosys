@@ -17,7 +17,29 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 operating_modes=[dict(id="mode_1")],
             )
         ],
-    )
+    ),
+    most_basic_with_storage=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            )
+        ],
+        storage=[
+            dict(
+                id="STO",
+                capex={"*": {"*": 100}},
+                operating_life={"*": {"*": 10}},
+            )
+        ],
+    ),
 )
 
 FAILING_RUNSPEC_DEFINITIONS = dict(
