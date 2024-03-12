@@ -1,7 +1,9 @@
+from typing import Any
+
 from pydantic import Field, model_validator
 
 from feo.osemosys.defaults import defaults
-from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
+from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.storage import OtooleStorage
 from feo.osemosys.schemas.validation.storage_validation import storage_validation
 
@@ -31,6 +33,16 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     )
     max_discharge_rate: OSeMOSYSData.R | None = Field(None)
     max_charge_rate: OSeMOSYSData.R | None = Field(None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
+
+        return values
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
