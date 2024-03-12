@@ -29,7 +29,9 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 operating_life=10,
                 capex=15,
                 opex_fixed=1.5,
-                operating_modes=[dict(id="mode_1")],
+                operating_modes=[
+                    dict(id="mode_1", to_storage={"*": {"STO": 1}}, from_storage={"*": {"STO": 1}})
+                ],
             )
         ],
         storage=[
@@ -104,6 +106,50 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
         regions=[dict(id="GB")],
         commodities=[dict(id="WATER")],
         impacts=[dict(id="CO2e")],
+    ),
+    missing_from_storage=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1", to_storage={"*": {"STO": 1}})],
+            )
+        ],
+        storage=[
+            dict(
+                id="STO",
+                capex={"*": {"*": 100}},
+                operating_life={"*": {"*": 10}},
+            )
+        ],
+    ),
+    missing_to_storage=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1", from_storage={"*": {"STO": 1}})],
+            )
+        ],
+        storage=[
+            dict(
+                id="STO",
+                capex={"*": {"*": 100}},
+                operating_life={"*": {"*": 10}},
+            )
+        ],
     ),
 )
 
