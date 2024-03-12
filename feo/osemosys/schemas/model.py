@@ -94,15 +94,17 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             "commodities": [commodity.id for commodity in self.commodities],
             "regions": [region.id for region in self.regions],
             "technologies": [technology.id for technology in self.technologies],
-            "storage": [storage.id for storage in self.storage],
             "impacts": [impact.id for impact in self.impacts],
         }
+        if self.storage:
+            sets = {**sets, **{"storage": [storage.id for storage in self.storage]}}
 
         self.commodities = [commodity.compose(**sets) for commodity in self.commodities]
         self.regions = [region.compose(**sets) for region in self.regions]
         self.technologies = [technology.compose(**sets) for technology in self.technologies]
-        self.storage = [storage.compose(**sets) for storage in self.storage]
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
+        if self.storage:
+            self.storage = [storage.compose(**sets) for storage in self.storage]
 
         # compose own parameters
         if self.depreciation_method:
