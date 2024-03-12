@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Dict, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from feo.osemosys.defaults import defaults
 from feo.osemosys.logger import logging
 from feo.osemosys.schemas.base import OSeMOSYSData
 from feo.osemosys.schemas.compat.base import OtooleCfg
@@ -236,7 +237,7 @@ class OtooleTechnology(BaseModel):
                     capacity_activity_unit_ratio=(
                         OSeMOSYSData.R(data=data_json_format["CapacityToActivityUnit"])
                         if data_json_format["CapacityToActivityUnit"] is not None
-                        else None
+                        else OSeMOSYSData.R(defaults.technology_capacity_activity_unit_ratio)
                     ),
                     capacity_one_tech_unit=(
                         OSeMOSYSData.RY(data=data_json_format["CapacityOfOneTechnologyUnit"])
@@ -246,12 +247,12 @@ class OtooleTechnology(BaseModel):
                     availability_factor=(
                         OSeMOSYSData.RY(data=data_json_format["AvailabilityFactor"])
                         if data_json_format["AvailabilityFactor"] is not None
-                        else None
+                        else OSeMOSYSData.RY(defaults.technology_availability_factor)
                     ),
                     capacity_factor=(
                         OSeMOSYSData.RYS(data=data_json_format["CapacityFactor"])
                         if data_json_format["CapacityFactor"] is not None
-                        else None
+                        else OSeMOSYSData.RYS(defaults.technology_capacity_factor)
                     ),
                     operating_life=(
                         OSeMOSYSData.R.Int(data=data_json_format["OperationalLife"])
@@ -266,12 +267,12 @@ class OtooleTechnology(BaseModel):
                     opex_fixed=(
                         OSeMOSYSData.RY(data=data_json_format["FixedCost"])
                         if data_json_format["FixedCost"] is not None
-                        else None
+                        else OSeMOSYSData.RY(defaults.technology_opex_fixed_cost)
                     ),
                     residual_capacity=(
                         OSeMOSYSData.RY(data=data_json_format["ResidualCapacity"])
                         if data_json_format["ResidualCapacity"] is not None
-                        else None
+                        else OSeMOSYSData.RY(defaults.technology_residual_capacity)
                     ),
                     capacity_gross_max=(
                         OSeMOSYSData.RY(data=data_json_format["TotalAnnualMaxCapacity"])
@@ -387,7 +388,6 @@ class OtooleTechnology(BaseModel):
                 _osemosys_datatype,
             ) in cls.operating_mode_stem_translation.items():
                 for mode in technology.operating_modes:
-                    # for MINURNINT in particular it's empty
                     if getattr(mode, attribute) is not None:
                         if getattr(mode, attribute).is_composed:
                             df = pd.json_normalize(getattr(mode, attribute).data).T.rename(

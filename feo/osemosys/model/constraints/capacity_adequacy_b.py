@@ -30,8 +30,10 @@ def add_capacity_adequacy_b_constraints(ds: xr.Dataset, m: Model) -> Model:
         YearSplit[l,y]) * AvailabilityFactor[r,t,y] * CapacityToActivityUnit[r,t];
     ```
     """
+    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
+
     mask = ds["AvailabilityFactor"] < 1
-    con = (m["RateOfTotalActivity"] * ds["YearSplit"]).sum(dims="TIMESLICE") - (
+    con = (RateOfTotalActivity * ds["YearSplit"]).sum(dims="TIMESLICE") - (
         (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["YearSplit"]).sum(dims="TIMESLICE")
         * ds["AvailabilityFactor"]
         * ds["CapacityToActivityUnit"]

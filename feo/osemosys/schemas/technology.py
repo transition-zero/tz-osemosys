@@ -82,25 +82,26 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # -----
     operating_life: OSeMOSYSData.R.Int | None
     capex: OSeMOSYSData.RY | None
-    opex_fixed: OSeMOSYSData.RY | None = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
 
     operating_modes: conlist(OperatingMode, min_length=1)
 
-    # NON-REQUIRED PARAMETERS
+    # REQUIRED PARAMETERS WITH DEFAULTS
     # -----
-    residual_capacity: OSeMOSYSData.RY | None = Field(
+    opex_fixed: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
+    residual_capacity: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_residual_capacity)
     )
-    capacity_activity_unit_ratio: OSeMOSYSData.R | None = Field(
+    capacity_activity_unit_ratio: OSeMOSYSData.R = Field(
         OSeMOSYSData.R(defaults.technology_capacity_activity_unit_ratio)
     )
-    capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
-    availability_factor: OSeMOSYSData.RY | None = Field(
+    availability_factor: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_availability_factor)
     )
-    capacity_factor: OSeMOSYSData.RYS | None = Field(
-        OSeMOSYSData.RYS(defaults.technology_capacity_factor)
-    )
+    capacity_factor: OSeMOSYSData.RYS = Field(OSeMOSYSData.RYS(defaults.technology_capacity_factor))
+
+    # NON-REQUIRED PARAMETERS
+
+    capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
     is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS

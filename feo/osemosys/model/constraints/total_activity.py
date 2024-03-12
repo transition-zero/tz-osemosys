@@ -39,23 +39,15 @@ def add_total_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalTechnologyModelPeriodActivityLowerLimit[r,t] ;
     ```
     """
-    con = (
-        m["TotalTechnologyAnnualActivity"].sum("YEAR") - m["TotalTechnologyModelPeriodActivity"]
-        == 0
-    )
-    m.add_constraints(con, name="TAC1_TotalModelHorizonTechnologyActivity")
+    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
+    TotalTechnologyAnnualActivity = (RateOfTotalActivity * ds["YearSplit"]).sum("TIMESLICE")
+    TotalTechnologyModelPeriodActivity = TotalTechnologyAnnualActivity.sum(dims="YEAR")
 
-    con = (
-        m["TotalTechnologyModelPeriodActivity"]
-        <= ds["TotalTechnologyModelPeriodActivityUpperLimit"]
-    )
+    con = TotalTechnologyModelPeriodActivity <= ds["TotalTechnologyModelPeriodActivityUpperLimit"]
     mask = ds["TotalTechnologyModelPeriodActivityUpperLimit"] >= 0
     m.add_constraints(con, name="TAC2_TotalModelHorizonTechnologyActivityUpperLimit", mask=mask)
 
-    con = (
-        m["TotalTechnologyModelPeriodActivity"]
-        >= ds["TotalTechnologyModelPeriodActivityLowerLimit"]
-    )
+    con = TotalTechnologyModelPeriodActivity >= ds["TotalTechnologyModelPeriodActivityLowerLimit"]
     mask = ds["TotalTechnologyModelPeriodActivityLowerLimit"] > 0
     m.add_constraints(con, name="TAC3_TotalModelHorizenTechnologyActivityLowerLimit", mask=mask)
 

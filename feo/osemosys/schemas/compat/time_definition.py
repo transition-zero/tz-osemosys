@@ -204,28 +204,34 @@ class OtooleTimeDefinition(BaseModel):
         if stem == "YEAR":
             return pd.DataFrame(data={"VALUE": sorted(self.years)})
         elif stem == "SEASON":
-            return pd.DataFrame(data={"VALUE": sorted(self.seasons)})
+            return pd.DataFrame(data={"VALUE": sorted(self.seasons or [])}, columns=["VALUE"])
         elif stem == "TIMESLICE":
-            return pd.DataFrame(data={"VALUE": sorted(self.timeslices)})
+            return pd.DataFrame(data={"VALUE": sorted(self.timeslices)}, columns=["VALUE"])
         elif stem == "DAILYTIMEBRACKET":
-            return pd.DataFrame(data={"VALUE": sorted(self.daily_time_brackets)})
+            return pd.DataFrame(
+                data={"VALUE": sorted(self.daily_time_brackets or [])}, columns=["VALUE"]
+            )
         elif stem == "DAYTYPE":
-            return pd.DataFrame(data={"VALUE": sorted(self.day_types)})
+            return pd.DataFrame(data={"VALUE": sorted(self.day_types or [])}, columns=["VALUE"])
         elif stem == "DAILYTIMEBRACKET":
-            return pd.DataFrame(data={"VALUE": sorted(self.day_split)})
+            return pd.DataFrame(data={"VALUE": sorted(self.day_split or [])}, columns=["VALUE"])
         elif stem == "DaysInDayType":
-            return pd.DataFrame.from_records(
-                [
-                    {
-                        "SEASON": season,
-                        "DAYTYPE": daytype,
-                        "YEAR": year,
-                        "VALUE": self.days_in_day_type[daytype],
-                    }
-                    for season, daytype, year in product(
-                        self.seasons, list(self.days_in_day_type.keys()), self.years
-                    )
-                ]
+            return (
+                pd.DataFrame.from_records(
+                    [
+                        {
+                            "SEASON": season,
+                            "DAYTYPE": daytype,
+                            "YEAR": year,
+                            "VALUE": self.days_in_day_type[daytype],
+                        }
+                        for season, daytype, year in product(
+                            self.seasons, list(self.days_in_day_type.keys()), self.years
+                        )
+                    ]
+                )
+                if self.days_in_day_type is not None
+                else pd.DataFrame(columns=["SEASON", "DAYTYPE", "YEAR", "VALUE"])
             )
         elif stem == "YearSplit":
             return pd.DataFrame.from_records(
@@ -235,48 +241,64 @@ class OtooleTimeDefinition(BaseModel):
                 ]
             )
         elif stem == "DaySplit":
-            return pd.DataFrame.from_records(
-                [
-                    {
-                        "DAILYTIMEBRACKET": dtb,
-                        "YEAR": year,
-                        "VALUE": self.day_split[dtb],
-                    }
-                    for dtb, year in product(self.daily_time_brackets, self.years)
-                ]
+            return (
+                pd.DataFrame.from_records(
+                    [
+                        {
+                            "DAILYTIMEBRACKET": dtb,
+                            "YEAR": year,
+                            "VALUE": self.day_split[dtb],
+                        }
+                        for dtb, year in product(self.daily_time_brackets, self.years)
+                    ]
+                )
+                if self.daily_time_brackets is not None
+                else pd.DataFrame(columns=["DAILYTIMEBRACKET", "YEAR", "VALUE"])
             )
         elif stem == "Conversionld":
-            return pd.DataFrame.from_records(
-                [
-                    {
-                        "TIMESLICE": timeslice,
-                        "DAYTYPE": daytype,
-                        "VALUE": 1,
-                    }
-                    for timeslice, daytype in self.timeslice_in_daytype.items()
-                ]
+            return (
+                pd.DataFrame.from_records(
+                    [
+                        {
+                            "TIMESLICE": timeslice,
+                            "DAYTYPE": daytype,
+                            "VALUE": 1,
+                        }
+                        for timeslice, daytype in self.timeslice_in_daytype.items()
+                    ]
+                )
+                if self.timeslice_in_daytype is not None
+                else pd.DataFrame(columns=["TIMESLICE", "DAYTYPE", "VALUE"])
             )
         elif stem == "Conversionls":
-            return pd.DataFrame.from_records(
-                [
-                    {
-                        "TIMESLICE": timeslice,
-                        "SEASON": season,
-                        "VALUE": 1,
-                    }
-                    for timeslice, season in self.timeslice_in_season.items()
-                ]
+            return (
+                pd.DataFrame.from_records(
+                    [
+                        {
+                            "TIMESLICE": timeslice,
+                            "SEASON": season,
+                            "VALUE": 1,
+                        }
+                        for timeslice, season in self.timeslice_in_season.items()
+                    ]
+                )
+                if self.timeslice_in_season is not None
+                else pd.DataFrame(columns=["TIMESLICE", "SEASON", "VALUE"])
             )
         elif stem == "Conversionlh":
-            return pd.DataFrame.from_records(
-                [
-                    {
-                        "TIMESLICE": timeslice,
-                        "DAILYTIMEBRACKET": dtb,
-                        "VALUE": 1,
-                    }
-                    for timeslice, dtb in self.timeslice_in_timebracket.items()
-                ]
+            return (
+                pd.DataFrame.from_records(
+                    [
+                        {
+                            "TIMESLICE": timeslice,
+                            "DAILYTIMEBRACKET": dtb,
+                            "VALUE": 1,
+                        }
+                        for timeslice, dtb in self.timeslice_in_timebracket.items()
+                    ]
+                )
+                if self.timeslice_in_timebracket is not None
+                else pd.DataFrame(columns=["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"])
             )
         else:
             raise ValueError(f"no otoole compatibility method for '{stem}'")
