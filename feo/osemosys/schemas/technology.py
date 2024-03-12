@@ -24,8 +24,8 @@ class OperatingMode(OSeMOSYSBase):
     emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
-    to_storage: OSeMOSYSData.RY.Bool | None = Field(None)
-    from_storage: OSeMOSYSData.RY.Bool | None = Field(None)
+    to_storage: OSeMOSYSData.RO.Bool | None = Field(None)
+    from_storage: OSeMOSYSData.RO.Bool | None = Field(None)
 
     def compose(self, **sets):
         # compose root OSeMOSYSData

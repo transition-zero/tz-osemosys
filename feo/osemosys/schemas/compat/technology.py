@@ -119,14 +119,14 @@ class OtooleTechnology(BaseModel):
                 "VALUE",
             ],
         },
-        # "TechnologyToStorage": {
-        #    "attribute": "to_storage",
-        #    "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
-        # },
-        # "TechnologyFromStorage": {
-        #    "attribute": "from_storage",
-        #    "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
-        # },
+        "TechnologyToStorage": {
+            "attribute": "to_storage",
+            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+        },
+        "TechnologyFromStorage": {
+            "attribute": "from_storage",
+            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+        },
         "RETagTechnology": {
             "attribute": "is_renewable",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
@@ -137,8 +137,8 @@ class OtooleTechnology(BaseModel):
         "EmissionActivityRatio": ("emission_activity_ratio", OSeMOSYSData.RIY),
         "InputActivityRatio": ("input_activity_ratio", OSeMOSYSData.RCY),
         "OutputActivityRatio": ("output_activity_ratio", OSeMOSYSData.RCY),
-        # "TechnologyToStorage": ("to_storage", OSeMOSYSData.RY.Bool),
-        # "TechnologyFromStorage": ("from_storage", OSeMOSYSData.RY.Bool),
+        "TechnologyToStorage": ("to_storage", OSeMOSYSData.RO.Bool),
+        "TechnologyFromStorage": ("from_storage", OSeMOSYSData.RO.Bool),
     }
 
     @classmethod
