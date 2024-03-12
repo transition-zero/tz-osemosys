@@ -2,9 +2,41 @@ import pytest
 
 from feo.osemosys.schemas.storage import Storage
 
-PASSING_TECH_STORAGE_DEFINITIONS = dict()
+PASSING_TECH_STORAGE_DEFINITIONS = dict(
+    only_capex_and_op_life=dict(
+        id="STO",
+        capex={"*": {"*": 100}},
+        operating_life={"*": {"*": 10}},
+    ),
+    fully_defined=dict(
+        id="STO",
+        capex={"*": {"*": 100}},
+        operating_life={"*": {"*": 10}},
+        minimum_charge={"*": {"*": 0}},
+        initial_level={"*": 1},
+        residual_capacity={"*": {2020: 3, 2021: 2, 2022: 1}},
+        max_discharge_rate={"*": 100},
+        max_charge_rate={"*": 100},
+    ),
+)
 
-FAILING_TECH_STORAGE_DEFINITIONS = dict()
+FAILING_TECH_STORAGE_DEFINITIONS = dict(
+    # id must be defined
+    no_id=dict(
+        capex={"*": {"*": 100}},
+        operating_life={"*": {"*": 10}},
+    ),
+    # capex must be defined
+    no_capex=dict(
+        id="STO",
+        operating_life={"*": {"*": 10}},
+    ),
+    # operating_life must be defined
+    no_op_life=dict(
+        id="STO",
+        capex={"*": {"*": 100}},
+    ),
+)
 
 
 def test_tech_storage_construction():
