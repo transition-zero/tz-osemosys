@@ -257,12 +257,12 @@ class OtooleTechnology(BaseModel):
                     operating_life=(
                         OSeMOSYSData.R.Int(data=data_json_format["OperationalLife"])
                         if data_json_format["OperationalLife"] is not None
-                        else None
+                        else OSeMOSYSData.R.Int(defaults.technology_operating_life)
                     ),
                     capex=(
                         OSeMOSYSData.RY(data=data_json_format["CapitalCost"])
                         if data_json_format["CapitalCost"] is not None
-                        else None
+                        else OSeMOSYSData.RY(defaults.technology_capex)
                     ),
                     opex_fixed=(
                         OSeMOSYSData.RY(data=data_json_format["FixedCost"])
