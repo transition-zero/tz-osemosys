@@ -5,8 +5,8 @@ from typing import ClassVar, Dict, Union
 import pandas as pd
 import xarray as xr
 from pydantic import BaseModel, Field
-from tzsemosys.defaults import defaults
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg

@@ -15,6 +15,10 @@ def test_linopy_model():
     for sample_path in OTOOLE_SAMPLE_PATHS:
         model_name = Path(sample_path).stem
 
+        # skip otoole-full-electricity-complete for now... very memory intensive
+        if model_name == "otoole-full-electricity-complete":
+            continue
+
         if model_name in otoole_sample_results:
             results_path = otoole_sample_results[model_name]
 

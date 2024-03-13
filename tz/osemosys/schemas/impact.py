@@ -1,13 +1,13 @@
 from typing import Any
 
 from pydantic import ConfigDict, Field, model_validator
-from tzosemosys.schemas.validation.impact_validation import (
-    exogenous_annual_within_constraint,
-    exogenous_total_within_constraint,
-)
 
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.impact import OtooleImpact
+from tz.osemosys.schemas.validation.impact_validation import (
+    exogenous_annual_within_constraint,
+    exogenous_total_within_constraint,
+)
 
 
 class Impact(OSeMOSYSBase, OtooleImpact):

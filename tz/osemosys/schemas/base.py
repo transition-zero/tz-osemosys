@@ -13,8 +13,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.fields import FieldInfo
-from tzosemosys.defaults import defaults
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.utils import (
     group_to_json,
     isnumeric,
