@@ -1,7 +1,7 @@
 from typing import Any
 
 from pydantic import Field, model_validator
-from tzosemosys.schemas.compat.commodity import OtooleCommodity
+from tz.osemosys.schemas.compat.commodity import OtooleCommodity
 
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 
@@ -34,8 +34,13 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     @model_validator(mode="before")
     @classmethod
     def check_demand_exists_if_profile(cls, values):
-        if values.get("demand_profile") is not None and values.get("demand_annual") is None:
-            raise ValueError("If demand_profile is defined, demand_annual must also be defined.")
+        if (
+            values.get("demand_profile") is not None
+            and values.get("demand_annual") is None
+        ):
+            raise ValueError(
+                "If demand_profile is defined, demand_annual must also be defined."
+            )
         return values
 
     def compose(self, **sets):

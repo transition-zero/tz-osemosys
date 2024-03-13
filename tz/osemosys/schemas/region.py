@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import ConfigDict, Field, model_validator
-from tzosemosys.schemas.validation.region_validation import (
+from tz.osemosys.schemas.validation.region_validation import (
     discount_rate_as_decimals,
     reserve_margin_fully_defined,
 )
