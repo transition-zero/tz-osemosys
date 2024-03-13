@@ -67,7 +67,7 @@ FEO-OSeMOSYS provides several entrypoints to get started quickly, however your m
 
 **From Pydantic objects**
 
-```
+```python
 from feo.osemosys import Model, Technology, TimeDefinition, Commodity, Region, OperatingMode
 
 time_definition=TimeDefinition(id="years-only", years=range(2020,2051))
@@ -105,7 +105,7 @@ model.solve()
 
 **From Yaml/JSON**
 
-```
+```python
 from feo.osemosys import load_model
 
 my_model = load_model("path/to/yaml/directory")
@@ -113,7 +113,7 @@ my_model = load_model("path/to/yaml/directory")
 
 **From Otoole outputs (legacy)**
 
-```
+```python
 from feo.osemosys import Model
 
 my_model = Model.from_otoole("path/to/otoole/csv/directory")
