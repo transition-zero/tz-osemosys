@@ -10,7 +10,7 @@ PASSING_REGION_DEFINITIONS = dict(
     ),
     with_trade_route=dict(
         id="GB",
-        trade_route={"FR": {"electricity": {"*": 100}}, "IE": {"electricity": {"*": 70}}},
+        trade_routes={"FR": True, "IE": False},
     ),
 )
 
