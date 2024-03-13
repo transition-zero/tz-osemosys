@@ -16,12 +16,6 @@ def check_sums_one(data, leniency, cols, cols_to_groupby):
 def check_min_vals_lower_max(min_data, max_data, columns):
     """Check that values in min_data are lower than corresponding values in max_data
 
-    This function can only handle cases for which either data is fully specified in the JSON
-    style structurem, or single values, or a combination of both.
-
-    #TODO: add handling for if data is provided in some dimensions but not all,
-    # e.g. if maximum capacity constraints are given by region, but not by year.
-
     Args:
         min_data (data instance): data instance with min values
         max_data (data instance): data instance with max values
