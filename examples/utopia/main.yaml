@@ -130,7 +130,7 @@ technologies:
       2007: 0.2
       2008: 0.2
       2009: 0.2
-      2010: 0.21
+      2010: 0.2
     operating_modes:
       - id: GEN
         long_name: generation mode
@@ -208,7 +208,7 @@ technologies:
         output_activity_ratio:
           DSL: 1.
         opex_variable: 10
-        emissions_activity_ratio:
+        emission_activity_ratio:
           CO2: 0.075
   - id: IMPGSL1
     long_name: Gasoline supply
@@ -221,7 +221,7 @@ technologies:
         output_activity_ratio:
           GSL: 1.
         opex_variable: 15
-        emissions_activity_ratio:
+        emission_activity_ratio:
           CO2: 0.075
   - id: IMPHCO1
     long_name: Coal supply
@@ -234,7 +234,7 @@ technologies:
         output_activity_ratio:
           HCO: 1.
         opex_variable: 2
-        emissions_activity_ratio:
+        emission_activity_ratio:
           CO2: 0.089
   - id: IMPOIL1
     long_name: Crude oil supply
@@ -247,7 +247,7 @@ technologies:
         output_activity_ratio:
           OIL: 1.
         opex_variable: 8
-        emissions_activity_ratio:
+        emission_activity_ratio:
           CO2: 0.075
   - id: IMPURN1
     long_name: Uranium supply
@@ -407,7 +407,7 @@ technologies:
           DSL: 1
         output_activity_ratio:
           TX: 1.
-        emissions_activity_ratio:
+        emission_activity_ratio:
           NOX: 1
     residual_capacity:
       1990: 0.6
@@ -477,7 +477,7 @@ technologies:
           GSL: 1.
         output_activity_ratio:
           TX: 1.
-        emissions_activity_ratio:
+        emission_activity_ratio:
           NOX: 1
   - id: RIV
     long_name: River to supply hydro power plants
