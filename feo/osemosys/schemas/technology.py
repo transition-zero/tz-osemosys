@@ -124,10 +124,10 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
 
     # growth rate # TO BE IMPLEMENTED
-    # additional_capacity_max_growth_rate: OSeMOSYSData | None  = Field(None)
-    # additional_capacity_max_ceil: OSeMOSYSData | None = Field(None)
-    # additional_capacity_max_floor: RegionYearData | None = Field(None)
-    # additional_capacity_min_growth_rate: RegionYearData | None  = Field(None)
+    # capacity_additional_max_growth_rate: OSeMOSYSData | None  = Field(None)
+    # capacity_additional_max_ceil: OSeMOSYSData | None = Field(None)
+    # capacity_additional_max_floor: RegionYearData | None = Field(None)
+    # capacity_additional_min_growth_rate: RegionYearData | None  = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
