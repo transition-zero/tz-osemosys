@@ -57,8 +57,7 @@ A docker container is provided that contains Python 3.11 and an installed versio
 
 The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directory, and change directory within the container to this directory.
 
-    docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'c
-d /home && /bin/bash'
+    docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'cd /home && /bin/bash'
 
 *note! Any files changed within this mounted directory will persist, but any changes to environments, installed packes, etc. will not!*
 
