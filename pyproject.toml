@@ -45,6 +45,7 @@ dev = [
   "black",
   "pytest",
   "pytest-order",
+  "pytest-cov",
   "pytest-asyncio",
   "mypy",
   "tox",
