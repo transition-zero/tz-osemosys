@@ -1,5 +1,5 @@
 import pytest
-from tzosemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.time_definition import TimeDefinition
 
 PASSING_TIME_DEFINITIONS = dict(
     # nameplate params inherited from key
@@ -18,8 +18,18 @@ PASSING_TIME_DEFINITIONS = dict(
     timeslices_with_parts_for_adj=dict(  # infer adjacency from 'seasons' and 'day_types'
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
-        timeslice_in_season={"A": "winter", "B": "winter", "C": "summer", "D": "summer"},
-        timeslice_in_daytype={"A": "weekday", "B": "weekend", "C": "weekday", "D": "weekend"},
+        timeslice_in_season={
+            "A": "winter",
+            "B": "winter",
+            "C": "summer",
+            "D": "summer",
+        },
+        timeslice_in_daytype={
+            "A": "weekday",
+            "B": "weekend",
+            "C": "weekday",
+            "D": "weekend",
+        },
         seasons=["winter", "summer"],
         day_types=["weekday", "weekend"],
     ),
@@ -36,19 +46,31 @@ PASSING_TIME_DEFINITIONS = dict(
         seasons=["winter", "spring", "summer", "autumn"],
         day_types=["weekday", "weekend"],
     ),
-    yearparts_dayparts_int=dict(years=range(2020, 2051), seasons=12, daily_time_brackets=6),
+    yearparts_dayparts_int=dict(
+        years=range(2020, 2051), seasons=12, daily_time_brackets=6
+    ),
 )
 
 FAILING_TIME_DEFINITIONS = dict(
     missing_season_adj=dict(  # some seasons provided - but there's no adjacency
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
-        timeslice_in_season={"A": "winter", "B": "winter", "C": "summer", "D": "summer"},
+        timeslice_in_season={
+            "A": "winter",
+            "B": "winter",
+            "C": "summer",
+            "D": "summer",
+        },
     ),
     timeslices_with_seasons=dict(  # adjacency underconstrained - no dayparts etc.
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
-        timeslice_in_season={"A": "winter", "B": "winter", "C": "summer", "D": "summer"},
+        timeslice_in_season={
+            "A": "winter",
+            "B": "winter",
+            "C": "summer",
+            "D": "summer",
+        },
         seasons=["winter", "summer"],
     ),
 )

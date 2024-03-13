@@ -1,5 +1,5 @@
 import pytest
-from tzosemosys.schemas.technology import Technology
+from tz.osemosys.schemas.technology import Technology
 
 PASSING_TECH_DEFINITIONS = dict(
     most_basic=dict(
@@ -67,7 +67,9 @@ def test_tech_construction():
         assert isinstance(technology, Technology)
 
 
-@pytest.mark.skip(reason="Should only be tested for greater than / less than after composition")
+@pytest.mark.skip(
+    reason="Should only be tested for greater than / less than after composition"
+)
 def test_tech_construction_failcases():
     for _name, params in FAILING_TECH_DEFINITIONS.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
