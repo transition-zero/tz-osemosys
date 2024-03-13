@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from feo.osemosys import Model
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS, OTOOLE_SAMPLE_RESULTS
@@ -10,7 +9,6 @@ from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS, OTOOLE_SAMPLE_RESULTS
 TOL = 0.0001  # 0.01% tolerance, results within 99.99% similar
 
 
-@pytest.mark.skip(reason="model still infeasible")
 def test_linopy_model():
     otoole_sample_results = {Path(path).stem: path for path in OTOOLE_SAMPLE_RESULTS}
 
@@ -25,8 +23,6 @@ def test_linopy_model():
             model.solve()
 
             ref_results_df = pd.read_csv(Path(results_path) / "TotalDiscountedCost.csv")
-
-            print(model._m.solution.TotalDiscountedCost.sum().values, ref_results_df["VALUE"].sum())
 
         assert np.isclose(
             model._m.solution.TotalDiscountedCost.sum().values,
