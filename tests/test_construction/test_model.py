@@ -7,7 +7,7 @@ from tz.osemosys.schemas.model import RunSpec
 
 def test_model_construction():
     run_spec_object = RunSpec.from_otoole_csv(
-        root_dir="examples/otoole_csvs/otoole-full-electricity/"
+        root_dir="examples/otoole_compat/input_csv/otoole-full-electricity/"
     )
     assert isinstance(run_spec_object, RunSpec)
 

@@ -26,7 +26,7 @@ def test_files_equality():
         "ResidualStorageCapacity",
     ]
 
-    root_dir = "examples/otoole_csvs/otoole-full-electricity/"
+    root_dir = "examples/otoole_compat/input_csv/otoole-full-electricity/"
     output_directory = "tests/otoole_compare/otoole-full-electricity/"
 
     create_output_directory(output_directory)
