@@ -1,10 +1,12 @@
-from feo.osemosys.schemas.model import RunSpec
-from feo.osemosys.utils import recursive_keys
+from tz.osemosys.schemas.model import RunSpec
+from tz.osemosys.utils import recursive_keys
 
 PASSING_RUNSPEC_DEFINITIONS = dict(
     most_basic=dict(
         time_definition=dict(
-            id="yearpart-daypart", years=range(2020, 2051), timeslices=["A", "B", "C", "D"]
+            id="yearpart-daypart",
+            years=range(2020, 2051),
+            timeslices=["A", "B", "C", "D"],
         ),
         regions=[dict(id="GB")],
         commodities=[dict(id="COAL")],
@@ -16,14 +18,20 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[
-                    dict(id="mode_1", opex_variable=1.5, input_activity_ratio={"COAL": 1.0})
+                    dict(
+                        id="mode_1",
+                        opex_variable=1.5,
+                        input_activity_ratio={"COAL": 1.0},
+                    )
                 ],
             )
         ],
     ),
     most_basic_with_storage=dict(
         time_definition=dict(
-            id="yearpart-daypart", years=range(2020, 2051), timeslices=["A", "B", "C", "D"]
+            id="yearpart-daypart",
+            years=range(2020, 2051),
+            timeslices=["A", "B", "C", "D"],
         ),
         regions=[dict(id="GB")],
         commodities=[dict(id="COAL")],

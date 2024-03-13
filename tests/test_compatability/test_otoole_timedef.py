@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas.time_definition import TimeDefinition
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
+from tz.osemosys.schemas.time_definition import TimeDefinition
 
 
 def test_otoole_roundtrip():

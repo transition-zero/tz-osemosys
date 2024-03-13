@@ -1,6 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.technology import Technology
+from tz.osemosys.schemas.technology import Technology
 
 PASSING_TECH_DEFINITIONS = dict(
     most_basic=dict(

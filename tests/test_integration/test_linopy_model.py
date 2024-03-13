@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from feo.osemosys import Model
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS, OTOOLE_SAMPLE_RESULTS
+from tz.osemosys import Model
 
 TOL = 0.0001  # 0.01% tolerance, results within 99.99% similar
 
@@ -14,6 +14,10 @@ def test_linopy_model():
 
     for sample_path in OTOOLE_SAMPLE_PATHS:
         model_name = Path(sample_path).stem
+
+        # skip otoole-full-electricity-complete for now... very memory intensive
+        if model_name == "otoole-full-electricity-complete":
+            continue
 
         if model_name in otoole_sample_results:
             results_path = otoole_sample_results[model_name]

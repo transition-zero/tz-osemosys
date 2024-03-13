@@ -1,6 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.base import OSeMOSYSData
+from tz.osemosys.schemas.base import OSeMOSYSData
 
 
 def test_data_construction():

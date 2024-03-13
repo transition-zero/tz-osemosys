@@ -1,4 +1,4 @@
-from feo.osemosys.io.load_model import load_model
+from tz.osemosys.io.load_model import load_model
 
 EXAMPLE_YAML = "examples/utopia/main.yaml"
 

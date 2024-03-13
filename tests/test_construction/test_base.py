@@ -1,6 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
+from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 
 PASSING_BASE = dict(
     # nameplate params inherited from key

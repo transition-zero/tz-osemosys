@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas.storage import Storage
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
+from tz.osemosys.schemas.storage import Storage
 
 
 def test_otoole_roundtrip():

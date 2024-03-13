@@ -1,6 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.commodity import Commodity
+from tz.osemosys.schemas.commodity import Commodity
 
 PASSING_COMMODITY_DEFINITIONS = dict(
     super_basic_no_demand=dict(id="WATER"),

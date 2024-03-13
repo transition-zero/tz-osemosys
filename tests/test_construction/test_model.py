@@ -2,7 +2,7 @@ import shutil
 
 import pytest
 
-from feo.osemosys.schemas.model import RunSpec
+from tz.osemosys.schemas.model import RunSpec
 
 
 def test_model_construction():
