@@ -33,4 +33,4 @@ Again the model runs from 2020 to 2070, with 8 timeslices, and although being mo
 
 ## [**otoole compatability - electricity-complete**](./otoole_compat/input_csv/otoole-full-electricity-complete/)
 
-This model uses the entire otoole suite of csv inputs, allowing validation of the complete csv composition round-trip.
+This model uses the entire otoole suite of csv inputs (including storage), allowing validation of the complete csv composition round-trip.
