@@ -6,9 +6,30 @@
 
 # TZ-OSEMOSYS - a modern long-run systems modelling framework
 
-<!-- Badges Begin -->
+<!-- badges-begin -->
 
-<!-- Badges End -->
+[![License][license badge]][license]
+[![Contributor Covenant][contributor covenant badge]][code of conduct]
+![Tests][tests badge]
+![Coverage][coverage badge]
+![Python][python badge]
+![Status][status badge]
+
+[license badge]: https://img.shields.io/github/license/ad-aures/castopod?color=blue
+[license]: https://opensource.org/license/agpl-v3
+
+[contributor covenant badge]: https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg
+[code of conduct]: https://github.com/transition-zero/tz-osemosys/blob/main/CODE-OF-CONDUCT.md
+
+[tests badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/9d33bc251a3260dbd5b49c820db3d87b/raw/tz-osemosys-test-passing.json
+
+[coverage badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/6afead97828812b3c9ad498c94dd45f8/raw/coverage_badge.json
+
+[python badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/bd1e357c1bce5fc2c0808bcdb569157c/raw/python_version_badge.json
+
+[status badge]: https://img.shields.io/badge/under%20construction-ffae00
+
+<!-- badges-end -->
 
 
 **OSeMOSYS** is an open source modelling system for long-run systems analysis and planning.
