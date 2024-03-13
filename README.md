@@ -4,7 +4,7 @@
   <a href="https://www.transitionzero.org/">
 </picture>
 
-# tz-OSEMOSYS - a modern long-run systems modelling framework
+# TZ-OSEMOSYS - a modern long-run systems modelling framework
 
 <!-- Badges Begin -->
 
@@ -31,15 +31,13 @@ We have added the following features:
 
 ## Documentation
 
-TZ-OSeMOSYS
+[TZ-OSeMOSYS](https://docs.feo.transitionzero.org/)
 
-Quickstart
+[Examples](examples)
 
-Examples
+[TransitionZero Platform Docs](https://docs.feo.transitionzero.org/)
 
-Future Energy Outlook
-
-OSeMOSYS Docs
+[OSeMOSYS Docs](https://osemosys.readthedocs.io/en/latest/)
 
 ## Installation
 
@@ -57,15 +55,19 @@ A docker container is provided that contains Python 3.11 and an installed versio
 
 The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directory, and change directory within the container to this directory.
 
-    docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'cd /home && /bin/bash'
+```console
+docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'cd /home && /bin/bash'
+```
 
 *note! Any files changed within this mounted directory will persist, but any changes to environments, installed packes, etc. will not!*
 
 ## Quickstart
 
-tz-OSeMOSYS provides several entrypoints to get started quickly, however your model is specified.
+TZ-OSeMOSYS provides several entrypoints to get started quickly, however your model is specified.
 
-**From Pydantic objects**
+### From Pydantic objects
+
+Models can be specified directly with Pydantic objects. Pydantic gives useful tooling for class inheritance and field validation. The Model class and subclasses provide obvious semantic linking between the object types. The set of objects comprising the model is mutually exclusive - no information is repeated - and collectively exhaustive - no information needs to be extracted from csvs or other data sources.
 
 ```python
 from tz.osemosys import (
@@ -74,26 +76,49 @@ from tz.osemosys import (
     TimeDefinition,
     Commodity,
     Region,
+    Impact,
     OperatingMode,
 )
 
 time_definition = TimeDefinition(id="years-only", years=range(2020, 2051))
 regions = [Region(id="single-region")]
-commodities = [Commodity(id="electricity", demand_annual=25)]
-impacts = []
+commodities = [Commodity(id="electricity", demand_annual=25 * 8760)]  # 25GW * 8760hr/yr
+impacts = [Impact(id="CO2", penalty=60)]  # 10 $mn/Mtonne
 technologies = [
     Technology(
         id="coal-gen",
-        operating_life=40,
-        capex=400,
+        operating_life=40,  # years
+        capex=800,  # mn$/GW
+        # straight-line reduction to 2040
+        residual_capacity={
+            yr: 25 * max((1 - (yr - 2020) / (2040 - 2020), 0))
+            for yr in range(2020, 2051)
+        },
         operating_modes=[
             OperatingMode(
                 id="generation",
-                opex_variable=5,
-                output_activity_ratio={"electricity": 1.0},
+                # $mn20/Mt.coal / 8.14 TWh/Mt coal * 8760 GWh/GW / 0.3 /1000 GWh/TWh (therm eff)
+                opex_variable=20 / 8.14 * 8760 / 0.3 / 1000,  # $71/GW/yr
+                output_activity_ratio={"electricity": 1.0 * 8760},  # GWh/yr/GW
+                emission_activity_ratio={
+                    "CO2": 0.354 * 8760 / 1000
+                },  # Mtco2/TWh * 8760GWh/Gw/yr /1000 GWh/TWh
             )
         ],
-    )
+    ),
+    Technology(
+        id="solar-pv",
+        operating_life=25,
+        capex=1200,
+        capacity_factor=0.3,
+        operating_modes=[
+            OperatingMode(
+                id="generation",
+                opex_variable=0,
+                output_activity_ratio={"electricity": 1.0 * 8760},  # GWh/yr/GW
+            )
+        ],
+    ),
 ]
 
 model = Model(
@@ -109,7 +134,16 @@ model.solve()
 ```
 
 
-**From Yaml/JSON**
+### From Yaml
+
+YAML is a human-readable data serialisation language. We've build a custom YAML parser that allows the creation of model configurations that are _exhaustive_ while also being _expressive_.
+
+- model fields can be cross-referenced in the yaml blob, e.g. `my_field: ${commodities[0].COAL.demand}`.
+- model fields can also be populated from environment variables: `my_field: $ENV{MYVAR}`.
+- simple Python expressions are automatically evaluated, including list comprehensions, dictionary comprehensions, `min`, `max`, `sum`, and `range` functions.
+- for data keyed by an osemosys `set` (e.g. `YEARS`, `TIMESLICES`, `TECHNOLOGIES`), wildcards `"*"` can be used in place of explicitly listing all set members.
+- data field `set` dimensions and membership are also automatically inferred - a single value can be given which will be broadcast to all set member combinations.
+- single or multiple `.yaml` files can be composed together, allowing you to separate, e.g. `technologies.yaml`, from the rest of your model.
 
 ```python
 from tz.osemosys import load_model
@@ -117,48 +151,18 @@ from tz.osemosys import load_model
 my_model = load_model("path/to/yaml/directory")
 ```
 
-**From Otoole outputs (legacy)**
+### From Otoole outputs (legacy)
+
+TZ-OSeMOSYS is provided with backwards compatability with the [otoole](https://github.com/OSeMOSYS/otoole) osemosys tooling. Any legacy models can be loaded from the directory of otoole-formatted csvs.
 
 ```python
 from tz.osemosys import Model
 
-my_model = Model.from_otoole("path/to/otoole/csv/directory")
+my_model = Model.from_otoole_csv("path/to/otoole/csv/directory")
 ```
 
-Read more in the [documentation]()
+Read more in the [documentation](https://docs.feo.transitionzero.org/)
 
-### Development
+### Development and Contributing
 
-Create an environment of your choosing, for example with conda or venv. TZ-OSeMOSYS required Python=3.11.
-
-In your environment, install TZ-OSeMOSYS in 'editable' mode and include the optional 'dev' dependencies.
-
-    pip install -e ".[dev]"
-
-Install the `pre-commit` hooks. Pre-commit does a bunch of useful things like delinting your code and catching missed imports.
-
-    pre-commit install
-
-#### Testing
-
-Features must be associated with an appropriate test; tests must pass before being merged. Run tests using `pytest`.
-
-    pytest
-
-#### Pre-commit
-
-On each commit, pre-commit will clean your commited files and raise any errors it finds.
-You can ignore individual lines with the `# noqa` flag.
-It is good practice to specify which error you'd like to ignore:
-
-    <your line of code> # noqa: E123
-
-You can run all the files in the repo at once using:
-
-    pre-commit run --all-files
-
-If you must, you can ignore pre-commit by using the `--no-verify` flag after your commit message:
-
-    git commit -m "<your commit message>" --no-verify
-
-Make sure you eventually delint any commits pushed this way or they will fail in CI/CD!
+We welcome contributions! To get started as a contributor or as a developer, please read our [contributor guidelines](./CONTRIBUTING.md).

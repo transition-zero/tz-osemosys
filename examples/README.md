@@ -1,20 +1,21 @@
-# Example data
-<!-- Badges Begin -->
+# Example Models
 
-<!-- Badges End -->
+This folder provides a number of example models using the tz-osemosys framework.
+
+## [**utopia**](./utopia/)
+
+Utopia is the OSeMOSYS 'hello world' model - a whole-energy system model for the fictional region of 'Utopia'. It has primary energy, energy transformation, and final energy technologies, as well as two types of emissions - NOx and CO2. The model is configured to run for 31 years from 1990 to 2020, and has 6 timeslices composed of three seasons and two dayparts - night and day.
+
+## [**utopia-2-region**](./utopia-2-region/)
+
+This model extends the Utopia model to two regions. Investible energy storage and transmission options are also included. **To be completed**
+
+## [**CAISO-ERCOT-IC**](./CAISO-ERCOT-IC/)
+
+This is a four-region model illustrating interconnector feasibility in the SouthWest United States, between California (CAISO) and Texas (ERCOT). The regions have differing access to indigenous renewable resources and offshore fossil fuel resources.
 
 
-This folder contains example data which can be used to create and run a model with TZ osemosys.
-
-It contains the following subfolders:
-- CAISO-ERCOT-IC - example yaml files which can be used to run TZ osemosys via the from_minspec route
-- otoole_config_files - otoole config files, which can optionally be used in the from_csv route to set one's own default values
-- otoole_csvs - 2 sets of CSV files, which can be used to run TZ osemosys via the from_csv route
-
-Within otoole_config_files and otoole_csvs sit 2 different models, otoole-simple-hydro and otoole-full-electricity, which are explained in more detail below.
-
-
-## otoole-simple-hydro
+## [**otoole compatability - simple-hydro**](./otoole_compat/input_csv/otoole-simple-hydro/)
 
 This is a simple osemosys model of hydropower and contains only 3 technologies:
 
@@ -24,10 +25,12 @@ This is a simple osemosys model of hydropower and contains only 3 technologies:
 
 The model runs from 2020 to 2070, with 8 timeslices.
 
-Due to it's simplicity, this model is only used in testing of TZ osemosys workflows.
-
-## otoole-full-electricity
+## [**otoole compatability - electricity**](./otoole_compat/input_csv/otoole-full-electricity/)
 
 This model has only one final electricity demand like the previous, but contains several more pathways to meet the demand, including fossil fuel and renewable technologies.
 
 Again the model runs from 2020 to 2070, with 8 timeslices, and although being more complicated than the previously mentioned model, is again only used for workflow testing.
+
+## [**otoole compatability - electricity-complete**](./otoole_compat/input_csv/otoole-full-electricity-complete/)
+
+This model uses the entire otoole suite of csv inputs, allowing validation of the complete csv composition round-trip.
