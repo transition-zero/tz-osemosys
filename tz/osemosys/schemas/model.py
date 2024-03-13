@@ -25,6 +25,10 @@ warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
 
 
 class RunSpec(OSeMOSYSBase, RunSpecOtoole):
+    """
+    Class containing all data required to run an OSeMOSYS model, spread across subclasses
+    """
+
     # COMPONENTS
     # ----------
     time_definition: TimeDefinition

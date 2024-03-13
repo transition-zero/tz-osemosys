@@ -19,6 +19,11 @@ from tz.osemosys.utils import flatten, group_to_json
 
 
 class RunSpecOtoole(BaseModel):
+    """
+    Class to contain methods for converting Runspec data to and from otoole style CSVs,
+    and to xarray for use in linopy
+    """
+
     otoole_cfg: OtooleCfg | None = Field(None)
 
     # Default values

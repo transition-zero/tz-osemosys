@@ -22,6 +22,10 @@ if TYPE_CHECKING:
 
 
 class OtooleRegion(BaseModel):
+    """
+    Class to contain methods for converting Region data to and from otoole style CSVs
+    """
+
     otoole_cfg: OtooleCfg | None = Field(default=None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "TradeRoute": {

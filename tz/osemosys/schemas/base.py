@@ -30,6 +30,9 @@ from tz.osemosys.utils import (
 
 
 def values_sum_one(values: Mapping) -> bool:
+    """
+    Check that provided values sum to one, within the specified tolerance
+    """
     assert np.allclose(
         sum(values.values()), 1.0, atol=defaults.equals_one_tolerance
     ), "Mapping values must sum to 1.0."
@@ -78,6 +81,9 @@ def cast_osemosysdata_value(val: Any, info: FieldInfo):
 
 
 def nested_sum_one(values: Mapping, info: ValidationInfo) -> bool:
+    """
+    Check that provided nested values sum to one, within the specified tolerance
+    """
     if isinstance(values, OSeMOSYSData):
         data = values.data
     elif isinstance(values, dict):
@@ -120,6 +126,9 @@ def nested_sum_one(values: Mapping, info: ValidationInfo) -> bool:
 
 
 def check_or_cast_int(cls, v):
+    """
+    Cast values to int
+    """
     if isinstance(v, int):
         return v
     elif isinstance(v, dict):
@@ -140,6 +149,9 @@ def check_or_cast_int(cls, v):
 
 
 def check_or_cast_bool(cls, v):
+    """
+    Cast values to bool
+    """
     if isinstance(v, bool):
         return v
     elif isinstance(v, dict):
@@ -160,6 +172,9 @@ def check_or_cast_bool(cls, v):
 
 
 def check_or_cast_dm(cls, v):
+    """
+    Cast values to one of the two DepreciationMethod types, 'sinking-fund' or 'straight-line'
+    """
     if isinstance(v, DepreciationMethod):
         return v
     elif isinstance(v, dict):

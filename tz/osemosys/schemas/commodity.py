@@ -8,8 +8,10 @@ from tz.osemosys.schemas.compat.commodity import OtooleCommodity
 
 class Commodity(OSeMOSYSBase, OtooleCommodity):
     """
-    Commodity class
-
+    Class to contain all data related to commodities (osemosys 'FUEL'), including:
+    - Demand
+    - Renewable fuel tag
+    - Reserve margin tag
     """
 
     demand_annual: OSeMOSYSData.RY | None = Field(None)
