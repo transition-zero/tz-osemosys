@@ -247,5 +247,52 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         = TotalDiscountedStorageCost[r,s,y];
     ```
     """
+    if ds["STORAGE"].size > 0:
+        RateOfStorageCharge = (
+            (
+                m["RateOfActivity"]
+                * ds["Conversionls"]
+                * ds["Conversionld"]
+                * ds["Conversionlh"]
+                * ds["TechnologyToStorage"]
+            ).where(
+                (ds["TechnologyToStorage"].notnull())
+                & (ds["TechnologyToStorage"] != 0)
+                & (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+            )
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+
+        RateOfStorageDischarge = (
+            (
+                m["RateOfActivity"]
+                * ds["Conversionls"]
+                * ds["Conversionld"]
+                * ds["Conversionlh"]
+                * ds["TechnologyFromStorage"]
+            ).where(
+                (ds["TechnologyFromStorage"].notnull())
+                & (ds["TechnologyFromStorage"] != 0)
+                & (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+            )
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+
+        # print(RateOfStorageCharge,
+        #       '\n',
+        #       RateOfStorageDischarge)
+
+    NetChargeWithinYear = (
+        (RateOfStorageCharge - RateOfStorageDischarge).where(
+            (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+        )
+        * ds["Conversionls"]
+        * ds["Conversionld"]
+        * ds["Conversionlh"]
+        * ds["YearSplit"]
+    ).sum("TIMESLICE")
+
+    print(NetChargeWithinYear)
+
+    NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
+    print(NetChargeWithinDay)
 
     return m
