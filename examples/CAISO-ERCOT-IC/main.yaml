@@ -79,8 +79,7 @@ impacts:
     penalty: # mn$/mntonne
       US-CA: 20.
       US-TX: 10.
-    exogenous: 0.
-    constraint: "{y:225*((2041-y)/(2041-2022)) for y in ${time_definition.years}}"
+    constraint_annual: "{y:225*((2041-y)/(2041-2022)) for y in ${time_definition.years}}"
 
 # RENEWABLE TARGETS
 renewable_production_target:
