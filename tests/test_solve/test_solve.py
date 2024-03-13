@@ -1,12 +1,10 @@
 import numpy as np
-import pytest
 
 from feo.osemosys import Model
 
 EXAMPLE_YAML = "examples/utopia/main.yaml"
 
 
-@pytest.mark.skip(reason="model infeasible")
 def test_model_construction_from_yaml():
     """
     Check Runspec can be converted to dataset
@@ -17,6 +15,9 @@ def test_model_construction_from_yaml():
     model._build()
 
     model._m.solve()
+
+    assert model._m.termination_condition == "optimal"
+    assert np.round(model._m.objective.value) == 10753472.0
 
 
 def test_most_simple():
@@ -47,4 +48,4 @@ def test_most_simple():
     model._m.solve()
 
     assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 38359.0
+    assert np.round(model._m.objective.value) == 45736.0

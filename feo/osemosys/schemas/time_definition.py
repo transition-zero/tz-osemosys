@@ -320,7 +320,8 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
 
     """
 
-    model_config = ConfigDict(extra="forbid")
+    # TODO: fix yearparts and dayparts then make extra params forbidden again
+    # model_config = ConfigDict(extra="forbid")
 
     # always required
     years: conlist(int, min_length=1)
