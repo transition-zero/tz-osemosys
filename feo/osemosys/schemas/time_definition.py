@@ -1,6 +1,14 @@
 from typing import Any, Mapping
 
-from pydantic import BaseModel, Field, ValidationInfo, conlist, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    conlist,
+    field_validator,
+    model_validator,
+)
 
 from feo.osemosys.schemas.base import MappingSumOne, OSeMOSYSBase
 from feo.osemosys.schemas.compat.time_definition import OtooleTimeDefinition
@@ -22,6 +30,8 @@ class TimeAdjacency(BaseModel):
     day_types: dict[str, str] | None = Field(default={})
     time_brackets: dict[str, str] | None = Field(default={})
     timeslices: dict[str, str] | None = Field(default={})
+
+    model_config = ConfigDict(extra="forbid")
 
     @classmethod
     def from_years(cls, years):
@@ -309,6 +319,9 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
             OtooleCfg | None:
 
     """
+
+    # TODO: fix yearparts and dayparts then make extra params forbidden again
+    # model_config = ConfigDict(extra="forbid")
 
     # always required
     years: conlist(int, min_length=1)

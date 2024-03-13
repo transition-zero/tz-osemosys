@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import Field, conlist, model_validator
+from pydantic import ConfigDict, Field, conlist, model_validator
 
 from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
@@ -17,6 +17,8 @@ class OperatingMode(OSeMOSYSBase):
     # Binary parameter linking a technology to the storage facility it charges (1 linked)
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
@@ -78,15 +80,19 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Absolute value (ceil relative to growth rate)
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     # REQUIRED PARAMETERS
     # -----
-    operating_life: OSeMOSYSData.R.Int | None
-    capex: OSeMOSYSData.RY | None
+    operating_life: OSeMOSYSData.R.Int = Field(
+        OSeMOSYSData.R.Int(defaults.technology_operating_life)
+    )
 
     operating_modes: conlist(OperatingMode, min_length=1)
 
     # REQUIRED PARAMETERS WITH DEFAULTS
     # -----
+    capex: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_capex))
     opex_fixed: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
     residual_capacity: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_residual_capacity)
@@ -113,10 +119,10 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
 
     # growth rate # TO BE IMPLEMENTED
-    # additional_capacity_max_growth_rate: OSeMOSYSData | None  = Field(None)
-    # additional_capacity_max_ceil: OSeMOSYSData | None = Field(None)
-    # additional_capacity_max_floor: RegionYearData | None = Field(None)
-    # additional_capacity_min_growth_rate: RegionYearData | None  = Field(None)
+    # capacity_additional_max_growth_rate: OSeMOSYSData | None  = Field(None)
+    # capacity_additional_max_ceil: OSeMOSYSData | None = Field(None)
+    # capacity_additional_max_floor: RegionYearData | None = Field(None)
+    # capacity_additional_min_growth_rate: RegionYearData | None  = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
