@@ -72,12 +72,13 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1)
     )
 
-    con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin == 0
+    con = (ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin) <= 0
     mask = (
         (ds["ReserveMargin"] > 0)
         & (ds["ReserveMarginTagFuel"] == 1)
         & (ds["ReserveMarginTagTechnology"] == 1)
     )
+
     m.add_constraints(con, name="RM3_ReserveMargin_Constraint", mask=mask)
 
     return m
