@@ -34,15 +34,17 @@ def add_constraints(ds: xr.Dataset, m: Model) -> Model:
     -------
     linopy.Model
     """
-    m = add_accounting_technology_constraints(ds, m)
-    m = add_annual_activity_constraints(ds, m)
+
+    # restore one at a time
+    m = add_demand_constraints(ds, m)
     m = add_capacity_adequacy_a_constraints(ds, m)
     m = add_capacity_adequacy_b_constraints(ds, m)
-    m = add_capital_costs_constraints(ds, m)
-    m = add_demand_constraints(ds, m)
-    m = add_emissions_constraints(ds, m)
     m = add_energy_balance_a_constraints(ds, m)
     m = add_energy_balance_b_constraints(ds, m)
+    m = add_capital_costs_constraints(ds, m)
+    m = add_emissions_constraints(ds, m)
+    m = add_annual_activity_constraints(ds, m)
+    m = add_accounting_technology_constraints(ds, m)
     m = add_new_capacity_constraints(ds, m)
     m = add_operating_costs_constraints(ds, m)
     m = add_re_targets_constraints(ds, m)
