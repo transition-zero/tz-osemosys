@@ -16,6 +16,10 @@ if TYPE_CHECKING:
 
 
 class OtooleTechnology(BaseModel):
+    """
+    Class to contain methods for converting Technology data to and from otoole style CSVs
+    """
+
     otoole_cfg: OtooleCfg | None = Field(None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "CapacityToActivityUnit": {

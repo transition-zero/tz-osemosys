@@ -12,8 +12,9 @@ from tz.osemosys.schemas.validation.impact_validation import (
 
 class Impact(OSeMOSYSBase, OtooleImpact):
     """
-    Class to contain all information pertaining to emissions restrictions and penalties
-    (independant of technology).
+    Class to contain all information pertaining to Impacts (osemosys 'EMISSION') including:
+    - restrictions
+    - penalties
     """
 
     model_config = ConfigDict(extra="forbid")

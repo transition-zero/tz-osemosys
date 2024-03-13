@@ -14,6 +14,10 @@ if TYPE_CHECKING:
 
 
 class OtooleStorage(BaseModel):
+    """
+    Class to contain methods for converting Storage data to and from otoole style CSVs
+    """
+
     otoole_cfg: OtooleCfg | None = Field(None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "CapitalCostStorage": {
