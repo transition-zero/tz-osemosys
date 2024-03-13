@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.impact import OtooleImpact
@@ -15,6 +15,8 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     Class to contain all information pertaining to emissions restrictions and penalties
     (independant of technology).
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     # Annual emissions constraint per region, year, and emission type
     constraint_annual: OSeMOSYSData.RY | None = Field(None)

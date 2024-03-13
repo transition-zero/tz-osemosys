@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 from feo.osemosys.schemas.compat.region import OtooleRegion
@@ -22,6 +22,8 @@ class Region(OSeMOSYSBase, OtooleRegion):
     - renewable production targets
     - depreciation method
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     neighbours: List[str] | None = Field(default=None)
     trade_routes: OSeMOSYSData.RCY.Bool | None = Field(default=None)  # R_RCY

@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import Field, conlist, model_validator
+from pydantic import ConfigDict, Field, conlist, model_validator
 
 from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
@@ -22,6 +22,8 @@ class OperatingMode(OSeMOSYSBase):
     # Binary parameter linking a technology to the storage facility it charges (1 linked)
     # Binary parameter linking a storage facility to the technology it feeds (1 linked)
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
@@ -83,15 +85,19 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Absolute value (ceil relative to growth rate)
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     # REQUIRED PARAMETERS
     # -----
-    operating_life: OSeMOSYSData.R.Int | None
-    capex: OSeMOSYSData.RY | None
+    operating_life: OSeMOSYSData.R.Int = Field(
+        OSeMOSYSData.R.Int(defaults.technology_operating_life)
+    )
 
     operating_modes: conlist(OperatingMode, min_length=1)
 
     # REQUIRED PARAMETERS WITH DEFAULTS
     # -----
+    capex: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_capex))
     opex_fixed: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
     residual_capacity: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_residual_capacity)
