@@ -9,7 +9,9 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+
 from tz.osemosys.schemas.base import MappingSumOne, OSeMOSYSBase
+from tz.osemosys.schemas.compat.time_definition import OtooleTimeDefinition
 from tz.osemosys.schemas.validation.timedefinition_validation import (
     build_adjacency,
     build_timeslices_from_parts,
@@ -20,8 +22,6 @@ from tz.osemosys.schemas.validation.timedefinition_validation import (
     validate_adjacency_keys,
     validate_parts_from_splits,
 )
-
-from tz.osemosys.schemas.compat.time_definition import OtooleTimeDefinition
 
 
 class TimeAdjacency(BaseModel):
@@ -41,13 +41,9 @@ class TimeAdjacency(BaseModel):
         return TimeAdjacency(
             years={v: k for k, v in self.years.items()},
             seasons={v: k for k, v in self.seasons.items()} if self.seasons else None,
-            day_types=(
-                {v: k for k, v in self.day_types.items()} if self.day_types else None
-            ),
+            day_types=({v: k for k, v in self.day_types.items()} if self.day_types else None),
             time_brackets=(
-                {v: k for k, v in self.time_brackets.items()}
-                if self.time_brackets
-                else None
+                {v: k for k, v in self.time_brackets.items()} if self.time_brackets else None
             ),
             timeslices={v: k for k, v in self.timeslices.items()},
         )
@@ -90,9 +86,7 @@ def construction_from_timeslices(values: Any):
     # if adjacency is given, validate keys
     adj = values.get("adj")
     if adj is not None:
-        validate_adjacency_keys(
-            adj, timeslices, years, seasons, day_types, time_brackets
-        )
+        validate_adjacency_keys(adj, timeslices, years, seasons, day_types, time_brackets)
     # elif adjacency is not given, check for underconstraint then build adjacency
     else:
         # if only timeslices are given, then assume adjacency from timeslice order
@@ -172,9 +166,7 @@ def construction_from_parts(values: Any):
     # if adjacency is given, validate keys
     adj = values.get("adj")
     if adj is not None:
-        validate_adjacency_keys(
-            adj, timeslices, years, seasons, day_types, time_brackets
-        )
+        validate_adjacency_keys(adj, timeslices, years, seasons, day_types, time_brackets)
     else:
         adj = TimeAdjacency(
             years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
@@ -228,12 +220,8 @@ def construction_from_yrparts_dayparts_int(values: Any):
     years = values.get("years")
     yearparts = values.get("seasons")
     dayparts = values.get("daily_time_brackets")
-    yearparts = [
-        ("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)
-    ]
-    dayparts = [
-        ("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)
-    ]
+    yearparts = [("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)]
+    dayparts = [("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)]
 
     for key in [
         "timeslices",
@@ -256,9 +244,7 @@ def construction_from_yrparts_dayparts_int(values: Any):
     values["timeslices"] = timeslices
 
     values["timeslice_in_timebracket"] = {
-        timeslice: [
-            time_bracket for time_bracket in dayparts if time_bracket in timeslice
-        ]
+        timeslice: [time_bracket for time_bracket in dayparts if time_bracket in timeslice]
         for timeslice in timeslices
     }
     values["timeslice_in_season"] = {

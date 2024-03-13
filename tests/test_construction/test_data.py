@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.base import OSeMOSYSData
 
 

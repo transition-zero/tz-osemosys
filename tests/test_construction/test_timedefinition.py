@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.time_definition import TimeDefinition
 
 PASSING_TIME_DEFINITIONS = dict(
@@ -46,9 +47,7 @@ PASSING_TIME_DEFINITIONS = dict(
         seasons=["winter", "spring", "summer", "autumn"],
         day_types=["weekday", "weekend"],
     ),
-    yearparts_dayparts_int=dict(
-        years=range(2020, 2051), seasons=12, daily_time_brackets=6
-    ),
+    yearparts_dayparts_int=dict(years=range(2020, 2051), seasons=12, daily_time_brackets=6),
 )
 
 FAILING_TIME_DEFINITIONS = dict(

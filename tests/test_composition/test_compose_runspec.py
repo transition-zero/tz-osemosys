@@ -1,6 +1,5 @@
-from tz.osemosys.utils import recursive_keys
-
 from tz.osemosys.schemas.model import RunSpec
+from tz.osemosys.utils import recursive_keys
 
 PASSING_RUNSPEC_DEFINITIONS = dict(
     most_basic=dict(
@@ -79,9 +78,7 @@ def test_compose_runspec():
 
         # check the operating mode
         op_mode_1 = spec.technologies[0].operating_modes[0]
-        input_activity_ratio = [
-            k for k in recursive_keys(op_mode_1.input_activity_ratio.data)
-        ]
+        input_activity_ratio = [k for k in recursive_keys(op_mode_1.input_activity_ratio.data)]
         for region in spec.regions:
             assert region.id in [k[0] for k in input_activity_ratio]
         for commodity in spec.commodities:

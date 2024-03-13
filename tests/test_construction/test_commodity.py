@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.commodity import Commodity
 
 PASSING_COMMODITY_DEFINITIONS = dict(

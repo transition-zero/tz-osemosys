@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.impact import Impact
 
 PASSING_IMPACT_DEFINITIONS = dict(

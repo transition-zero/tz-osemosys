@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.storage import Storage
 
 PASSING_TECH_STORAGE_DEFINITIONS = dict(

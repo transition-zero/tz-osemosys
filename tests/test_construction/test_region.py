@@ -1,4 +1,5 @@
 import pytest
+
 from tz.osemosys.schemas.region import Region
 
 PASSING_REGION_DEFINITIONS = dict(

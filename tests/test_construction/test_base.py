@@ -1,11 +1,10 @@
 import pytest
+
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 
 PASSING_BASE = dict(
     # nameplate params inherited from key
-    all_params=dict(
-        id="abc", long_name="basic long name", description="a basic descripion"
-    ),
+    all_params=dict(id="abc", long_name="basic long name", description="a basic descripion"),
     id_only=dict(id="abc"),
 )
 
