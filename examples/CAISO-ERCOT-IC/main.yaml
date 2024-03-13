@@ -88,7 +88,7 @@ renewable_production_target:
   US-TX: "{y:0.1*((2041-y)/(2041-2022))+0.2 for y in ${time_definition.years}}"
 
 # RESERVE MARGINS
-reserve_margin: null
+reserve_margin: 1.1
 
 # technologies:
 #   - id: SPV

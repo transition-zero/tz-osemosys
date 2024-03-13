@@ -17,11 +17,11 @@ def add_capital_costs_constraints(
     m: linopy.Model
         A linopy model
     capital_recovery_factor: float
-        The capital recovery factor used in the calculation of capital costs
+        Capital Recovery Factor
     pv_annuity: float
-        The present value annuity factor
+        PV Annuity
     discount_factor: float
-        The discount factor for capital costs
+        Discount factor
 
     Returns
     -------
@@ -55,13 +55,10 @@ def add_capital_costs_constraints(
         1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
     )
 
-    con = (
+    CapitalInvestment = (
         ds["CapitalCost"].fillna(0) * m["NewCapacity"] * capital_recovery_factor * pv_annuity
-        - m["CapitalInvestment"]
-        == 0
     )
-    m.add_constraints(con, name="CC1_UndiscountedCapitalInvestment")
 
-    con = (m["CapitalInvestment"] / discount_factor) - m["DiscountedCapitalInvestment"] == 0
+    con = (CapitalInvestment / discount_factor) - m["DiscountedCapitalInvestment"] == 0
     m.add_constraints(con, name="CC2_DiscountingCapitalInvestment")
     return m
