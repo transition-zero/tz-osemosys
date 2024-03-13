@@ -7,9 +7,9 @@ requires-python = ">=3.11"
 license = {file = "LICENSE.txt"}
 keywords = ["energy", "milp", "climate"]  # Optional
 authors = [
-  {name = "Abhishek Shivakumar", email = "abhishek0208@gmail.com" },
-  {name = "Ed Gill", email = "edwardxtg@gmail.com" },
   {name = "Lucas Kruitwagen", email = "lucas.kruitwagen@gmail.com" },
+  {name = "Ed Gill", email = "edwardxtg@gmail.com" },
+  {name = "Abhishek Shivakumar", email = "abhishek0208@gmail.com" },
 ]
 
 #maintainers = [
