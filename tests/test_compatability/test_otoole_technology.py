@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas.technology import Technology
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
+from tz.osemosys.schemas.technology import Technology
 
 
 def test_otoole_roundtrip():

@@ -1,5 +1,5 @@
 [project]
-name = "feo-osemosys"  # Required
+name = "tz-osemosys"  # Required
 version = "0.0.1"  # Required
 description = "An OSeMOSYS implementation for the Future Energy Outlook by TransitionZero"  # Optional
 readme = "README.md" # Optional
@@ -52,10 +52,10 @@ dev = [
 ]
 
 [project.urls]  # Optional
-"Homepage" = "https://github.com/transitionzero/feo-osemosys"
-"Bug Reports" = "https://github.com/transitionzero/feo-osemosys/issues"
+"Homepage" = "https://github.com/transitionzero/tz-osemosys"
+"Bug Reports" = "https://github.com/transitionzero/tz-osemosys/issues"
 "Funding" = "https://transitionzero.org"
-"Source" = "https://github.com/transitionzero/feo-osemosys"
+"Source" = "https://github.com/transitionzero/tz-osemosys"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.

@@ -1,6 +1,5 @@
 import pytest
-
-from feo.osemosys.schemas.storage import Storage
+from tzsemosys.schemas.storage import Storage
 
 PASSING_TECH_STORAGE_DEFINITIONS = dict(
     only_capex_and_op_life=dict(

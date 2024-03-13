@@ -1,6 +1,5 @@
 import pytest
-
-from feo.osemosys.schemas.impact import Impact
+from tzosemosys.schemas.impact import Impact
 
 PASSING_IMPACT_DEFINITIONS = dict(
     super_basic_no_constraint=dict(id="CO2e"),

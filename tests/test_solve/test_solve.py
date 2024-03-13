@@ -1,6 +1,6 @@
 import numpy as np
 
-from feo.osemosys import Model
+from tz.osemosys import Model
 
 EXAMPLE_YAML = "examples/utopia/main.yaml"
 

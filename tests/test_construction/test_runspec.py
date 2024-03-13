@@ -1,6 +1,6 @@
 import pytest
 
-from feo.osemosys.schemas.model import RunSpec
+from tz.osemosys.schemas.model import RunSpec
 
 PASSING_RUNSPEC_DEFINITIONS = dict(
     most_basic=dict(

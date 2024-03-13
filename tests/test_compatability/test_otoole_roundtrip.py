@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas import RunSpec
+from tz.osemosys.schemas import RunSpec
 
 
 def test_files_equality():

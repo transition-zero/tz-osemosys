@@ -1,5 +1,6 @@
-from feo.osemosys.schemas.model import RunSpec
-from feo.osemosys.utils import recursive_keys
+from tzosemosys.utils import recursive_keys
+
+from tz.osemosys.schemas.model import RunSpec
 
 PASSING_RUNSPEC_DEFINITIONS = dict(
     most_basic=dict(

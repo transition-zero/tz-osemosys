@@ -1,8 +1,8 @@
 import yaml
 
-from feo.osemosys.io.load_model import load_model
-from feo.osemosys.utils import EnvVarLoader, maybe_eval_string, substitute_factory, walk_dict
 from tests.fixtures.paths import YAML_SAMPLE_PATHS
+from tz.osemosys.io.load_model import load_model
+from tz.osemosys.utils import EnvVarLoader, maybe_eval_string, substitute_factory, walk_dict
 
 
 def test_env_var_parse(mock_env_var):

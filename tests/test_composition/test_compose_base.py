@@ -1,11 +1,11 @@
 import pytest
 
-from feo.osemosys.schemas.base import _check_set_membership
-from feo.osemosys.schemas.commodity import Commodity
-from feo.osemosys.schemas.impact import Impact
-from feo.osemosys.schemas.storage import Storage
-from feo.osemosys.schemas.technology import Technology
-from feo.osemosys.utils import recursive_keys
+from tz.osemosys.schemas.base import _check_set_membership
+from tz.osemosys.schemas.commodity import Commodity
+from tz.osemosys.schemas.impact import Impact
+from tz.osemosys.schemas.storage import Storage
+from tz.osemosys.schemas.technology import Technology
+from tz.osemosys.utils import recursive_keys
 
 PASSING_COMMODITIES = dict(
     most_basic=dict(

@@ -1,6 +1,5 @@
 import pytest
-
-from feo.osemosys.schemas.region import Region
+from tzosemosys.schemas.region import Region
 
 PASSING_REGION_DEFINITIONS = dict(
     super_basic=dict(id="GB"),

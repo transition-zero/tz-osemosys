@@ -2,8 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from tzosemosys import Model
 
-from feo.osemosys import Model
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS, OTOOLE_SAMPLE_RESULTS
 
 TOL = 0.0001  # 0.01% tolerance, results within 99.99% similar

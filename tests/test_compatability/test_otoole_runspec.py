@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from feo.osemosys.schemas import RunSpec
 from tests.fixtures.paths import OTOOLE_SAMPLE_PATHS
+from tz.osemosys.schemas import RunSpec
 
 
 def test_files_equality():

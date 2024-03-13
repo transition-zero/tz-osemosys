@@ -1,6 +1,5 @@
 import pytest
-
-from feo.osemosys.schemas.time_definition import TimeDefinition
+from tzosemosys.schemas.time_definition import TimeDefinition
 
 PASSING_TIME_DEFINITIONS = dict(
     # nameplate params inherited from key
