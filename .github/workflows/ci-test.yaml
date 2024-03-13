@@ -32,7 +32,7 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     container:
-      image: lucastz/tz-highs-python:latest
+      image: ghcr.io/transition-zero/tz-highs/highs-python:latest
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
