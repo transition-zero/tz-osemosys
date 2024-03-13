@@ -31,7 +31,7 @@ We have added the following features:
 
 ## Documentation
 
-tz-OSeMOSYS
+TZ-OSeMOSYS
 
 Quickstart
 
@@ -43,7 +43,7 @@ OSeMOSYS Docs
 
 ## Installation
 
-tz-OSeMOSYS can be installed with a simple `pip install tz-osemosys`. To solve a model, however, you'll need a solver. Any solver compatible with [Linopy](https://linopy.readthedocs.io/en/latest/) will work: [Coin-OR CBC](https://github.com/coin-or/Cbc), [GLPK](https://www.gnu.org/software/glpk/), [HiGHS](https://highs.dev/), [Gurobi](https://www.gurobi.com/solutions/gurobi-optimizer/), [CPLEX](https://dev.ampl.com/solvers/cplex/index.html), and more. We recommend HiGHS, the leading open-source solver.
+TZ-OSeMOSYS can be installed with a simple `pip install tz-osemosys`. To solve a model, however, you'll need a solver. Any solver compatible with [Linopy](https://linopy.readthedocs.io/en/latest/) will work: [Coin-OR CBC](https://github.com/coin-or/Cbc), [GLPK](https://www.gnu.org/software/glpk/), [HiGHS](https://highs.dev/), [Gurobi](https://www.gurobi.com/solutions/gurobi-optimizer/), [CPLEX](https://dev.ampl.com/solvers/cplex/index.html), and more. We recommend HiGHS, the leading open-source solver.
 
 ### Solver Installation - HiGHS
 
@@ -129,9 +129,9 @@ Read more in the [documentation]()
 
 ### Development
 
-Create an environment of your choosing, for example with conda or venv. tz-OSeMOSYS required Python=3.11.
+Create an environment of your choosing, for example with conda or venv. TZ-OSeMOSYS required Python=3.11.
 
-In your environment, install tz-OSeMOSYS in 'editable' mode and include the optional 'dev' dependencies.
+In your environment, install TZ-OSeMOSYS in 'editable' mode and include the optional 'dev' dependencies.
 
     pip install -e ".[dev]"
 
