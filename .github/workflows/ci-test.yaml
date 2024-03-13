@@ -31,16 +31,49 @@ jobs:
           pre-commit run --all-files
   run-tests:
     runs-on: ubuntu-latest
+    environment: cicd
+    env:
+      GIST_ID: ${{ vars.GIST_ID}}
     container:
       image: ghcr.io/transition-zero/tz-highs/highs-python:latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install jq
+      uses: dcarbone/install-jq-action@v2.1.0
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
     - name: Install repo
       run: |
         pip install -e .[dev]
-    - name: Test with pytest
+    - name: Test with pytest and capture coverage
       run: |
-        pytest
+        pytest --cov=tz --cov-report=json:coverage.json
+
+    - name: parse coverage report
+      id: show_coverage_val
+      run: |
+        jq '.totals.percent_covered' coverage.json
+
+    - name: parse coverage report
+      id: extract_coverage_val
+      run: |
+        echo "COVERAGE=$(jq '.totals.percent_covered' coverage.json)" >> $GITHUB_ENV
+
+    - name: substring coverage
+      id: substring_coverage
+      run: |
+        coverage_int=$(echo "${{ env.COVERAGE }}" | cut -c 1-2)
+        echo "coverage_int=$coverage_int" >> $GITHUB_OUTPUT
+
+    - name: Create the Badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: ${{vars.GIST_ID}}
+        filename: coverage_badge.json
+        label: coverage
+        message: "%${{ steps.substring_coverage.outputs.coverage_int }}"
+        valColorRange: ${{ env.COVERAGE }}
+        maxColorRange: 100
+        minColorRange: 50

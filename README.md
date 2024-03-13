@@ -21,7 +21,7 @@
 [contributor covenant badge]: https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg
 [code of conduct]: https://github.com/transition-zero/tz-osemosys/blob/main/CODE-OF-CONDUCT.md
 
-[tests badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/9d33bc251a3260dbd5b49c820db3d87b/raw/tz-osemosys-test-passing.json
+[tests badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/feffb38d46c750cad5402dca5dd54bf9/raw/tests_passing.json
 
 [coverage badge]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Lkruitwagen/6afead97828812b3c9ad498c94dd45f8/raw/coverage_badge.json
 
