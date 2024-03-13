@@ -68,11 +68,18 @@ FEO-OSeMOSYS provides several entrypoints to get started quickly, however your m
 **From Pydantic objects**
 
 ```python
-from feo.osemosys import Model, Technology, TimeDefinition, Commodity, Region, OperatingMode
+from feo.osemosys import (
+    Model,
+    Technology,
+    TimeDefinition,
+    Commodity,
+    Region,
+    OperatingMode,
+)
 
-time_definition=TimeDefinition(id="years-only", years=range(2020,2051))
+time_definition = TimeDefinition(id="years-only", years=range(2020, 2051))
 regions = [Region(id="single-region")]
-commodities=[Commodity(id="electricity", demand_annual=25)]
+commodities = [Commodity(id="electricity", demand_annual=25)]
 impacts = []
 technologies = [
     Technology(
@@ -83,9 +90,9 @@ technologies = [
             OperatingMode(
                 id="generation",
                 opex_variable=5,
-                output_activity_ratio={"electricity":1.}
+                output_activity_ratio={"electricity": 1.0},
             )
-        ]
+        ],
     )
 ]
 
@@ -95,11 +102,10 @@ model = Model(
     regions=regions,
     commodities=commodities,
     impacts=impacts,
-    technologies=technologies
+    technologies=technologies,
 )
 
 model.solve()
-
 ```
 
 
