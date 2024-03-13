@@ -12,6 +12,7 @@ from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
+from feo.osemosys.schemas.storage import Storage
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
 from feo.osemosys.utils import flatten, group_to_json
@@ -167,6 +168,7 @@ class RunSpecOtoole(BaseModel):
         impacts = Impact.from_otoole_csv(root_dir=root_dir)
         regions = Region.from_otoole_csv(root_dir=root_dir)
         technologies = Technology.from_otoole_csv(root_dir=root_dir)
+        storage = Storage.from_otoole_csv(root_dir=root_dir)
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
 
@@ -303,6 +305,7 @@ class RunSpecOtoole(BaseModel):
             impacts=impacts,
             regions=regions,
             technologies=technologies,
+            storage=storage,
             commodities=commodities,
             time_definition=time_definition,
             otoole_cfg=otoole_cfg,

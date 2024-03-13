@@ -474,13 +474,22 @@ def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
     return self
 
 
+def _compose_RO(self, obj_id, data, regions, storage, **sets):
+    # Region-stOrage
+    _check_nesting_depth(obj_id, data, 2)
+    self.data = _check_set_membership(obj_id, data, {"regions": regions, "storage": storage})
+    self.is_composed = True
+
+    return self
+
+
 def _null(self, values):
     # pass-through only, for testing purposes
     return values
 
 
 for key, func in zip(
-    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "ANY"],
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "ANY"],
     [
         _compose_R,
         _compose_RY,
@@ -489,6 +498,7 @@ for key, func in zip(
         _compose_RTY,
         _compose_RCY,
         _compose_RIY,
+        _compose_RO,
         _null,
     ],
 ):

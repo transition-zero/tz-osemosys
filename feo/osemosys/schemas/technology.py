@@ -5,12 +5,7 @@ from pydantic import Field, conlist, model_validator
 from feo.osemosys.defaults import defaults
 from feo.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from feo.osemosys.schemas.compat.technology import OtooleTechnology
-from feo.osemosys.schemas.validation.technology_validation import technology_storage_validation
 from feo.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
-
-# ##################
-# ### TECHNOLOGY ###
-# ##################
 
 
 class OperatingMode(OSeMOSYSBase):
@@ -29,8 +24,8 @@ class OperatingMode(OSeMOSYSBase):
     emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
-    to_storage: OSeMOSYSData.RY.Bool | None = Field(None)
-    from_storage: OSeMOSYSData.RY.Bool | None = Field(None)
+    to_storage: OSeMOSYSData.RO.Bool | None = Field(None)
+    from_storage: OSeMOSYSData.RO.Bool | None = Field(None)
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
@@ -203,33 +198,3 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
                 raise ValueError("Minimum total activity is not less than maximum total activity.")
 
         return self
-
-
-class TechnologyStorage(OSeMOSYSBase):
-    """
-    Class to contain all information pertaining to storage technologies
-    # Lower bound to the amount of energy stored, as a fraction of the maximum, (0-1)
-    # Level of storage at the beginning of first modelled year, in units of activity
-    # Maximum discharging rate for the storage, in units of activity per year
-    # Maximum charging rate for the storage, in units of activity per year
-    """
-
-    # REQUIRED PARAMETERS
-    # -------------------
-    capex: OSeMOSYSData.RY
-    operating_life: OSeMOSYSData.RY.Int
-
-    # NON-REQUIRED PARAMETERS
-    # -----------------------
-    minimum_charge: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_minimum_charge))
-    initial_level: OSeMOSYSData = Field(OSeMOSYSData(defaults.technology_storage_initial_level))
-    residual_capacity: OSeMOSYSData = Field(
-        OSeMOSYSData(defaults.technology_storage_residual_capacity)
-    )
-    max_discharge_rate: OSeMOSYSData | None = Field(None)
-    max_charge_rate: OSeMOSYSData | None = Field(None)
-
-    @model_validator(mode="before")
-    def validator(cls, values):
-        values = technology_storage_validation(values)
-        return values

@@ -20,7 +20,39 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 ],
             )
         ],
-    )
+    ),
+    most_basic_with_storage=dict(
+        time_definition=dict(
+            id="yearpart-daypart", years=range(2020, 2051), timeslices=["A", "B", "C", "D"]
+        ),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(
+                        id="mode_1",
+                        opex_variable=1.5,
+                        input_activity_ratio={"COAL": 1.0},
+                        to_storage={"*": {"STO": 1}},
+                        from_storage={"*": {"STO": 1}},
+                    )
+                ],
+            )
+        ],
+        storage=[
+            dict(
+                id="STO",
+                capex={"*": {"*": 100}},
+                operating_life={"*": {"*": 10}},
+            )
+        ],
+    ),
 )
 
 

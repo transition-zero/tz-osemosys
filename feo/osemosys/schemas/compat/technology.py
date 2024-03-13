@@ -12,7 +12,7 @@ from feo.osemosys.schemas.compat.base import OtooleCfg
 from feo.osemosys.utils import flatten, group_to_json
 
 if TYPE_CHECKING:
-    from feo.osemosys.schemas.technology import Technology, TechnologyStorage
+    from feo.osemosys.schemas.technology import Technology
 
 
 class OtooleTechnology(BaseModel):
@@ -119,14 +119,14 @@ class OtooleTechnology(BaseModel):
                 "VALUE",
             ],
         },
-        # "TechnologyToStorage": {
-        #    "attribute": "to_storage",
-        #    "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
-        # },
-        # "TechnologyFromStorage": {
-        #    "attribute": "from_storage",
-        #    "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
-        # },
+        "TechnologyToStorage": {
+            "attribute": "to_storage",
+            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+        },
+        "TechnologyFromStorage": {
+            "attribute": "from_storage",
+            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+        },
         "RETagTechnology": {
             "attribute": "is_renewable",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
@@ -137,8 +137,8 @@ class OtooleTechnology(BaseModel):
         "EmissionActivityRatio": ("emission_activity_ratio", OSeMOSYSData.RIY),
         "InputActivityRatio": ("input_activity_ratio", OSeMOSYSData.RCY),
         "OutputActivityRatio": ("output_activity_ratio", OSeMOSYSData.RCY),
-        # "TechnologyToStorage": ("to_storage", OSeMOSYSData.RY.Bool),
-        # "TechnologyFromStorage": ("from_storage", OSeMOSYSData.RY.Bool),
+        "TechnologyToStorage": ("to_storage", OSeMOSYSData.RO.Bool),
+        "TechnologyFromStorage": ("from_storage", OSeMOSYSData.RO.Bool),
     }
 
     @classmethod
@@ -455,131 +455,3 @@ class OtooleTechnology(BaseModel):
                 )
 
         return True
-
-
-class OtooleTechnologyStorage:
-    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "CapitalCostStorage": {
-            "attribute": "capex",
-            "columns": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "OperationalLifeStorage": {
-            "attribute": "operating_life",
-            "columns": ["REGION", "STORAGE", "VALUE"],
-        },
-        "MinStorageCharge": {
-            "attribute": "minimum_charge",
-            "columns": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "StorageLevelStart": {
-            "attribute": "initial_level",
-            "columns": ["REGION", "STORAGE", "VALUE"],
-        },
-        "ResidualStorageCapacity": {
-            "attribute": "residual_capacity",
-            "columns": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },
-        "StorageMaxDischargeRate": {
-            "attribute": "max_discharge_rate",
-            "columns": ["REGION", "STORAGE", "VALUE"],
-        },
-        "StorageMaxChargeRate": {
-            "attribute": "max_charge_rate",
-            "columns": ["REGION", "STORAGE", "VALUE"],
-        },
-    }
-
-    @classmethod
-    def from_otoole_csv(cls, root_dir) -> List["TechnologyStorage"]:
-        #############
-        # Load Data #
-        #############
-
-        df_storage_technologies = pd.read_csv(os.path.join(root_dir, "STORAGE.csv"))
-
-        dfs = {}
-        otoole_cfg = OtooleCfg(empty_dfs=[])
-        for key in list(cls.otoole_stems):
-            try:
-                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
-                if dfs[key].empty:
-                    otoole_cfg.empty_dfs.append(key)
-            except FileNotFoundError:
-                otoole_cfg.empty_dfs.append(key)
-
-        #####################
-        # Basic Data Checks #
-        #####################
-
-        # Check no duplicates in STORAGE.csv
-        if len(df_storage_technologies) != len(df_storage_technologies["VALUE"].unique()):
-            raise ValueError("STORAGE.csv must not contain duplicate values")
-
-        # Check storage technology names are consistent with those in STORAGE.csv
-        for df in dfs.keys():
-            for storage in dfs[df]["STORAGE"].unique():
-                if storage not in list(df_storage_technologies["VALUE"]):
-                    raise ValueError(f"{storage} given in {df}.csv but not in STORAGE.csv")
-
-        ##########################
-        # Define class instances #
-        ##########################
-
-        storage_instances = []
-        for storage in df_storage_technologies["VALUE"].values.tolist():
-            data_json_format = {}
-            for stem in list(cls.otoole_stems):
-                # If input CSV present
-                if stem in dfs:
-                    data_columns = dfs[stem].columns.tolist()
-                    data_columns.remove("STORAGE")
-                    data_columns.remove("VALUE")
-                    data_json_format[stem] = (
-                        group_to_json(
-                            g=dfs[stem].loc[dfs[stem]["STORAGE"] == storage],
-                            root_column="STORAGE",
-                            data_columns=data_columns,
-                            target_column="VALUE",
-                        )
-                        if storage in dfs[stem]["STORAGE"].values
-                        else None
-                    )
-                # If input CSV missing
-                else:
-                    data_json_format[stem] = None
-
-            storage_instances.append(
-                cls(
-                    id=storage,
-                    long_name=None,
-                    description=None,
-                    otoole_cfg=otoole_cfg,
-                    capex=OSeMOSYSData(data=data_json_format["CapitalCostStorage"])
-                    if data_json_format["CapitalCostStorage"] is not None
-                    else None,
-                    operating_life=OSeMOSYSData.RY.Int(
-                        data=data_json_format["OperationalLifeStorage"]
-                    )
-                    if data_json_format["OperationalLifeStorage"] is not None
-                    else None,
-                    minimum_charge=OSeMOSYSData(data=data_json_format["MinStorageCharge"])
-                    if data_json_format["MinStorageCharge"] is not None
-                    else None,
-                    initial_level=OSeMOSYSData(data=data_json_format["StorageLevelStart"])
-                    if data_json_format["StorageLevelStart"] is not None
-                    else None,
-                    residual_capacity=OSeMOSYSData(data=data_json_format["ResidualStorageCapacity"])
-                    if data_json_format["ResidualStorageCapacity"] is not None
-                    else None,
-                    max_discharge_rate=OSeMOSYSData(
-                        data=data_json_format["StorageMaxDischargeRate"]
-                    )
-                    if data_json_format["StorageMaxDischargeRate"] is not None
-                    else None,
-                    max_charge_rate=OSeMOSYSData(data=data_json_format["StorageMaxChargeRate"])
-                    if data_json_format["StorageMaxChargeRate"] is not None
-                    else None,
-                )
-            )
-
-        return storage_instances

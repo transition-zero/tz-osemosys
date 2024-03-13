@@ -14,8 +14,10 @@ from feo.osemosys.schemas.commodity import Commodity
 from feo.osemosys.schemas.compat.model import RunSpecOtoole
 from feo.osemosys.schemas.impact import Impact
 from feo.osemosys.schemas.region import Region
+from feo.osemosys.schemas.storage import Storage
 from feo.osemosys.schemas.technology import Technology
 from feo.osemosys.schemas.time_definition import TimeDefinition
+from feo.osemosys.schemas.validation.model_composition import check_tech_linked_to_storage
 from feo.osemosys.utils import merge, recursive_keys
 
 # filter this pandas-3 dep warning for now
@@ -30,9 +32,9 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
-    storage_technologies: List[Technology] | None = Field(default=None)  # TODO for now
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
+    storage: List[Storage] | None = Field(None)
 
     # ASSUMPIONS
     # ----------
@@ -95,11 +97,15 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             "technologies": [technology.id for technology in self.technologies],
             "impacts": [impact.id for impact in self.impacts],
         }
+        if self.storage:
+            sets = {**sets, **{"storage": [storage.id for storage in self.storage]}}
 
         self.commodities = [commodity.compose(**sets) for commodity in self.commodities]
         self.regions = [region.compose(**sets) for region in self.regions]
         self.technologies = [technology.compose(**sets) for technology in self.technologies]
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
+        if self.storage:
+            self.storage = [storage.compose(**sets) for storage in self.storage]
 
         # compose own parameters
         if self.depreciation_method:
@@ -125,6 +131,15 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.id, self.cost_of_capital.data, **sets
         )
 
+        return self
+
+    @model_validator(mode="after")
+    def composition_validation(self):
+        # self = check_tech_producing_commodity(self)
+        # self = check_tech_producing_impact(self)
+        # self = check_tech_consuming_commodity(self)
+        if self.storage:
+            self = check_tech_linked_to_storage(self)
         return self
 
     @model_validator(mode="before")

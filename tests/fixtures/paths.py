@@ -10,4 +10,5 @@ OTOOLE_SAMPLE_PATHS = [
 OTOOLE_SAMPLE_RESULTS = [
     "examples/otoole_results/otoole-simple-hydro",
     "examples/otoole_results/otoole-full-electricity",
+    "examples/otoole_results/otoole-full-electricity-complete",
 ]
