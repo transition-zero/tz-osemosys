@@ -17,15 +17,6 @@ def add_storage_variables(ds: xr.Dataset, m: Model) -> Model:
     -------
     linopy.Model
     """
-    # Create the required index
-    # RSSDDY = [
-    #     ds.coords["REGION"],
-    #     ds.coords["STORAGE"],
-    #     ds.coords["SEASON"],
-    #     ds.coords["DAYTYPE"],
-    #     ds.coords["DAILYTIMEBRACKET"],
-    #     ds.coords["YEAR"],
-    # ]
     RSY = [ds.coords["REGION"], ds.coords["STORAGE"], ds.coords["YEAR"]]
 
     m.add_variables(lower=0, upper=inf, coords=RSY, name="StorageLevelYearStart", integer=False)

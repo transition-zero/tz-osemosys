@@ -61,26 +61,6 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         =
         NetChargeWithinDay[r,s,ls,ld,lh,y];
 
-    s.t. S5_and_S6_StorageLevelYearStart
-    {r in REGION, s in STORAGE, y in YEAR}:
-        if y = min{yy in YEAR} min(yy)
-        then StorageLevelStart[r,s]
-        else StorageLevelYearStart[r,s,y-1]
-        + sum{ls in SEASON, ld in DAYTYPE, lh in DAILYTIMEBRACKET}
-        NetChargeWithinYear[r,s,ls,ld,lh,y-1]
-        =
-        StorageLevelYearStart[r,s,y];
-
-    s.t. S7_and_S8_StorageLevelYearFinish
-    {r in REGION, s in STORAGE, y in YEAR}:
-        if y < max{yy in YEAR} max(yy)
-        then StorageLevelYearStart[r,s,y+1]
-        else StorageLevelYearStart[r,s,y]
-        + sum{ls in SEASON, ld in DAYTYPE, lh in DAILYTIMEBRACKET}
-        NetChargeWithinYear[r,s,ls,ld,lh,y]
-        =
-        StorageLevelYearFinish[r,s,y];
-
     s.t. S9_and_S10_StorageLevelSeasonStart
     {r in REGION, s in STORAGE, ls in SEASON, y in YEAR}:
         if ls = min{lsls in SEASON} min(lsls)
@@ -101,19 +81,6 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         * DaysInDayType[ls,ld-1,y]
         =
         StorageLevelDayTypeStart[r,s,ls,ld,y];
-
-    s.t. S13_and_S14_and_S15_StorageLevelDayTypeFinish
-    {r in REGION, s in STORAGE, ls in SEASON, ld in DAYTYPE, y in YEAR}:
-        if ls = max{lsls in SEASON} max(lsls) && ld = max{ldld in DAYTYPE} max(ldld)
-        then StorageLevelYearFinish[r,s,y]
-        else if ld = max{ldld in DAYTYPE} max(ldld)
-        then StorageLevelSeasonStart[r,s,ls+1,y]
-        else StorageLevelDayTypeFinish[r,s,ls,ld+1,y]
-        - sum{lh in DAILYTIMEBRACKET}
-        NetChargeWithinDay[r,s,ls,ld+1,lh,y]
-        * DaysInDayType[ls,ld+1,y]
-        =
-        StorageLevelDayTypeFinish[r,s,ls,ld,y];
 
     #
     ##########		Storage Constraints				#############
@@ -276,23 +243,123 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
             )
         ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
-        # print(RateOfStorageCharge,
-        #       '\n',
-        #       RateOfStorageDischarge)
+        NetChargeWithinYear = (
+            (RateOfStorageCharge - RateOfStorageDischarge).where(
+                (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+            )
+            * ds["Conversionls"]
+            * ds["Conversionld"]
+            * ds["Conversionlh"]
+            * ds["YearSplit"]
+        ).sum("TIMESLICE")
 
-    NetChargeWithinYear = (
-        (RateOfStorageCharge - RateOfStorageDischarge).where(
-            (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+        print(NetChargeWithinYear)
+
+        (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
+
+        # s.t. S9_and_S10_StorageLevelSeasonStart
+        # {r in REGION, s in STORAGE, ls in SEASON, y in YEAR}:
+        #     if ls = min{lsls in SEASON} min(lsls)
+        #     then StorageLevelYearStart[r,s,y]
+        #     else StorageLevelSeasonStart[r,s,ls-1,y]
+        #     + sum{ld in DAYTYPE, lh in DAILYTIMEBRACKET}
+        #     NetChargeWithinYear[r,s,ls-1,ld,lh,y]
+        #     =
+        #     StorageLevelSeasonStart[r,s,ls,y];
+
+        # s.t. S11_and_S12_StorageLevelDayTypeStart
+        # {r in REGION, s in STORAGE, ls in SEASON, ld in DAYTYPE, y in YEAR}:
+        #     if ld = min{ldld in DAYTYPE} min(ldld)
+        #     then StorageLevelSeasonStart[r,s,ls,y]
+        #     else StorageLevelDayTypeStart[r,s,ls,ld-1,y]
+        #     + sum{lh in DAILYTIMEBRACKET}
+        #     NetChargeWithinDay[r,s,ls,ld-1,lh,y]
+        #     * DaysInDayType[ls,ld-1,y]
+        #     =
+        #     StorageLevelDayTypeStart[r,s,ls,ld,y];
+
+        discount_factor_storage = (1 + ds["DiscountRate"]) ** (
+            ds.coords["YEAR"] - min(ds.coords["YEAR"])
         )
-        * ds["Conversionls"]
-        * ds["Conversionld"]
-        * ds["Conversionlh"]
-        * ds["YearSplit"]
-    ).sum("TIMESLICE")
 
-    print(NetChargeWithinYear)
+        new_storage_cap = m["NewStorageCapacity"].rename(YEAR="BUILDYEAR")
+        mask = (ds.YEAR - new_storage_cap.data.BUILDYEAR >= 0) & (
+            ds.YEAR - new_storage_cap.data.BUILDYEAR < ds.OperationalLifeStorage
+        )
+        con = m["AccumulatedNewStorageCapacity"] - new_storage_cap.where(mask).sum("BUILDYEAR") == 0
+        m.add_constraints(con, name="SI3_TotalNewStorage")
 
-    NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
-    print(NetChargeWithinDay)
+        StorageUpperLimit = m["AccumulatedNewStorageCapacity"] + ds["ResidualStorageCapacity"]
+        StorageLowerLimit = ds["MinStorageCharge"] * StorageUpperLimit
+
+        print(StorageLowerLimit)
+
+        discount_factor_storage = (1 + ds["DiscountRate"]) ** (
+            ds.coords["YEAR"] - min(ds.coords["YEAR"])
+        )
+        CapitalInvestmentStorage = ds["CapitalCostStorage"] * m["NewStorageCapacity"]
+        con = (CapitalInvestmentStorage / discount_factor_storage) - m[
+            "DiscountedCapitalInvestmentStorage"
+        ] == 0
+        m.add_constraints(con, name="SI5_DiscountingCapitalInvestmentStorage")
+
+        def numerator_sv1(y: int):
+            return (1 + ds["DiscountRateStorage"]) ** (max(ds.coords["YEAR"]) - y + 1) - 1
+
+        def denominator_sv1():
+            return (1 + ds["DiscountRateStorage"]) ** ds["OperationalLifeStorage"] - 1
+
+        def salvage_cost_sv1(ds):
+            return ds["CapitalCostStorage"].fillna(0) * (
+                1 - (numerator_sv1(ds.coords["YEAR"]) / denominator_sv1())
+            )
+
+        con = m["SalvageValueStorage"] - (m["NewStorageCapacity"] * salvage_cost_sv1(ds)) == 0
+        mask = (
+            (ds["DepreciationMethod"] == 1)
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+            & (ds["DiscountRateStorage"] > 0)
+        )
+        m.add_constraints(con, name="SI6_SalvageValueStorageAtEndOfPeriod1", mask=mask)
+
+        def numerator_sv2(y: int):
+            return max(ds.coords["YEAR"]) - y + 1
+
+        def denominator_sv2():
+            return ds["OperationalLifeStorage"]
+
+        def salvage_cost_sv2(ds):
+            return ds["CapitalCostStorage"].fillna(0) * (
+                1 - (numerator_sv2(ds.coords["YEAR"]) / denominator_sv2())
+            )
+
+        con = m["SalvageValueStorage"] - (m["NewStorageCapacity"] * salvage_cost_sv2(ds)) == 0
+        mask = (
+            (ds["DepreciationMethod"] == 1)
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+            & (ds["DiscountRateStorage"] == 0)
+        ) | (
+            (ds["DepreciationMethod"] == 2)
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+        )
+        m.add_constraints(con, name="SI7_SalvageValueStorageAtEndOfPeriod2", mask=mask)
+
+        con = m["SalvageValueStorage"] == 0
+        mask = (ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) <= max(ds.coords["YEAR"])
+        m.add_constraints(con, name="SI8_SalvageValueStorageAtEndOfPeriod3", mask=mask)
+
+        def discounting(ds):
+            return (1 + ds["DiscountRateStorage"]) ** (
+                1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
+            )
+
+        con = m["DiscountedSalvageValueStorage"] - m["SalvageValueStorage"] / discounting(ds) == 0
+        m.add_constraints(con, name="SI9_SalvageValueStorageDiscountedToStartYear")
+
+        con = (
+            m["DiscountedCapitalInvestmentStorage"] - m["DiscountedSalvageValueStorage"]
+            == m["TotalDiscountedStorageCost"]
+        )
+        m.add_constraints(con, name="SI10_TotalDiscountedCostByStorage")
 
     return m
