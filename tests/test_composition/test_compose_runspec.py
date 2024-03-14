@@ -57,6 +57,7 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                         id="mode_1",
                         opex_variable=1.5,
                         input_activity_ratio={"COAL": 1.0},
+                        emission_activity_ratio={"CO2e": 100},
                         to_storage={"*": {"STO": 1}},
                         from_storage={"*": {"STO": 1}},
                     )

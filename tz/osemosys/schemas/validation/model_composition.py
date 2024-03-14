@@ -23,10 +23,11 @@ def check_tech_producing_impact(values):
     for impact in values.impacts:
         technology_missing = True
         for technology in values.technologies:
-            if technology_missing and technology.emission_activity_ratio is not None:
-                for region in technology.emission_activity_ratio.data.keys():
-                    if impact.id in technology.emission_activity_ratio.data[region].keys():
-                        technology_missing = False
+            for tech_mode in technology.operating_modes:
+                if technology_missing and tech_mode.emission_activity_ratio is not None:
+                    for region in tech_mode.emission_activity_ratio.data.keys():
+                        if impact.id in tech_mode.emission_activity_ratio.data[region].keys():
+                            technology_missing = False
         if technology_missing:
             raise ValueError(f"Impact '{impact.id}' is not an output of any technology")
 

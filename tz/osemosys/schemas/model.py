@@ -20,6 +20,7 @@ from tz.osemosys.schemas.time_definition import TimeDefinition
 from tz.osemosys.schemas.validation.model_composition import (
     check_tech_linked_to_storage,
     check_tech_producing_commodity,
+    check_tech_producing_impact,
 )
 from tz.osemosys.utils import merge, recursive_keys
 
@@ -143,7 +144,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     @model_validator(mode="after")
     def composition_validation(self):
         self = check_tech_producing_commodity(self)
-        # self = check_tech_producing_impact(self)
+        self = check_tech_producing_impact(self)
         # self = check_tech_consuming_commodity(self)
         if self.storage:
             self = check_tech_linked_to_storage(self)
