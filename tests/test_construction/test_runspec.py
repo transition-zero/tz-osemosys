@@ -67,27 +67,6 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
 )
 
 FAILING_RUNSPEC_DEFINITIONS = dict(
-    missing_tech_producing_commodity=dict(
-        time_definition=dict(id="years-only", years=range(2020, 2051)),
-        regions=[dict(id="GB")],
-        commodities=[dict(id="COAL")],
-        impacts=[dict(id="CO2e")],
-        technologies=[
-            dict(
-                id="coal_powerplant",
-                operating_life=10,
-                capex=15,
-                opex_fixed=1.5,
-                operating_modes=[
-                    dict(
-                        id="mode_1",
-                        input_activity_ratio={"COAL": 1},
-                        emission_activity_ratio={"CO2e": 1},
-                    )
-                ],
-            )
-        ],
-    ),
     missing_time_definition=dict(
         regions=[dict(id="GB")],
         commodities=[dict(id="COAL")],
@@ -250,6 +229,27 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
             )
         ],
     ),
+    missing_tech_producing_commodity=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="coal_powerplant",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(
+                        id="mode_1",
+                        input_activity_ratio={"COAL": 1},
+                        emission_activity_ratio={"CO2e": 1},
+                    )
+                ],
+            )
+        ],
+    ),
     missing_output_of_impact=dict(
         time_definition=dict(id="years-only", years=range(2020, 2051)),
         regions=[dict(id="GB")],
@@ -262,6 +262,31 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1", input_activity_ratio={"COAL": 1})],
+            ),
+            dict(
+                id="min_coal",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"COAL": 1})],
+            ),
+        ],
+    ),
+    missing_input_of_commodity=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="coal_powerplant",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(
+                        id="mode_1",
+                        emission_activity_ratio={"CO2e": 1},
+                    )
+                ],
             ),
             dict(
                 id="min_coal",

@@ -39,13 +39,14 @@ def check_tech_consuming_commodity(values):
     For each commodity which isn't a final demand, check it is the input of a technology
     """
     for commodity in values.commodities:
-        if commodity.demand_annual is None and commodity.accumulated_demand is None:
+        if commodity.demand_annual is None:
             technology_missing = True
             for technology in values.technologies:
-                if technology_missing and technology.input_activity_ratio is not None:
-                    for region in technology.input_activity_ratio.data.keys():
-                        if commodity.id in technology.input_activity_ratio.data[region].keys():
-                            technology_missing = False
+                for tech_mode in technology.operating_modes:
+                    if technology_missing and tech_mode.input_activity_ratio is not None:
+                        for region in tech_mode.input_activity_ratio.data.keys():
+                            if commodity.id in tech_mode.input_activity_ratio.data[region].keys():
+                                technology_missing = False
             if technology_missing:
                 raise ValueError(
                     f"Commodity '{commodity.id}' is neither a final demand nor "
