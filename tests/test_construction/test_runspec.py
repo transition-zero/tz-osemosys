@@ -15,7 +15,12 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1")],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
     ),
     most_basic_with_storage=dict(
@@ -32,7 +37,12 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                 operating_modes=[
                     dict(id="mode_1", to_storage={"*": {"STO": 1}}, from_storage={"*": {"STO": 1}})
                 ],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
         storage=[
             dict(
@@ -45,7 +55,8 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
 )
 
 FAILING_RUNSPEC_DEFINITIONS = dict(
-    missing_time_definition=dict(
+    missing_tech_producing_commodity=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
         regions=[dict(id="GB")],
         commodities=[dict(id="WATER")],
         impacts=[dict(id="CO2e")],
@@ -57,6 +68,25 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1")],
             )
+        ],
+    ),
+    missing_time_definition=dict(
+        regions=[dict(id="GB")],
+        commodities=[dict(id="WATER")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="most_basic",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[dict(id="mode_1")],
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
     ),
     missing_regions=dict(
@@ -70,7 +100,12 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1")],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
     ),
     missing_commodities=dict(
@@ -84,7 +119,12 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1")],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
     ),
     missing_impacts=dict(
@@ -98,7 +138,12 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1")],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
     ),
     missing_technologies=dict(
@@ -119,7 +164,12 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1", to_storage={"*": {"STO": 1}})],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
         storage=[
             dict(
@@ -141,7 +191,12 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
                 capex=15,
                 opex_fixed=1.5,
                 operating_modes=[dict(id="mode_1", from_storage={"*": {"STO": 1}})],
-            )
+            ),
+            dict(
+                id="min_water",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"WATER": 1})],
+            ),
         ],
         storage=[
             dict(

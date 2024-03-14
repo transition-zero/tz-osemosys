@@ -13,7 +13,7 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
         impacts=[dict(id="CO2e")],
         technologies=[
             dict(
-                id="most_basic",
+                id="coal_powerplant",
                 operating_life=10,
                 capex=15,
                 opex_fixed=1.5,
@@ -22,9 +22,19 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                         id="mode_1",
                         opex_variable=1.5,
                         input_activity_ratio={"COAL": 1.0},
+                        emission_activity_ratio={"CO2e": 100},
                     )
                 ],
-            )
+            ),
+            dict(
+                id="coal_mine",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(id="mode_1", opex_variable=1.5, output_activity_ratio={"COAL": 1.0})
+                ],
+            ),
         ],
     ),
     most_basic_with_storage=dict(
@@ -38,7 +48,7 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
         impacts=[dict(id="CO2e")],
         technologies=[
             dict(
-                id="most_basic",
+                id="coal_powerplant",
                 operating_life=10,
                 capex=15,
                 opex_fixed=1.5,
@@ -51,7 +61,16 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
                         from_storage={"*": {"STO": 1}},
                     )
                 ],
-            )
+            ),
+            dict(
+                id="coal_mine",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                operating_modes=[
+                    dict(id="mode_1", opex_variable=1.5, output_activity_ratio={"COAL": 1.0})
+                ],
+            ),
         ],
         storage=[
             dict(
