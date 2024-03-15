@@ -63,9 +63,13 @@ class RunSpecOtoole(BaseModel):
             "columns": ["REGION", "VALUE"],
         },
         "DiscountRateIdv": {
-            "attribute": "discount_rate",
+            "attribute": "cost_of_capital",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],
         },
+        # "DiscountRateStorage": {
+        #    "attribute": "cost_of_capital_storage",
+        #    "columns": ["REGION", "STORAGE", "VALUE"],
+        # },
     }
 
     def map_datatypes(self, df: pd.DataFrame):
@@ -215,6 +219,15 @@ class RunSpecOtoole(BaseModel):
             )
         else:
             cost_of_capital = None
+        # if "DiscountRateStorage" not in otoole_cfg.empty_dfs:
+        #    cost_of_capital_storage = group_to_json(
+        #        g=dfs["DiscountRateStorage"],
+        #        root_column=None,
+        #        data_columns=["REGION", "STORAGE"],
+        #        target_column="VALUE",
+        #    )
+        # else:
+        #    cost_of_capital_storage = None
 
         # reserve margin and renewable production target
         reserve_margin = (
@@ -304,6 +317,7 @@ class RunSpecOtoole(BaseModel):
             id=id if id else Path(root_dir).name,
             discount_rate=discount_rate or defaults.discount_rate,
             cost_of_capital=cost_of_capital,
+            # cost_of_capital_storage=cost_of_capital_storage,
             depreciation_method=depreciation_method or defaults.depreciation_method,
             reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
@@ -344,6 +358,12 @@ class RunSpecOtoole(BaseModel):
             )
             dfs["DiscountRateIdv"] = df
 
+        # if self.cost_of_capital_storage:
+        #    df=pd.json_normalize(self.cost_of_capital_storage.data).T.rename(columns={0: "VALUE"})
+        #    df[["REGION", "STORAGE"]] = pd.DataFrame(
+        #        df.index.str.split(".").to_list(), index=df.index
+        #    )
+        #    dfs["DiscountRateStorage"] = df
         # reserve margins
         if self.reserve_margin:
             df = pd.json_normalize(self.reserve_margin.data).T.rename(columns={0: "VALUE"})
@@ -447,6 +467,8 @@ class RunSpecOtoole(BaseModel):
         dfs.update(Commodity.to_dataframes(commodities=self.commodities))
         dfs.update(Region.to_dataframes(regions=self.regions))
         dfs.update(self.time_definition.to_dataframes())
+        if self.storage is not None:
+            dfs.update(Storage.to_dataframes(storage=self.storage))
 
         return dfs
 
@@ -459,6 +481,8 @@ class RunSpecOtoole(BaseModel):
         Commodity.to_otoole_csv(commodities=self.commodities, output_directory=output_directory)
         Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
         self.time_definition.to_otoole_csv(output_directory=output_directory)
+        if self.storage is not None:
+            Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

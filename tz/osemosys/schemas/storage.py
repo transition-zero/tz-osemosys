@@ -20,7 +20,7 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     # REQUIRED PARAMETERS
     # -------------------
     capex: OSeMOSYSData.RY
-    operating_life: OSeMOSYSData.RY.Int
+    operating_life: OSeMOSYSData.R.Int
 
     # NON-REQUIRED PARAMETERS
     # -----------------------
