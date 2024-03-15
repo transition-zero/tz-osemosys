@@ -1,3 +1,4 @@
+from tz.osemosys.io.load_model import load_model
 from tz.osemosys.model.model import Model
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.impact import Impact
@@ -13,4 +14,5 @@ __all__ = [
     "Region",
     "TimeDefinition",
     "OperatingMode",
+    "load_model",
 ]
