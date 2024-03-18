@@ -15,17 +15,8 @@ def test_files_equality():
     # TODO
 
     EXCLUDE_STEMS = [
-        # "OperationalLifeStorage",
+        "DiscountRateIdv",
         "DiscountRateStorage",
-        # "CapitalCostStorage",
-        # "TechnologyToStorage",
-        # "TechnologyFromStorage",
-        # "StorageLevelStart",
-        # "STORAGE",
-        # "StorageMaxChargeRate",
-        # "StorageMaxDischargeRate",
-        # "MinStorageCharge",
-        # "ResidualStorageCapacity",
     ]
 
     root_dir = "examples/otoole_compat/input_csv/otoole-full-electricity-complete/"
