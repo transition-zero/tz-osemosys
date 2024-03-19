@@ -8,10 +8,48 @@ from tz.osemosys.schemas.compat.commodity import OtooleCommodity
 
 class Commodity(OSeMOSYSBase, OtooleCommodity):
     """
-    Class to contain all data related to commodities (osemosys 'FUEL'), including:
-    - Demand
-    - Renewable fuel tag
-    - Reserve margin tag
+    The Commodity class contains all data related to commodities (osemosys 'FUEL'), including
+    demands and tags for whether the commodity is counted as renewable or part of the reserve margin
+
+    ## Parameters
+
+    `id` `(str)`: Used to represent the commodity name.
+
+    `demand_annual` `({region:{year:float}})` - Specified for commodities which have an associated
+    demand. Optional, defaults to `None`.
+
+    `demand_profile` `({region:{year:{timeslice:float}})` - Specified for a demand which varies by
+    timeslice. If `demand_annual` is given for a commodity but `demand_profile` is not, the demand
+    is treated as having an accumulated demand, which must be met for each year within any
+    combination of timeslices. Optional, defaults to `None`.
+
+    `is_renewable` `({region:{year:bool}})` - Boolean tag to mark commodities which are considered
+    as renewable for applying renewable generation targets. Optional, defaults to `None`.
+
+
+
+    ## Example
+
+    A simple example of electricity demand data specified by timeslice is given below, along with
+    how it can be used to create an instance of the Commodity class:
+
+    ```python
+    from tz.osemosys.schemas.commodity import Commodity
+
+    basic_demand_profile = dict(
+        id="elec",
+        demand_annual=5,
+        demand_profile={"*": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5}},
+    )
+
+    Commodity(**basic_demand_profile)
+    ```
+    The wildcard `*` denotes that the demand profile applies across all regions.
+
+    ## Validation
+
+    `check_demand_exists_if_profile` - This enforces that if `demand_profile` is defined for a
+    region and year, `demand_annual` must also be defined.
     """
 
     demand_annual: OSeMOSYSData.RY | None = Field(None)
