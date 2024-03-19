@@ -8,8 +8,14 @@ from tz.osemosys.schemas.compat.commodity import OtooleCommodity
 
 class Commodity(OSeMOSYSBase, OtooleCommodity):
     """
+    # Commodity
+
     The Commodity class contains all data related to commodities (osemosys 'FUEL'), including
     demands and tags for whether the commodity is counted as renewable or part of the reserve margin
+    .
+
+    Commodities can either be final energy demands, or energy carriers which link technologies
+    together, or both.
 
     ## Parameters
 
@@ -28,23 +34,39 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
 
 
 
-    ## Example
+    ## Examples
 
-    A simple example of electricity demand data specified by timeslice is given below, along with
-    how it can be used to create an instance of the Commodity class:
+    A simple example of electricity demand data specified by region, years, and timeslices is given
+    below, along with how it can be used to create an instance of the Commodity class:
 
     ```python
     from tz.osemosys.schemas.commodity import Commodity
 
     basic_demand_profile = dict(
         id="elec",
-        demand_annual=5,
-        demand_profile={"*": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5}},
+        demand_annual={"R1": {"2020": 5, "2021": 5, "2022": 5}},
+        demand_profile={
+            "R1": {
+                "2020": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5},
+                "2021": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5},
+                "2022": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5},
+            }
+        },
     )
 
     Commodity(**basic_demand_profile)
     ```
-    The wildcard `*` denotes that the demand profile applies across all regions.
+
+    This model can be expressed more simply using the wildcard `*` for dimensions over which data is
+    repeated:
+
+    ```python
+    basic_demand_profile = dict(
+        id="elec",
+        demand_annual={"*": 5},
+        demand_profile={"*": {"0h": 0.0, "6h": 0.2, "12h": 0.3, "18h": 0.5}},
+    )
+    ```
 
     ## Validation
 
