@@ -72,7 +72,7 @@ HiGHS can be installed from source using `cmake` following the instructions [her
 
 ### Docker installation
 
-A docker container is provided that contains Python 3.11 and an installed version of HiGHS. You'll nedd to [install a docker distribution](https://docs.docker.com/engine/install/) relevant for your operating system.
+A docker container is provided that contains Python 3.11 and an installed version of HiGHS. You'll need to [install a docker distribution](https://docs.docker.com/engine/install/) relevant for your operating system.
 
 The docker container is used in testing, but can also be used for local development work. The following docker command will run and enter the docker container, mount the current working directory at the `/home` directory, and change directory within the container to this directory.
 
