@@ -44,8 +44,16 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
     TotalCapacityInReserveMargin = (
-        ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"] * m["TotalCapacityAnnual"]
-    ).where((ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagTechnology"] == 1))
+        (
+            ds["ReserveMarginTagTechnology"]
+            * ds["CapacityToActivityUnit"]
+            * m["TotalCapacityAnnual"]
+        ).where(
+            (ds["ReserveMargin"] > 0)
+            & (ds["ReserveMarginTagTechnology"] == 1)
+            & (ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"]).notnull()
+        )
+    ).sum("TECHNOLOGY")
 
     # Production
     RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
@@ -54,6 +62,7 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         & (ds["ReserveMarginTagFuel"] == 1)
         & (ds["ReserveMarginTagTechnology"] == 1)
     )
+
     RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
         (ds["OutputActivityRatio"].notnull())
         & (ds["ReserveMargin"] > 0)
@@ -68,17 +77,19 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         & (ds["ReserveMarginTagTechnology"] == 1)
     ).sum(dims="TECHNOLOGY")
 
-    DemandNeedingReserveMargin = (RateOfProduction * ds["ReserveMarginTagFuel"]).where(
-        (ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1)
+    DemandNeedingReserveMargin = (
+        (RateOfProduction * ds["ReserveMarginTagFuel"])
+        .where((ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1))
+        .sum("FUEL")
     )
 
-    con = (ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin) <= 0
-    mask = (
-        (ds["ReserveMargin"] > 0)
-        & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1)
-    )
-
-    m.add_constraints(con, name="RM3_ReserveMargin_Constraint", mask=mask)
+    con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin == 0
+    # mask = (
+    #     (ds["ReserveMargin"] > 0)
+    #     & (ds["ReserveMarginTagFuel"] == 1)
+    #     & (ds["ReserveMarginTagTechnology"] == 1)
+    #     & (ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"]).notnull()
+    # )
+    m.add_constraints(con, name="RM3_ReserveMargin_Constraint")  # , mask=mask)
 
     return m
