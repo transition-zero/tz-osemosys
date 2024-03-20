@@ -215,6 +215,8 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
     if ds["STORAGE"].size > 0:
+        (ds["TechnologyToStorage"].notnull())
+
         RateOfStorageCharge = (
             (
                 m["RateOfActivity"]
@@ -255,7 +257,9 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
 
         print(NetChargeWithinYear)
 
-        (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
+        NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
+
+        print(NetChargeWithinDay)
 
         # s.t. S9_and_S10_StorageLevelSeasonStart
         # {r in REGION, s in STORAGE, ls in SEASON, y in YEAR}:
@@ -290,9 +294,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         m.add_constraints(con, name="SI3_TotalNewStorage")
 
         StorageUpperLimit = m["AccumulatedNewStorageCapacity"] + ds["ResidualStorageCapacity"]
-        StorageLowerLimit = ds["MinStorageCharge"] * StorageUpperLimit
-
-        print(StorageLowerLimit)
+        ds["MinStorageCharge"] * StorageUpperLimit
 
         discount_factor_storage = (1 + ds["DiscountRate"]) ** (
             ds.coords["YEAR"] - min(ds.coords["YEAR"])

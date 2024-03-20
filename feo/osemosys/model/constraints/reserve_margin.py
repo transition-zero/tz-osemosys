@@ -84,7 +84,6 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         .where((ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1))
         .sum("FUEL")
     )
-
     print("DemandNeedingReserveMargin", DemandNeedingReserveMargin)
 
     con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin == 0
