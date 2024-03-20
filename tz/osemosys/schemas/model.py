@@ -17,7 +17,12 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
-from tz.osemosys.schemas.validation.model_composition import check_tech_linked_to_storage
+from tz.osemosys.schemas.validation.model_composition import (
+    check_tech_consuming_commodity,
+    check_tech_linked_to_storage,
+    check_tech_producing_commodity,
+    check_tech_producing_impact,
+)
 from tz.osemosys.utils import merge, recursive_keys
 
 # filter this pandas-3 dep warning for now
@@ -139,9 +144,9 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     @model_validator(mode="after")
     def composition_validation(self):
-        # self = check_tech_producing_commodity(self)
-        # self = check_tech_producing_impact(self)
-        # self = check_tech_consuming_commodity(self)
+        self = check_tech_producing_commodity(self)
+        self = check_tech_producing_impact(self)
+        self = check_tech_consuming_commodity(self)
         if self.storage:
             self = check_tech_linked_to_storage(self)
         return self
