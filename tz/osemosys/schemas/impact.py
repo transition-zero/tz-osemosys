@@ -12,9 +12,70 @@ from tz.osemosys.schemas.validation.impact_validation import (
 
 class Impact(OSeMOSYSBase, OtooleImpact):
     """
-    Class to contain all information pertaining to Impacts (osemosys 'EMISSION') including:
-    - restrictions
-    - penalties
+    # Impact
+
+    The Impact class contains all data related to impacts, i.e. externalities (osemosys 'EMISSION'),
+    including constraints, exogenous impacts, and penalties.
+
+    ## Parameters
+
+    `id` `(str)`: Used to represent the impact name.
+
+    `constraint_annual` `({region:{year:float}})` - Annual impact constraint. Optional, defaults to
+    `None`.
+
+    `constraint_total` `({region:float})` - Total modelling period impact constraint. Optional,
+    defaults to `None`.
+
+    `exogenous_annual` `({region:{year:float}})` - Annual exogenous impact. Optional, defaults to
+    `None`.
+
+    `exogenous_total` `({region:float})` - Total modelling period exogenous impact. Optional,
+    defaults to `None`.
+
+    `penalty` `({region:{year:float}})` - Financial penalty for each unit impact. Optional,
+    defaults to `None`.
+
+
+    ## Examples
+
+    A simple example of how an impact might be defined is given
+    below, along with how it can be used to create an instance of the Impact class:
+
+    ```python
+    from tz.osemosys.schemas.impact import Impact
+
+    basic_impact = dict(
+        id="CO2e",
+        constraint_annual={"R1": {"2020": 2.0, "2021": 2.0, "2022": 2.0}},
+        constraint_total={"R1": 5.0},
+        exogenous_annual={"R1": {"2020": 1.0, "2021": 1.0, "2022": 1.0}},
+        exogenous_total={"R1": 1.0},
+        penalty={"R1": {"2020": 1.0, "2021": 1.0, "2022": 1.0}},
+    )
+
+    Impact(**basic_impact)
+    ```
+
+    This model can be expressed more simply using the wildcard `*` for dimensions over which data is
+    repeated:
+
+    ```python
+    basic_impact = dict(
+        id="CO2e",
+        constraint_annual={"R1": {"*": 2.0}},
+        constraint_total={"R1": 5.0},
+        exogenous_annual={"R1": {"*": 1.0}},
+        exogenous_total={"R1": 1.0},
+        penalty={"R1": {"*": 1.0}},
+    )
+    ```
+
+    ## Validation
+
+    `validate_exogenous_lt_constraint` - This enforces that if `exogenous_annual` should be lower
+    than `constraint_annual`, and `exogenous_total` should be lower than `constraint_total`, for
+    the relevant regions and years.
     """
 
     model_config = ConfigDict(extra="forbid")
