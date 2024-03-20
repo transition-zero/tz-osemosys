@@ -15,7 +15,8 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     # Impact
 
     The Impact class contains all data related to impacts, i.e. externalities (osemosys 'EMISSION'),
-    including constraints, exogenous impacts, and penalties.
+    including constraints, exogenous impacts, and penalties. One Impact instance is given for each
+    impact.
 
     ## Parameters
 

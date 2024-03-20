@@ -12,7 +12,7 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
 
     The Commodity class contains all data related to commodities (osemosys 'FUEL'), including
     demands and tags for whether the commodity is counted as renewable or part of the reserve margin
-    .
+    . One Commodity instance is given for each commodity.
 
     Commodities can either be final energy demands, or energy carriers which link technologies
     together, or both.
