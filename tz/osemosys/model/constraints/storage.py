@@ -275,7 +275,6 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
                 & (ds["Conversionlh"] * ds["Conversionls"] * ds["Conversionld"]).notnull()
             )
         ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-        print(RateOfStorageCharge, RateOfStorageDischarge)
 
         NetChargeWithinYear = (
             (RateOfStorageCharge - RateOfStorageDischarge).where(
@@ -287,11 +286,16 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
             * ds["YearSplit"]
         ).sum("TIMESLICE")
 
-        print(NetChargeWithinYear)
+        (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
 
-        NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
-
-        print(NetChargeWithinDay)
+        ####
+        firstseason_mask = ds["SEASON"] == min(ds["SEASON"])
+        StorageLevelSeasonStart = (
+            m["StorageLevelYearStart"].where(firstseason_mask)
+            # + StorageLevelSeasonStart.shift(SEASON=-1)
+            + NetChargeWithinYear.sum(["DAYTYPE", "DAILYTIMEBRACKET"])
+        )
+        print(StorageLevelSeasonStart)
 
         # s.t. S9_and_S10_StorageLevelSeasonStart
         # {r in REGION, s in STORAGE, ls in SEASON, y in YEAR}:
