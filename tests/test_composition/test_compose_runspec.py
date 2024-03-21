@@ -77,7 +77,7 @@ PASSING_RUNSPEC_DEFINITIONS = dict(
             dict(
                 id="STO",
                 capex={"*": {"*": 100}},
-                operating_life={"*": {"*": 10}},
+                operating_life={"*": 10},
             )
         ],
     ),

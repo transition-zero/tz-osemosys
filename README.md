@@ -104,7 +104,7 @@ from tz.osemosys import (
 time_definition = TimeDefinition(id="years-only", years=range(2020, 2051))
 regions = [Region(id="single-region")]
 commodities = [Commodity(id="electricity", demand_annual=25 * 8760)]  # 25GW * 8760hr/yr
-impacts = [Impact(id="CO2", penalty=60)]  # 10 $mn/Mtonne
+impacts = [Impact(id="CO2", penalty=60)]  # 60 $mn/Mtonne
 technologies = [
     Technology(
         id="coal-gen",

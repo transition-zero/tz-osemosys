@@ -50,6 +50,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     depreciation_method: OSeMOSYSData.R.DM = Field(OSeMOSYSData.R.DM(defaults.depreciation_method))
     # DiscountRateIdv
     cost_of_capital: OSeMOSYSData.RT | None = Field(None)
+    cost_of_capital_storage: OSeMOSYSData.RO | None = Field(None)
     discount_rate: OSeMOSYSData.R = Field(OSeMOSYSData.R(defaults.discount_rate))
     reserve_margin: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 
@@ -57,7 +58,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # -------
     renewable_production_target: OSeMOSYSData.RY | None = Field(None)
 
-    def maybe_mixin_discount_rate(self):
+    def maybe_mixin_discount_rate_idv(self):
         regions = [region.id for region in self.regions]
         technologies = [technology.id for technology in self.technologies]
 
@@ -94,6 +95,46 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
             else:
                 raise ValueError(f"Wrong datatype for cost_of_capital: {self.cost_of_capital.data}")
+
+    def maybe_mixin_discount_rate_storage(self):
+        regions = [region.id for region in self.regions]
+        if self.storage is not None:
+            storage_techs = [sto.id for sto in self.storage]
+
+        if self.cost_of_capital_storage is None:
+            # if cost_of_capital is not provided, use discount_rate
+            return OSeMOSYSData.RO(self.discount_rate.data)
+        else:
+            # cost-of-capital-storage exists but we may need to mixin
+            if isinstance(self.cost_of_capital_storage.data, float):
+                # if cost_of_capital is a float, return it, it'll cast on composition
+                return OSeMOSYSData.RO(self.cost_of_capital_storage.data)
+            elif isinstance(self.cost_of_capital_storage.data, dict):
+                all_data = {region: {sto: None for sto in storage_techs} for region in regions}
+
+                # first compose to fill any wild vals
+                composed_cost_of_capital_storage = _check_set_membership(
+                    "cost_of_capital_storage",
+                    self.cost_of_capital_storage.data,
+                    {"regions": regions, "storage": storage_techs},
+                )
+                all_data = merge(all_data, composed_cost_of_capital_storage)
+
+                # mix back in any discount rates or the default value
+                for region, sto in recursive_keys(all_data):
+                    if all_data[region][sto] is None:
+                        if self.discount_rate.data[region] is not None:
+                            all_data[region][sto] = self.discount_rate.data[region]
+                        else:
+                            all_data[region][sto] = defaults.discount_rate
+
+                return OSeMOSYSData.RO(all_data)
+
+            else:
+                raise ValueError(
+                    f"Wrong datatype for cost_of_capital_storage: "
+                    f"{self.cost_of_capital_storage.data}"
+                )
 
     @model_validator(mode="after")
     def compose(self):
@@ -134,16 +175,26 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
                 self.id, self.renewable_production_target.data, **sets
             )
 
-        self.cost_of_capital = self.maybe_mixin_discount_rate()
+        self.cost_of_capital = self.maybe_mixin_discount_rate_idv()
+        if self.cost_of_capital:
+            self.cost_of_capital = self.cost_of_capital.compose(
+                self.id, self.cost_of_capital.data, **sets
+            )
 
-        self.cost_of_capital = self.cost_of_capital.compose(
-            self.id, self.cost_of_capital.data, **sets
-        )
+        if self.cost_of_capital_storage:
+            self.cost_of_capital_storage = self.maybe_mixin_discount_rate_storage()
+            self.cost_of_capital_storage = self.cost_of_capital_storage.compose(
+                self.id, self.cost_of_capital_storage.data, **sets
+            )
 
         return self
 
     @model_validator(mode="after")
     def composition_validation(self):
+        """
+        Do composition checks ensuring all commodities, impacts, and storage are linked to a
+        technology
+        """
         self = check_tech_producing_commodity(self)
         self = check_tech_producing_impact(self)
         self = check_tech_consuming_commodity(self)

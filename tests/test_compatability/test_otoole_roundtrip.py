@@ -12,22 +12,15 @@ def test_files_equality():
     """
 
     # to be implemented
+    # TODO
+
     EXCLUDE_STEMS = [
-        "OperationalLifeStorage",
+        "DiscountRateIdv",
         "DiscountRateStorage",
-        "CapitalCostStorage",
-        "TechnologyToStorage",
-        "TechnologyFromStorage",
-        "StorageLevelStart",
-        "STORAGE",
-        "StorageMaxChargeRate",
-        "StorageMaxDischargeRate",
-        "MinStorageCharge",
-        "ResidualStorageCapacity",
     ]
 
-    root_dir = "examples/otoole_compat/input_csv/otoole-full-electricity/"
-    output_directory = "tests/otoole_compare/otoole-full-electricity/"
+    root_dir = "examples/otoole_compat/input_csv/otoole-full-electricity-complete/"
+    output_directory = "tests/otoole_compare/otoole-full-electricity-complete/"
 
     create_output_directory(output_directory)
 
