@@ -248,7 +248,6 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
     if ds["STORAGE"].size > 0:
-
         RateOfStorageCharge = (
             (
                 ds["Conversionlh"]
@@ -262,10 +261,9 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
                 & (ds["Conversionlh"] * ds["Conversionls"] * ds["Conversionld"]).notnull()
             )
         ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-        
+
         RateOfStorageDischarge = (
             (
-                
                 ds["Conversionlh"]
                 * ds["Conversionls"]
                 * ds["Conversionld"]
@@ -277,23 +275,21 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
                 & (ds["Conversionlh"] * ds["Conversionls"] * ds["Conversionld"]).notnull()
             )
         ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-        print(RateOfStorageCharge,
-              RateOfStorageDischarge)
+        print(RateOfStorageCharge, RateOfStorageDischarge)
 
         NetChargeWithinYear = (
-            (RateOfStorageCharge - RateOfStorageDischarge)
-            .where(
-                (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull())
+            (RateOfStorageCharge - RateOfStorageDischarge).where(
+                (ds["Conversionls"] * ds["Conversionld"] * ds["Conversionlh"]).notnull()
+            )
             * ds["Conversionls"]
             * ds["Conversionld"]
             * ds["Conversionlh"]
             * ds["YearSplit"]
-            ).sum("TIMESLICE")
+        ).sum("TIMESLICE")
 
         print(NetChargeWithinYear)
 
-        NetChargeWithinDay = ((RateOfStorageCharge - RateOfStorageDischarge) 
-                              * ds["DaySplit"])
+        NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
 
         print(NetChargeWithinDay)
 
