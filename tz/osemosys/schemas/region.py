@@ -18,14 +18,11 @@ class Region(OSeMOSYSBase, OtooleRegion):
     """
     # Region
 
-    The Region class contains data related to regions, including neighbours and trade routes.
+    The Region class contains data related to regions, including trade routes.
 
     ## Parameters
 
     `id` `(str)`: Used to represent the region name.
-
-    `neighbours` `(List[str])`: Used to represent the impact name. Optional, defaults to
-    `None`.
 
     `trade_routes` `({region:{commodity:{year:bool}}})` - Boolean tag indicating which other regions
     may trade the specified commodities with the current region. Optional, defaults to
@@ -61,7 +58,6 @@ class Region(OSeMOSYSBase, OtooleRegion):
 
     model_config = ConfigDict(extra="forbid")
 
-    neighbours: List[str] | None = Field(default=None)
     trade_routes: OSeMOSYSData.RCY.Bool | None = Field(default=None)  # R_RCY
 
     exclude_technologies: List[str] | None = Field(default=None)

@@ -28,25 +28,22 @@ regions:
   - id: US-CA
     long_name: California
     description: "The US state of California"
-    neighbours:
-      - US-TX
-      - PACIFIC-MARKET
+    trade_routes: {US-TX: {"*": {"*": True}}, PACIFIC-MARKET: {"*": {"*": True}}}
+
   - id: US-TX
     long_name: Texas
     description: "The US state of Texas"
-    neighbours:
-      - US-CA
-      - ATLANTIC-MARKET
+    trade_routes: {US-CA: {"*": {"*": True}}, ATLANTIC-MARKET: {"*": {"*": True}}}
+
   - id: ATLANTIC-MARKET
     long_name: atlantic market
     description: a node representing atlantic import markets
-    neighbours:
-      - US-TX
+    trade_routes: {US-TX: {"*": {"*": True}}}
+
   - id: PACIFIC-MARKET
     long_name: pacific market
     description: a node representing pacific import markets
-    neighbours:
-      - US-CA
+    trade_routes: {US-CA: {"*": {"*": True}}}
 
 # TIME DEFINTIONS
 time_definition:
