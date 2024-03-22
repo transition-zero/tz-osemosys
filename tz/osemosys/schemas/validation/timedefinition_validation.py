@@ -260,9 +260,11 @@ def build_adjacency(
         timeslices=dict(zip(sorted(ordered_timeslices)[:-1], sorted(ordered_timeslices)[1:])),
         seasons=dict(zip(sorted(seasons)[:-1], sorted(seasons)[1:])) if seasons else None,
         day_types=dict(zip(sorted(day_types)[:-1], sorted(day_types)[1:])) if day_types else None,
-        time_brackets=dict(zip(sorted(time_brackets)[:-1], sorted(time_brackets)[1:]))
-        if time_brackets
-        else None,
+        time_brackets=(
+            dict(zip(sorted(time_brackets)[:-1], sorted(time_brackets)[1:]))
+            if time_brackets
+            else None
+        ),
     )
 
 
