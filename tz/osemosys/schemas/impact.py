@@ -14,7 +14,7 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     """
     # Impact
 
-    The Impact class contains all data related to impacts, i.e. externalities (osemosys 'EMISSION'),
+    The Impact class contains all data related to impacts, i.e. externalities (OSeMOSYS 'EMISSION'),
     including constraints, exogenous impacts, and penalties. One Impact instance is given for each
     impact.
 
@@ -22,20 +22,20 @@ class Impact(OSeMOSYSBase, OtooleImpact):
 
     `id` `(str)`: Used to represent the impact name.
 
-    `constraint_annual` `({region:{year:float}})` - Annual impact constraint. Optional, defaults to
-    `None`.
+    `constraint_annual` `({region:{year:float}})` - OSeMOSYS AnnualEmissionLimit.
+      Annual impact constraint. Optional, defaults to `None`.
 
-    `constraint_total` `({region:float})` - Total modelling period impact constraint. Optional,
-    defaults to `None`.
+    `constraint_total` `({region:float})` - OSeMOSYS ModelPeriodEmissionLimit.
+      Total modelling period impact constraint. Optional, defaults to `None`.
 
-    `exogenous_annual` `({region:{year:float}})` - Annual exogenous impact. Optional, defaults to
-    `None`.
+    `exogenous_annual` `({region:{year:float}})` - OSeMOSYS AnnualExogenousEmission.
+      Annual exogenous impact. Optional, defaults to `None`.
 
-    `exogenous_total` `({region:float})` - Total modelling period exogenous impact. Optional,
-    defaults to `None`.
+    `exogenous_total` `({region:float})` - OSeMOSYS ModelPeriodExogenousEmission.
+      Total modelling period exogenous impact. Optional, defaults to `None`.
 
-    `penalty` `({region:{year:float}})` - Financial penalty for each unit impact. Optional,
-    defaults to `None`.
+    `penalty` `({region:{year:float}})` - OSeMOSYS EmissionsPenalty.
+      Financial penalty for each unit impact. Optional, defaults to `None`.
 
 
     ## Examples

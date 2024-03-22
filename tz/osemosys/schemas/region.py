@@ -18,15 +18,16 @@ class Region(OSeMOSYSBase, OtooleRegion):
     """
     # Region
 
-    The Region class contains data related to regions, including trade routes.
+    The Region class contains data related to regions, including trade routes. One Region instance
+    is given for each region.
 
     ## Parameters
 
     `id` `(str)`: Used to represent the region name.
 
-    `trade_routes` `({region:{commodity:{year:bool}}})` - Boolean tag indicating which other regions
-    may trade the specified commodities with the current region. Optional, defaults to
-    `None`.
+    `trade_routes` `({region:{commodity:{year:bool}}})` - OSeMOSYS TradeRoute.
+      Boolean tag indicating which other regions may trade the specified commodities with the
+      current region. Optional, defaults to `None`.
 
     ## Examples
 

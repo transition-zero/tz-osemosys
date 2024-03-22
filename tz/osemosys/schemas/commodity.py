@@ -10,7 +10,7 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     """
     # Commodity
 
-    The Commodity class contains all data related to commodities (osemosys 'FUEL'), including
+    The Commodity class contains all data related to commodities (OSeMOSYS 'FUEL'), including
     demands and tags for whether the commodity is counted as renewable or part of the reserve margin
     . One Commodity instance is given for each commodity.
 
@@ -21,15 +21,18 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
 
     `id` `(str)`: Used to represent the commodity name.
 
-    `demand_annual` `({region:{year:float}})` - Specified for commodities which have an associated
+    `demand_annual` `({region:{year:float}})` - OSeMOSYS AccumulatedAnnualDemand/
+    SpecifiedAnnualDemand. Specified for commodities which have an associated
     demand. Optional, defaults to `None`.
 
-    `demand_profile` `({region:{year:{timeslice:float}})` - Specified for a demand which varies by
+    `demand_profile` `({region:{year:{timeslice:float}})` - OSeMOSYS SpecifiedDemandProfile.
+    Specified for a demand which varies by
     timeslice. If `demand_annual` is given for a commodity but `demand_profile` is not, the demand
     is treated as having an accumulated demand, which must be met for each year within any
     combination of timeslices. Optional, defaults to `None`.
 
-    `is_renewable` `({region:{year:bool}})` - Boolean tag to mark commodities which are considered
+    `is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagFuel.
+    Boolean tag to mark commodities which are considered
     as renewable for applying renewable generation targets. Optional, defaults to `None`.
 
 
