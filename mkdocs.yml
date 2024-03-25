@@ -1,4 +1,5 @@
 site_name: TZ OSeMOSYS
+docs_dir: docs
 
 plugins:
 - search
@@ -6,9 +7,8 @@ plugins:
 - mkdocs-jupyter
 
 nav:
-  - Home:
-    - README.md
-    - Test: docs/index.md
+  - Home: index.md
+  - Test: index.md
 repo_url: https://github.com/transition-zero/tz-osemosys
 
 theme:
