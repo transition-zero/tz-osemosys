@@ -7,7 +7,7 @@ plugins:
 - mkdocs-jupyter
 
 nav:
-  - Home: ../README.md
+  - Home: README.md
 repo_url: https://github.com/transition-zero/tz-osemosys
 
 theme:
