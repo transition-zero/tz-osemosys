@@ -1,5 +1,5 @@
 site_name: TZ OSeMOSYS
-docs_dir: docs
+docs_dir: .
 
 plugins:
 - search
