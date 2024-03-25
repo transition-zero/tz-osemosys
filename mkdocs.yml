@@ -1,0 +1,19 @@
+site_name: TZ OSeMOSYS
+docs_dir: docs
+
+plugins:
+- search
+- mkdocstrings
+- mkdocs-jupyter
+
+nav:
+  - Home: index.md
+repo_url: https://github.com/transition-zero/tz-osemosys
+
+theme:
+  name: material
+  favicon: https://images.squarespace-cdn.com/content/v1/63d1607c35efbd5cbfee1529/294783be-8cea-4002-8dc7-c3c7842c0401/favicon.ico?format=100w
+  logo: https://feo.transitionzero.org/brand/logo_short_white.svg
+  features:
+    - header.autohide
+    - navigation.tabs
