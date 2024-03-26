@@ -16,9 +16,7 @@ def test_otoole_roundtrip():
 
         storage_technologies = Storage.from_otoole_csv(root_dir=path)
 
-        Storage.to_otoole_csv(
-            storage_technologies=storage_technologies, output_directory=output_directory
-        )
+        Storage.to_otoole_csv(storage=storage_technologies, output_directory=output_directory)
 
         if storage_technologies:
             for stem, params in storage_technologies[0].otoole_stems.items():
