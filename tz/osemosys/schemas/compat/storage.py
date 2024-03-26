@@ -119,7 +119,7 @@ class OtooleStorage(BaseModel):
                         else None
                     ),
                     operating_life=(
-                        OSeMOSYSData.RY.Int(data=data_json_format["OperationalLifeStorage"])
+                        OSeMOSYSData.R.Int(data=data_json_format["OperationalLifeStorage"])
                         if data_json_format["OperationalLifeStorage"] is not None
                         else None
                     ),
