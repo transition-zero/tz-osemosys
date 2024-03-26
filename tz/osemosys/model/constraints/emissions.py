@@ -1,18 +1,5 @@
-from typing import Any
-
 import xarray as xr
-from linopy import LinearExpression, Model
-from linopy.common import as_dataarray
-
-
-def passthrough_mul(expr: LinearExpression, other: Any):
-    # Linopy has a hard check on the dimensions of the multiplier,
-    # and doesn't allow casting up dimensions
-    multiplier = as_dataarray(other, coords=expr.coords, dims=expr.coord_dims)
-    coeffs = expr.coeffs * multiplier
-    # assert set(coeffs.shape) == set(expr.coeffs.shape)
-    const = expr.const * multiplier
-    return expr.assign(coeffs=coeffs, const=const)
+from linopy import Model
 
 
 def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
@@ -100,17 +87,11 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model) -> Model:
     )
 
     if ds["EMISSION"].size > 0:
-        TotalAnnualTechnologyActivityByMode = (m["RateOfActivity"] * ds["YearSplit"]).sum(
-            "TIMESLICE"
-        )
-
-        # AnnualTechnologyEmissionByMode = (
-        #     ds["EmissionActivityRatio"] * TotalAnnualTechnologyActivityByMode
-        # ).where(ds["EmissionActivityRatio"].notnull())
-
         AnnualTechnologyEmissionByMode = (
-            passthrough_mul(TotalAnnualTechnologyActivityByMode, ds["EmissionActivityRatio"])
-        ).where(ds["EmissionActivityRatio"].notnull())
+            (ds["EmissionActivityRatio"] * ds["YearSplit"] * m["RateOfActivity"])
+            .sum("TIMESLICE")
+            .where(ds["EmissionActivityRatio"].notnull())
+        )
 
         AnnualTechnologyEmission = AnnualTechnologyEmissionByMode.sum(
             dims="MODE_OF_OPERATION"
