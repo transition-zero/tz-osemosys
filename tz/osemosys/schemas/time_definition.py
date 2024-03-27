@@ -50,7 +50,7 @@ class TimeAdjacency(BaseModel):
 
 
 def construction_from_timeslices(values: Any):
-    """pathway 3: years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
+    """pathway 4: years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
     timeslice_in_season with optional year_split, day_split, days_in_day_type
     and optional validation on yearparts, daytypes, and dayparts OR adjacency
     - default to seasons
@@ -134,7 +134,7 @@ def construction_from_timeslices(values: Any):
 
 
 def construction_from_parts(values: Any):
-    """pathway 2: years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit,
+    """pathway 3: years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit,
     days_in_daytype with optional adjacency
       - validate keys on provided yearparts, daytypes, dayparts, daysplit, yearsplit,
         days_in_daytype
@@ -270,56 +270,127 @@ def construction_from_yrparts_dayparts_int(values: Any):
 
 class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     """
-    Class to contain all temporal defition of the OSeMOSYS model.
+    # TimeDefinition
 
-    There are several pathways to constructing a TimeDefinition.
+    The TimeDefinition class contains all temporal data needed for an OSeMOSYS model. There are
+    multiple pathways to creating a TimeDefinition object, where any missing information is
+    inferred from the data provided.
 
-    pathway 1:
-    years only
+    Only a single instance of TimeDefinition is needed to run a model and, as a minimum, only
+    `years` need to be provided to create a TimeDefinition object.
 
-    pathway 2:
-    years plus yearparts and dayparts as integers
+    The other parameters corresponding to the OSeMOSYS time related sets (`seasons`, `timeslices`,
+    `day_types`, `daily_time_brackets`) can be provided as lists, ranges, or integers. If given
+    as integers, that many unique seasons/timeslices/day_types/daily_time_brackets will be
+    constructed.
 
-    pathway 3:
-    years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit, days_in_daytype
-    with optional adjacency
+    ### Pathway 1 - years only
 
-    pathway 4:
-    years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
-    timeslice_in_season with optional year_split, day_split, days_in_day_type
-    and optional validation on yearparts, daytypes, and dayparts OR adjacency
+    If only `years` are provided, the remaining necessary temporal parameters (`seasons`,
+    `day_types`, `daily_time_brackets`) are assumed to be singular.
+
+    ### Pathway 2 - years, seasons, and daily_time_brackets
+
+    If providing `years`, `seasons`, and `daily_time_brackets`, `day_types` is assumed to
+    be singular, and `timeslices` are constructed from the provided data.
+
+    ### Pathway 3 - years, seasons, daily_time_brackets, and day_types
+
+    If providing `years`, `seasons`, `daily_time_brackets` and `day_types`, `timeslices` are
+    constructed from the provided data.
+
+    ### Pathway 4 - years, seasons, daily_time_brackets, day_types, and timeslices
+
+    Pathway taken if providing a fully defined TimeDefinition.
 
 
-    Attributes:
-        years:
-            List[int]: a list of integer years for the capacity expansion study.
-                       Can also be a `range`.
-        seasons:
-            List[int | str]:
-        timeslices:
-            List[int | str]:
-        day_types:
-            List[int | str]:
-        daily_time_brackets:
-            List[int | str]:
-        year_split:
-            Mapping:
-        day_split:
-            Mapping:
-        days_in_day_type:
-            Mapping:
-        timeslice_in_timebracket:
-            Mapping:
-        timeslice_in_daytype:
-            Mapping:
-        timeslice_in_season:
-            Mapping:
-        adj:
-            TimeAdjacency:
-        adj_inv:
-            TimeAdjacency:
-        otoole_cfg:
-            OtooleCfg | None:
+    ## Parameters
+
+    `id` `(str)`: Any value may be provided for the single TimeDefintion instance.
+    Required parameter.
+
+    `years` `(List[int] | range(int)) | int`: OSeMOSYS YEARS. Required parameter.
+
+    `seasons` `(List[int | str]) | int`: OSeMOSYS SEASONS.
+    Optional, constructed if not provided.
+
+    `timeslices` `(List[int | str]) | int`: OSeMOSYS TIMESLICES.
+    Optional, constructed if not provided.
+
+    `day_types` `(List[int | str]) | int`: OSeMOSYS DAYTYPES.
+    Optional, constructed if not provided.
+
+    `daily_time_brackets` `(List[int | str])`: OSeMOSYS DAILYTIMEBRACKETS.
+    Optional, constructed if not provided.
+
+    `year_split` `({timeslice:{year:float}})`: OSeMOSYS YearSplit.
+    Optional, constructed if not provided.
+
+    `day_split` `({daily_time_bracket:{year:float}})`: OSeMOSYS DaySplit.
+    Optional, constructed if not provided.
+
+    `days_in_day_type` `({season:{day_type:{year:int}}})`: OSeMOSYS DaysInDayType.
+    Optional, constructed if not provided.
+
+    `timeslice_in_timebracket` `({timeslice:daily_time_bracket})`: OSeMOSYS Conversionlh.
+    Optional, constructed if not provided.
+
+    `timeslice_in_daytype` `({timeslice:day_type})`: OSeMOSYS Conversionld.
+    Optional, constructed if not provided.
+
+    `timeslice_in_season` `({timeslice:season})`: OSeMOSYS Conversionls.
+    Optional, constructed if not provided.
+
+    ## Examples
+
+    Examples are given below of how a TimeDefinition object might be created using the different
+    pathways.
+
+    ### Pathway 1 - years only
+
+    ```python
+    from tz.osemosys.schemas.time_definition import TimeDefinition
+
+    basic_time_definition = dict(
+        id="pathway_1",
+        years=[2021, 2022, 2023],
+    )
+
+    TimeDefinition(**basic_time_definition)
+    ```
+
+    ### Pathway 2 - years, seasons, and daily_time_brackets
+
+        yearparts_dayparts_list_of_str=dict(
+        years=range(2020, 2051),
+        seasons=["winter", "spring", "summer", "autumn"],
+        day_types=["weekday", "weekend"],
+    ),
+
+    ### Pathway 3 - years, seasons, daily_time_brackets, and day_types
+
+    ### Pathway 4 - years, seasons, daily_time_brackets, day_types, and timeslices
+
+    ```python
+    from tz.osemosys.schemas.region import Region
+
+    basic_region = dict(
+        id="R1",
+        trade_routes={"R2": {"COAL": {"2020": True, "2021": True, "2022": True}}},
+    )
+
+    Region(**basic_region)
+    ```
+
+    This model can be expressed more simply using the wildcard `*` for dimensions over which data is
+    repeated:
+
+    ```python
+    basic_region = dict(
+        id="R1",
+        trade_routes={"R2": {"COAL": {"*": True}}},
+    )
+    ```
 
     """
 

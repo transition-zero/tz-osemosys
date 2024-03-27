@@ -13,7 +13,6 @@ class Defaults(BaseSettings):
     technology_storage_residual_capacity: float = Field(0.0)
     technology_storage_minimum_charge: float = Field(0.0)
     technology_storage_initial_level: float = Field(0.0)
-    technology_storage_residual_capacity: float = Field(0.0)
     technology_capex: float = Field(0.00001)
     technology_opex_variable_cost: float = Field(0.00001)
     technology_opex_fixed_cost: float = Field(0.0)
