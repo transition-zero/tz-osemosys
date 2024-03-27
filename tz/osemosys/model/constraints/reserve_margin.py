@@ -83,7 +83,7 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         .sum("FUEL")
     )
 
-    con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin == 0
+    con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin <= 0
     m.add_constraints(con, name="RM3_ReserveMargin_Constraint")
 
     return m
