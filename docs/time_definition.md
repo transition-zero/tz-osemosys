@@ -25,7 +25,6 @@ adj = {
 }
 ```
 
-
 ### Pathway 1 - Construction from years only
 
 If only `years` are provided, the remaining necessary temporal parameters (`seasons`,

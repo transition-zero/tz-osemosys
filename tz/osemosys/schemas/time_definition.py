@@ -470,6 +470,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     TimeDefinition(**basic_time_definition)
     ```
 
+
     """
 
     # TODO: fix yearparts and dayparts then make extra params forbidden again
