@@ -15,6 +15,7 @@ from .operating_costs import add_operating_costs_constraints
 from .re_targets import add_re_targets_constraints
 from .reserve_margin import add_reserve_margin_constraints
 from .salvage_value import add_salvage_value_constraints
+from .storage import add_storage_constraints
 from .total_activity import add_total_activity_constraints
 from .total_capacity import add_total_capacity_constraints
 from .total_discounted_costs import add_total_discounted_costs_constraints
@@ -50,7 +51,7 @@ def add_constraints(ds: xr.Dataset, m: Model) -> Model:
     m = add_re_targets_constraints(ds, m)
     m = add_reserve_margin_constraints(ds, m)
     m = add_salvage_value_constraints(ds, m)
-    # m = add_storage_constraints(ds, m)
+    m = add_storage_constraints(ds, m)
     m = add_total_activity_constraints(ds, m)
     m = add_total_capacity_constraints(ds, m)
     m = add_total_discounted_costs_constraints(ds, m)
