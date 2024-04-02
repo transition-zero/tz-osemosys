@@ -409,11 +409,31 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
 
         # CAPACITY CONSTRAINTS
 
+        # s.t. SC1_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint  # noqa
+        # {r in REGION, s in STORAGE, ls in SEASON, ld in DAYTYPE, lh in DAILYTIMEBRACKET, y in YEAR}:  # noqa
+        #     0 <= (StorageLevelDayTypeStart[r,s,ls,ld,y]
+        #     + sum{lhlh in DAILYTIMEBRACKET:lh-lhlh>0} NetChargeWithinDay[r,s,ls,ld,lhlh,y])
+        #     - StorageLowerLimit[r,s,y];
+
+        # Want to sum NetChargeWithinDay cumulatively across dailytimerbackets, up to the current
+        # So if in dailytimebracket 3, want to add the values from dailytimebrackets 1 and 2
+        # How to deal with dailytimebrackets as strings? need adjacency?
+
+        # mask_up_to_dailytimebracket = ds.coords["DAILYTIMEBRACKET"].astype(int) <= 0
+
+        for bracket in ds.coords["DAILYTIMEBRACKET"].values:  # noqa
+            # Add net charge where bracket is less than given dailytimebracket
+            pass
+
         con = (
             StorageLevelDayTypeStart
             + (
                 NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
+                    (
+                        ds.coords["DAILYTIMEBRACKET"].astype(int)
+                        - ds.coords["DAILYTIMEBRACKET"].astype(int)
+                    )
+                    > 0
                 )
             ).sum("DAILYTIMEBRACKET")
             - StorageLowerLimit
@@ -509,10 +529,12 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
         m.add_constraints(con, name="SC4_UpperLimit_BeginningOfLastWeek", mask=mask)
 
-        con = RateOfStorageCharge <= ds["StorageMaxChargeRate"]
-        m.add_constraints(con, name="SC5_MaxChargeConstraint")
+        if "StorageMaxChargeRate" in ds.data_vars:
+            con = RateOfStorageCharge <= ds["StorageMaxChargeRate"]
+            m.add_constraints(con, name="SC5_MaxChargeConstraint")
 
-        con = RateOfStorageDischarge <= ds["StorageMaxDischargeRate"]
-        m.add_constraints(con, name="SC6_MaxDischargeConstraint")
+        if "StorageMaxDischargeRate" in ds.data_vars:
+            con = RateOfStorageDischarge <= ds["StorageMaxDischargeRate"]
+            m.add_constraints(con, name="SC6_MaxDischargeConstraint")
 
     return m
