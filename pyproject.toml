@@ -36,7 +36,7 @@ dependencies = [
   "xarray",
   "orjson",
   "linopy",
-  "highspy",
+
 ]
 
 [project.optional-dependencies] # Optional
@@ -50,7 +50,10 @@ dev = [
   "mypy",
   "tox",
   "coverage",
+  "highspy",
 ]
+
+
 
 [project.urls]  # Optional
 "Homepage" = "https://github.com/transitionzero/tz-osemosys"
