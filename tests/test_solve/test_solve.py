@@ -17,7 +17,7 @@ def test_model_construction_from_yaml():
     model._m.solve()
 
     assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 10753472.0
+    assert np.round(model._m.objective.value) == 10747501.0
 
 
 def test_most_simple():

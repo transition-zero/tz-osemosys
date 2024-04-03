@@ -268,27 +268,27 @@ def construction_from_yrparts_dayparts_int(values: Any):
         if values.get(key) is not None:
             raise ValueError(
                 """If specifying time_definition with a
-                             number of yearparts and dayparts, no other
-                             time_definition parameters can be specified."""
+                number of yearparts and dayparts as integers, no other
+                time_definition parameters can be specified."""
             )
 
     timeslices = build_timeslices_from_parts(yearparts, dayparts)
     values["timeslices"] = timeslices
 
     values["timeslice_in_timebracket"] = {
-        timeslice: [time_bracket for time_bracket in dayparts if time_bracket in timeslice]
+        timeslice: "".join([time_bracket for time_bracket in dayparts if time_bracket in timeslice])
         for timeslice in timeslices
     }
     values["timeslice_in_season"] = {
-        timeslice: [season for season in yearparts if season in timeslice]
+        timeslice: "".join([season for season in yearparts if season in timeslice])
         for timeslice in timeslices
     }
-    values["year_split"] = {yearpart: 1.0 / len(yearparts) for yearpart in yearparts}
-    values["day_split"] = {daypart: 1.0 / len(dayparts) for daypart in dayparts}
+
+    values["year_split"] = {timeslice: 1.0 / len(timeslices) for timeslice in timeslices}
+    values["day_split"] = {daypart: round((1.0 / len(dayparts)) / 365, 10) for daypart in dayparts}
     values["day_types"] = [1]
-    values["day_split"] = {1: 1.0}
     values["days_in_day_type"] = {1: 1.0}
-    values["timeslice_in_daytype"] = {timeslice: [1] for timeslice in timeslices}
+    values["timeslice_in_daytype"] = {timeslice: 1 for timeslice in timeslices}
 
     adj = TimeAdjacency(
         years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
@@ -296,6 +296,9 @@ def construction_from_yrparts_dayparts_int(values: Any):
     )
     values["adj"] = adj
     values["adj_inv"] = adj.inv()
+
+    values["seasons"] = yearparts
+    values["daily_time_brackets"] = dayparts
 
     return values
 
