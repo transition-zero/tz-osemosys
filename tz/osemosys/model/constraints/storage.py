@@ -419,115 +419,114 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         # So if in dailytimebracket 3, want to add the values from dailytimebrackets 1 and 2
         # How to deal with dailytimebrackets as strings? need adjacency?
 
-        # mask_up_to_dailytimebracket = ds.coords["DAILYTIMEBRACKET"].astype(int) <= 0
+        # Create dict of timebracket to it's position in list of coords
+        # e.g. {"timebracket_1": 0, "timebracket_2": 1, "timebracket_3": 2}
+        # This assumes timebracket are loaded into the ds in time adjacent order
+        index_timebracket = {
+            item: index for index, item in enumerate(ds.coords["DAILYTIMEBRACKET"].data)
+        }
 
-        for bracket in ds.coords["DAILYTIMEBRACKET"].values:  # noqa
+        for bracket in ds.coords["DAILYTIMEBRACKET"].values:
+
+            # Get list of time_brackets before the current time_bracket
+            previous_brackets = ds.coords["DAILYTIMEBRACKET"].values[: index_timebracket[bracket]]
+
             # Add net charge where bracket is less than given dailytimebracket
-            pass
+            con = (
+                StorageLevelDayTypeStart
+                + (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageLowerLimit
+                >= 0
+            )
+            m.add_constraints(con, name="SC1_LowerLimit_BeginningOfFirstWeek" + "_" + str(bracket))
 
-        con = (
-            StorageLevelDayTypeStart
-            + (
-                NetChargeWithinDay.where(
-                    (
-                        ds.coords["DAILYTIMEBRACKET"].astype(int)
-                        - ds.coords["DAILYTIMEBRACKET"].astype(int)
+            con = (
+                StorageLevelDayTypeStart
+                + (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageUpperLimit
+                <= 0
+            )
+            m.add_constraints(con, name="SC1_UpperLimit_BeginningOfFirstWeek" + "_" + str(bracket))
+
+            con = (
+                StorageLevelDayTypeStart
+                - (
+                    NetChargeWithinDay.shift(DAYTYPE=1).where(
+                        ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets)
                     )
-                    > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageLowerLimit
-            >= 0
-        )
-        m.add_constraints(con, name="SC1_LowerLimit_BeginningOfFirstWeek")
+                ).sum("DAILYTIMEBRACKET")
+                - StorageLowerLimit
+                >= 0
+            )
+            mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+            m.add_constraints(
+                con, name="SC2_LowerLimit_EndOfFirstWeek" + "_" + str(bracket), mask=mask
+            )
 
-        con = (
-            StorageLevelDayTypeStart
-            + (
-                NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageUpperLimit
-            <= 0
-        )
-        m.add_constraints(con, name="SC1_UpperLimit_BeginningOfFirstWeek")
+            con = (
+                StorageLevelDayTypeStart
+                - (
+                    NetChargeWithinDay.shift(DAYTYPE=1).where(
+                        ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets)
+                    )
+                ).sum("DAILYTIMEBRACKET")
+                - StorageUpperLimit
+                <= 0
+            )
+            mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+            m.add_constraints(
+                con, name="SC2_UpperLimit_EndOfFirstWeek" + "_" + str(bracket), mask=mask
+            )
 
-        con = (
-            StorageLevelDayTypeStart
-            - (
-                NetChargeWithinDay.shift(DAYTYPE=1).where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageLowerLimit
-            >= 0
-        )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
-        m.add_constraints(con, name="SC2_LowerLimit_EndOfFirstWeek", mask=mask)
+            con = (
+                StorageLevelDayTypeFinish
+                - (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageLowerLimit
+                >= 0
+            )
+            m.add_constraints(con, name="SC3_LowerLimit_EndOfLastWeek" + "_" + str(bracket))
 
-        con = (
-            StorageLevelDayTypeStart
-            - (
-                NetChargeWithinDay.shift(DAYTYPE=1).where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageUpperLimit
-            <= 0
-        )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
-        m.add_constraints(con, name="SC2_UpperLimit_EndOfFirstWeek", mask=mask)
+            con = (
+                StorageLevelDayTypeFinish
+                - (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageUpperLimit
+                <= 0
+            )
+            m.add_constraints(con, name="SC3_UpperLimit_EndOfLastWeek" + "_" + str(bracket))
 
-        con = (
-            StorageLevelDayTypeFinish
-            - (
-                NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) < 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageLowerLimit
-            >= 0
-        )
-        m.add_constraints(con, name="SC3_LowerLimit_EndOfLastWeek")
+            con = (
+                StorageLevelDayTypeFinish.shift(DAYTYPE=1)
+                + (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageLowerLimit
+                >= 0
+            )
+            mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+            m.add_constraints(
+                con, name="SC4_LowerLimit_BeginningOfLastWeek" + "_" + str(bracket), mask=mask
+            )
 
-        con = (
-            StorageLevelDayTypeFinish
-            - (
-                NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) < 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageUpperLimit
-            <= 0
-        )
-        m.add_constraints(con, name="SC3_UpperLimit_EndOfLastWeek")
-
-        con = (
-            StorageLevelDayTypeFinish.shift(DAYTYPE=1)
-            + (
-                NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageLowerLimit
-            >= 0
-        )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
-        m.add_constraints(con, name="SC4_LowerLimit_BeginningOfLastWeek", mask=mask)
-
-        con = (
-            StorageLevelDayTypeFinish.shift(DAYTYPE=1)
-            + (
-                NetChargeWithinDay.where(
-                    (ds.coords["DAILYTIMEBRACKET"] - ds.coords["DAILYTIMEBRACKET"]) > 0
-                )
-            ).sum("DAILYTIMEBRACKET")
-            - StorageUpperLimit
-            <= 0
-        )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
-        m.add_constraints(con, name="SC4_UpperLimit_BeginningOfLastWeek", mask=mask)
+            con = (
+                StorageLevelDayTypeFinish.shift(DAYTYPE=1)
+                + (
+                    NetChargeWithinDay.where(ds.coords["DAILYTIMEBRACKET"].isin(previous_brackets))
+                ).sum("DAILYTIMEBRACKET")
+                - StorageUpperLimit
+                <= 0
+            )
+            mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+            m.add_constraints(
+                con, name="SC4_UpperLimit_BeginningOfLastWeek" + "_" + str(bracket), mask=mask
+            )
 
         if "StorageMaxChargeRate" in ds.data_vars:
             con = RateOfStorageCharge <= ds["StorageMaxChargeRate"]
