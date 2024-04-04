@@ -50,7 +50,7 @@ class TimeAdjacency(BaseModel):
 
 
 def construction_from_timeslices(values: Any):
-    """pathway 4: years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
+    """pathway 3: years plus any of timeslices, timeslice_in_timebracket, timeslice_in_daytype,
     timeslice_in_season with optional year_split, day_split, days_in_day_type
     and optional validation on yearparts, daytypes, and dayparts OR adjacency
     - default to seasons
@@ -134,7 +134,7 @@ def construction_from_timeslices(values: Any):
 
 
 def construction_from_parts(values: Any):
-    """pathway 3: years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit,
+    """pathway 2: years plus any of yearparts, daytypes, and dayparts, daysplit, yearsplit,
     days_in_daytype with optional adjacency
       - validate keys on provided yearparts, daytypes, dayparts, daysplit, yearsplit,
         days_in_daytype
@@ -244,63 +244,65 @@ def format_by_max_length(val: int, max):
     return f"{val}"
 
 
-def construction_from_yrparts_dayparts_int(values: Any):
-    """pathway 2: years plus yearparts and dayparts as single integer
-    - build timeslices from yearparts and dayparts
-    - build adjacency from ordered years and timeslices
-    """
-    years = values.get("years")
-    yearparts = values.get("seasons")
-    dayparts = values.get("daily_time_brackets")
-    yearparts = [("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)]
-    dayparts = [("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)]
+# def construction_from_yrparts_dayparts_int(values: Any):
+#     """pathway x: years plus yearparts and dayparts as single integer
+#     - build timeslices from yearparts and dayparts
+#     - build adjacency from ordered years and timeslices
+#     """
+#     years = values.get("years")
+#     yearparts = values.get("seasons")
+#     dayparts = values.get("daily_time_brackets")
+#     yearparts = [("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)]
+#     dayparts = [("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)]
 
-    for key in [
-        "timeslices",
-        "timeslice_in_timebracket",
-        "timeslice_in_daytype",
-        "timeslice_in_season",
-        "day_types",
-        "day_split",
-        "days_in_day_type",
-        "year_split",
-    ]:
-        if values.get(key) is not None:
-            raise ValueError(
-                """If specifying time_definition with a
-                number of yearparts and dayparts as integers, no other
-                time_definition parameters can be specified."""
-            )
+#     for key in [
+#         "timeslices",
+#         "timeslice_in_timebracket",
+#         "timeslice_in_daytype",
+#         "timeslice_in_season",
+#         "day_types",
+#         "day_split",
+#         "days_in_day_type",
+#         "year_split",
+#     ]:
+#         if values.get(key) is not None:
+#             raise ValueError(
+#                 """If specifying time_definition with a
+#                 number of yearparts and dayparts as integers, no other
+#                 time_definition parameters can be specified."""
+#             )
 
-    timeslices = build_timeslices_from_parts(yearparts, dayparts)
-    values["timeslices"] = timeslices
+#     timeslices = build_timeslices_from_parts(yearparts, dayparts)
+#     values["timeslices"] = timeslices
 
-    values["timeslice_in_timebracket"] = {
-        timeslice: "".join([time_bracket for time_bracket in dayparts if time_bracket in timeslice])
-        for timeslice in timeslices
-    }
-    values["timeslice_in_season"] = {
-        timeslice: "".join([season for season in yearparts if season in timeslice])
-        for timeslice in timeslices
-    }
+#     values["timeslice_in_timebracket"] = {
+#         timeslice: "".join([time_bracket for time_bracket in dayparts
+#         if time_bracket in timeslice])
+#         for timeslice in timeslices
+#     }
+#     values["timeslice_in_season"] = {
+#         timeslice: "".join([season for season in yearparts if season in timeslice])
+#         for timeslice in timeslices
+#     }
 
-    values["year_split"] = {timeslice: 1.0 / len(timeslices) for timeslice in timeslices}
-    values["day_split"] = {daypart: round((1.0 / len(dayparts)) / 365, 10) for daypart in dayparts}
-    values["day_types"] = [1]
-    values["days_in_day_type"] = {1: 1.0}
-    values["timeslice_in_daytype"] = {timeslice: 1 for timeslice in timeslices}
+#     values["year_split"] = {timeslice: 1.0 / len(timeslices) for timeslice in timeslices}
+#     values["day_split"] = {daypart: round((1.0 / len(dayparts)) / 365, 10)
+#                            for daypart in dayparts}
+#     values["day_types"] = [1]
+#     values["days_in_day_type"] = {1: 1.0}
+#     values["timeslice_in_daytype"] = {timeslice: 1 for timeslice in timeslices}
 
-    adj = TimeAdjacency(
-        years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
-        timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
-    )
-    values["adj"] = adj
-    values["adj_inv"] = adj.inv()
+#     adj = TimeAdjacency(
+#         years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
+#         timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
+#     )
+#     values["adj"] = adj
+#     values["adj_inv"] = adj.inv()
 
-    values["seasons"] = yearparts
-    values["daily_time_brackets"] = dayparts
+#     values["seasons"] = yearparts
+#     values["daily_time_brackets"] = dayparts
 
-    return values
+#     return values
 
 
 class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
@@ -315,9 +317,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     `years` need to be provided to create a TimeDefinition object.
 
     The other parameters corresponding to the OSeMOSYS time related sets (`seasons`, `timeslices`,
-    `day_types`, `daily_time_brackets`) can be provided as lists, ranges, or integers. If given
-    as integers, that many unique seasons/timeslices/day_types/daily_time_brackets will be
-    constructed.
+    `day_types`, `daily_time_brackets`) can be provided as lists or ranges.
 
     One parameter additional to those correponsding to OSeMOSYS parameters is used , `adj`,
     which specified the adjency matrices for `years`, `seasons`, `day_types`,
@@ -332,21 +332,12 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     }
     ```
 
-
     ### Pathway 1 - Construction from years only
 
     If only `years` are provided, the remaining necessary temporal parameters (`seasons`,
     `day_types`, `daily_time_brackets`) are assumed to be singular.
 
-    ### Pathway 2 - Construction from seasons and daily_time_brackets as single integers
-
-    If providing `years`, `seasons` as a single integer, and `daily_time_brackets` as a single
-    integer, as many seasons and daily_time_brackets are created as specified by the integer.
-    E.g. providing seasons = 6 will create 6 unique seasons.
-
-    `day_types` is assumed to be singular, and `timeslices` are constructed from the provided data.
-
-    ### Pathway 3 - Construction from parts
+    ### Pathway 2 - Construction from parts
 
     If no timeslice data is provided, but any of the below is, it is used to construct timeslices:
         - seasons
@@ -356,7 +347,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
         - day_split
         - days_in_day_type
 
-    ### Pathway 4 - Construction from timeslices
+    ### Pathway 3 - Construction from timeslices
 
     If timeslices are provided via any of the below parameters, this is used to construct the
     TimeDefinition object:
@@ -425,28 +416,13 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     TimeDefinition(**basic_time_definition)
     ```
 
-    ### Pathway 2 - Construction from seasons and daily_time_brackets as single integers
+    ### Pathway 2 - Construction from parts
 
     ```python
     from tz.osemosys.schemas.time_definition import TimeDefinition
 
     basic_time_definition = dict(
         id="pathway_2",
-        years=range(2020, 2051),
-        seasons=12,
-        daily_time_brackets=6,
-    )
-
-    TimeDefinition(**basic_time_definition)
-    ```
-
-    ### Pathway 3 - Construction from parts
-
-    ```python
-    from tz.osemosys.schemas.time_definition import TimeDefinition
-
-    basic_time_definition = dict(
-        id="pathway_3",
         years=range(2020, 2051),
         seasons=["winter", "summer"],
         daily_time_brackets=["morning", "day", "evening", "night"],
@@ -455,13 +431,13 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     TimeDefinition(**basic_time_definition)
     ```
 
-    ### Pathway 4 - Construction from timeslices
+    ### Pathway 3 - Construction from timeslices
 
     ```python
     from tz.osemosys.schemas.time_definition import TimeDefinition
 
     basic_time_definition = dict(
-        id="pathway_4",
+        id="pathway_3",
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
         adj={
@@ -472,7 +448,6 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
 
     TimeDefinition(**basic_time_definition)
     ```
-
 
     """
 
@@ -512,13 +487,15 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
         # years is always required
         if values.get("years") is None:
             raise ValueError("'years' is a required parameter")
-        # Pathway 2
-        if isinstance(values.get("seasons"), int) and isinstance(
-            values.get("daily_time_brackets"), int
-        ):
-            values = construction_from_yrparts_dayparts_int(values)
-        # Pathway 4
-        elif any(
+
+        # # Pathway x
+        # if isinstance(values.get("seasons"), int) and isinstance(
+        #     values.get("daily_time_brackets"), int
+        # ):
+        #     values = construction_from_yrparts_dayparts_int(values)
+
+        # Pathway 3
+        if any(
             [
                 values.get("timeslices") is not None,
                 values.get("timeslice_in_timebracket") is not None,
@@ -527,7 +504,7 @@ class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
             ]
         ):
             values = construction_from_timeslices(values)
-        # Pathway 3
+        # Pathway 2
         elif any(
             [
                 values.get("seasons") is not None,
