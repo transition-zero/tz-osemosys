@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_new_capacity_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_new_capacity_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add New Capacity constraints to the model.
     Constrains new capacity of a technology for each year based on user-defined lower and upper
     limits.
@@ -13,6 +17,8 @@ def add_new_capacity_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------

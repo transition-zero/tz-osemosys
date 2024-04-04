@@ -1,10 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 # from timeit import default_timer as timer
 
 
-def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
     """Add Storage constraints to the model.
     Representation of storage technologies, ensuring that storage levels, charge/discharge rates
     are maintained for each daily time bracket, day type, and season.
@@ -16,6 +18,8 @@ def add_storage_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+
 
     Returns
     -------

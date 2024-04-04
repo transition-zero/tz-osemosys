@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_operating_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_operating_costs_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Operating Costs constraint to the model.
     Calculates the total operating expenditure - both discounted and undiscounted - of total (new
     and existing) capacity.
@@ -13,6 +17,7 @@ def add_operating_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
 
     Returns
     -------
@@ -50,22 +55,6 @@ def add_operating_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
 
-    discount_factor_mid = (1 + ds["DiscountRate"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
-    )
-
-    TotalAnnualTechnologyActivityByMode = (m["RateOfActivity"] * ds["YearSplit"]).sum("TIMESLICE")
-    AnnualVariableOperatingCost = (
-        (TotalAnnualTechnologyActivityByMode * ds["VariableCost"].fillna(0))
-        .sum(dims="MODE_OF_OPERATION")
-        .where(
-            (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
-            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
-        )
-    )
-    AnnualFixedOperatingCost = m["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
-    OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
-
-    con = (OperatingCost / discount_factor_mid) - m["DiscountedOperatingCost"] == 0
+    con = (lex["OperatingCost"] / lex["DiscountFactorMid"]) - m["DiscountedOperatingCost"] == 0
     m.add_constraints(con, name="OC4_DiscountedOperatingCostsTotalAnnual")
     return m
