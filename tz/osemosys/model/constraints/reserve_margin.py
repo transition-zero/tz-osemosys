@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_reserve_margin_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Reserve Margin constraints to the model.
     Ensures that adequate additional capacity, i.e. reserve margin, is available for relevant
     technologies.
@@ -13,6 +17,8 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------
@@ -43,47 +49,12 @@ def add_reserve_margin_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalCapacityInReserveMargin[r,y];
     ```
     """
-    TotalCapacityInReserveMargin = (
-        (
-            ds["ReserveMarginTagTechnology"]
-            * ds["CapacityToActivityUnit"]
-            * m["TotalCapacityAnnual"]
-        ).where(
-            (ds["ReserveMargin"] > 0)
-            & (ds["ReserveMarginTagTechnology"] == 1)
-            & (ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"]).notnull()
-        )
-    ).sum("TECHNOLOGY")
 
-    # Production
-    RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
-        (ds["OutputActivityRatio"].notnull())
-        & (ds["ReserveMargin"] > 0)
-        & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1)
+    con = (
+        ds["ReserveMargin"] * lex["DemandNeedingReserveMargin"]
+        - lex["TotalCapacityInReserveMargin"]
+        <= 0
     )
-
-    RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
-        (ds["OutputActivityRatio"].notnull())
-        & (ds["ReserveMargin"] > 0)
-        & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1)
-    ).sum(dims="MODE_OF_OPERATION")
-
-    RateOfProduction = RateOfProductionByTechnology.where(
-        (ds["OutputActivityRatio"].notnull())
-        & (ds["ReserveMargin"] > 0)
-        & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1)
-    ).sum(dims="TECHNOLOGY")
-
-    DemandNeedingReserveMargin = (
-        (RateOfProduction * ds["ReserveMarginTagFuel"])
-        .where((ds["ReserveMargin"] > 0) & (ds["ReserveMarginTagFuel"] == 1))
-        .sum("FUEL")
-    )
-
-    con = ds["ReserveMargin"] * DemandNeedingReserveMargin - TotalCapacityInReserveMargin <= 0
     m.add_constraints(con, name="RM3_ReserveMargin_Constraint")
 
     return m

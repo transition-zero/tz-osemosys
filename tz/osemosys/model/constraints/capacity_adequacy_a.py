@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_capacity_adequacy_a_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_capacity_adequacy_a_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Capacity Adequacy A constraints to the model
     Ensures that there is sufficient capacity of technologies to meet demand(s) in each timeslice.
 
@@ -52,20 +56,20 @@ def add_capacity_adequacy_a_constraints(ds: xr.Dataset, m: Model) -> Model:
         NewCapacity[r,t,y];
     ```
     """
-    new_cap = m["NewCapacity"].rename(YEAR="BUILDYEAR")
-    mask = (ds.YEAR - new_cap.data.BUILDYEAR >= 0) & (
-        ds.YEAR - new_cap.data.BUILDYEAR < ds.OperationalLife
+
+    mask = (ds.YEAR - lex["NewCapacity"].data.BUILDYEAR >= 0) & (
+        ds.YEAR - lex["NewCapacity"].data.BUILDYEAR < ds.OperationalLife
     )
-    con = m["AccumulatedNewCapacity"] - new_cap.where(mask).sum("BUILDYEAR") == 0
+    con = m["AccumulatedNewCapacity"] - lex["NewCapacity"].where(mask).sum("BUILDYEAR") == 0
     m.add_constraints(con, name="CAa1_TotalNewCapacity")
 
     con = m["TotalCapacityAnnual"] - m["AccumulatedNewCapacity"] == ds["ResidualCapacity"].fillna(0)
     m.add_constraints(con, name="CAa2_TotalAnnualCapacity")
 
-    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
+    # RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
 
     con = (
-        RateOfTotalActivity
+        lex["RateOfTotalActivity"]
         - (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["CapacityToActivityUnit"])
         <= 0
     )

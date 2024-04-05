@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_energy_balance_b_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_energy_balance_b_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Energy Balance B constraints to the model.
     Ensures that energy balances of all commodities are maintained for each year.
 
@@ -12,6 +16,8 @@ def add_energy_balance_b_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------
@@ -48,29 +54,8 @@ def add_energy_balance_b_constraints(ds: xr.Dataset, m: Model) -> Model:
         AccumulatedAnnualDemand[r,f,y];
     ```
     """
-    # Production
-    RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
-        ds["OutputActivityRatio"].notnull()
-    )
-    RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
-        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
-    Production = RateOfProduction * ds["YearSplit"]
-    ProductionAnnual = Production.sum(dims="TIMESLICE")
 
-    # Use
-    RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
-        ds["InputActivityRatio"].notnull()
-    )
-    RateOfUseByTechnology = RateOfUseByTechnologyByMode.where(
-        ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfUse = RateOfUseByTechnology.sum(dims="TECHNOLOGY")
-    Use = RateOfUse * ds["YearSplit"]
-    UseAnnual = Use.sum(dims="TIMESLICE")
-
-    con = ProductionAnnual - UseAnnual - (
+    con = lex["ProductionAnnual"] - lex["UseAnnual"] - (
         (m["Trade"].sum(["TIMESLICE", "_REGION"])) * ds["TradeRoute"].sum("_REGION")
     ) >= ds["AccumulatedAnnualDemand"].fillna(0)
     m.add_constraints(con, name="EBb4_EnergyBalanceEachYear4")

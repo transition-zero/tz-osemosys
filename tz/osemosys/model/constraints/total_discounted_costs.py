@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_total_discounted_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_total_discounted_costs_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Total Discounted Costs constraints to the model.
     Calculates the total discounted costs of the entire system across the entire model period.
 
@@ -12,6 +16,8 @@ def add_total_discounted_costs_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+
 
     Returns
     -------
