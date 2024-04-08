@@ -1,0 +1,534 @@
+# SPV, Gas, Wind, coal, BAT, EXT-GAS, EXT-COA, TRN
+technologies:
+  - id: PWRCOAPHLLU
+    long_name: coal fired power plant
+    description: CFPP in the whole Luzon assuming that all are supercritical for this run
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.8
+    operating_life: 30
+    is_renewable: false
+    #include_regions: PHLLU
+    #exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 1600
+    opex_fixed: 47
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          HCO: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+        emission_activity_ratio: 
+          CO2: 0.075
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.0014
+    residual_capacity: 9.6156
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0.15
+      2024: 0.6
+      2025: 0.6
+      2026: 0.735
+      2027: 0.735
+      2028: 0.735
+      2029: 0.735
+      2030: 0.735
+      2031: 0.735
+      2032: 0.735
+      2033: 0.735
+      2034: 0.735
+      2035: 0.735
+      2036: 0.735
+      2037: 0.735
+      2038: 0.735
+      2039: 0.735
+      2040: 0.735
+      2041: 0.735
+      2042: 0.735
+      2043: 0.735
+      2044: 0.735
+      2045: 0.735
+      2046: 0.735
+      2047: 0.735
+      2048: 0.735
+      2049: 0.735
+      2050: 0.735
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  - id: PWRBIOPHLLU
+    long_name: bioenergy power plant #need to be careful to differentiate this with biomass later
+    description: bioenergy in the whole Luzon assuming that there isn't biomass as the source for this run
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.7
+    operating_life: 25
+    is_renewable: true
+    # include_regions: PHLLU
+    # exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 2280
+    opex_fixed: 54
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          BIO: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+          ELEC_re_target: 1.
+        emission_activity_ratio: 
+          CO2: 0.
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.0034
+    residual_capacity: 0.
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0
+      2024: 0.025282
+      2025: 0.025282
+      2026: 0.025282
+      2027: 0.025282
+      2028: 0.025282
+      2029: 0.025282
+      2030: 0.025282
+      2031: 0.025282
+      2032: 0.025282
+      2033: 0.025282
+      2034: 0.025282
+      2035: 0.025282
+      2036: 0.025282
+      2037: 0.025282
+      2038: 0.025282
+      2039: 0.025282
+      2040: 0.025282
+      2041: 0.025282
+      2042: 0.025282
+      2043: 0.025282
+      2044: 0.025282
+      2045: 0.025282
+      2046: 0.025282
+      2047: 0.025282
+      2048: 0.025282
+      2049: 0.025282
+      2050: 0.025282
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  - id: PWRGASPHLLU
+    long_name: gas power plant #need to be careful to differentiate new and old gas plant 
+    description: gas plants in the whole Luzon assuming that all gas pp are with CCGT for this run
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.7
+    operating_life: 25
+    is_renewable: false
+    # include_regions: PHLLU
+    # exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 2390
+    opex_fixed: 59
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          GAS: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+        emission_activity_ratio: 
+          CO2: 0.
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.00496
+    residual_capacity: 0.
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0
+      2024: 1.32
+      2025: 1.32
+      2026: 1.32
+      2027: 1.32
+      2028: 1.32
+      2029: 1.32
+      2030: 1.32
+      2031: 1.32
+      2032: 1.32
+      2033: 1.32
+      2034: 1.32
+      2035: 1.32
+      2036: 1.32
+      2037: 1.32
+      2038: 1.32
+      2039: 1.32
+      2040: 1.32
+      2041: 1.32
+      2042: 1.32
+      2043: 1.32
+      2044: 1.32
+      2045: 1.32
+      2046: 1.32
+      2047: 1.32
+      2048: 1.32
+      2049: 1.32
+      2050: 1.32
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  - id: PWRHYDPHLLU
+    long_name: hydro power plant #need to differentiate between RoR and reservoir
+    description: hydro plants in the whole Luzon assuming that all hydro pp are with large hydro tech for this run
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.55
+    operating_life: 50
+    is_renewable: true
+    # include_regions: PHLLU
+    # exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 2200
+    opex_fixed: 43
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          HYD: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+          ELEC_re_target: 1.
+        emission_activity_ratio: 
+          CO2: 0.
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.00074
+    residual_capacity: 0.
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0
+      2024: 0.0159
+      2025: 0.0159
+      2026: 0.0159
+      2027: 0.0159
+      2028: 0.0159
+      2029: 0.0159
+      2030: 0.0159
+      2031: 0.0159
+      2032: 0.0159
+      2033: 0.0159
+      2034: 0.0159
+      2035: 0.0159
+      2036: 0.0159
+      2037: 0.0159
+      2038: 0.0159
+      2039: 0.0159
+      2040: 0.0159
+      2041: 0.0159
+      2042: 0.0159
+      2043: 0.0159
+      2044: 0.0159
+      2045: 0.0159
+      2046: 0.0159
+      2047: 0.0159
+      2048: 0.0159
+      2049: 0.0159
+      2050: 0.0159
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  - id: PWROILPHLLU
+    long_name: diesel power plant 
+    description: named this as diesel power plant because the source is oil
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.7
+    operating_life: 25
+    is_renewable: false
+    # include_regions: PHLLU
+    # exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 910
+    opex_fixed: 9.12
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          OIL: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+        emission_activity_ratio: 
+          CO2: 0.075
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.0073
+    residual_capacity: 0.
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0
+      2024: 0.011174
+      2025: 0.011174
+      2026: 0.011174
+      2027: 0.011174
+      2028: 0.011174
+      2029: 0.011174
+      2030: 0.011174
+      2031: 0.011174
+      2032: 0.011174
+      2033: 0.011174
+      2034: 0.011174
+      2035: 0.011174
+      2036: 0.011174
+      2037: 0.011174
+      2038: 0.011174
+      2039: 0.011174
+      2040: 0.011174
+      2041: 0.011174
+      2042: 0.011174
+      2043: 0.011174
+      2044: 0.011174
+      2045: 0.011174
+      2046: 0.011174
+      2047: 0.011174
+      2048: 0.011174
+      2049: 0.011174
+      2050: 0.011174
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  - id: PWRSPVPHLLU
+    long_name: solar power plant 
+    description: solar power plant in the whole Luzon
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 0.2
+    operating_life: 27
+    is_renewable: false
+    # include_regions: PHLLU
+    # exclude_regions: null
+    include_in_joint_reserve_margin: true
+    capex: 960
+    opex_fixed: 7.5
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        input_activity_ratio: 
+          SOL: 1. 
+        output_activity_ratio:
+          ELEC_PHLLU: 1. 
+          ELEC_re_target: 1.
+        emission_activity_ratio: 
+          CO2: 0.
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.
+    residual_capacity: 0.
+    # CAPACITY
+    capacity_gross_max: 
+      2023: 0
+      2024: 0.125
+      2025: 0.125
+      2026: 0.125
+      2027: 0.125
+      2028: 0.125
+      2029: 0.125
+      2030: 0.125
+      2031: 0.125
+      2032: 0.125
+      2033: 0.125
+      2034: 0.125
+      2035: 0.125
+      2036: 0.125
+      2037: 0.125
+      2038: 0.125
+      2039: 0.125
+      2040: 0.125
+      2041: 0.125
+      2042: 0.125
+      2043: 0.125
+      2044: 0.125
+      2045: 0.125
+      2046: 0.125
+      2047: 0.125
+      2048: 0.125
+      2049: 0.125
+      2050: 0.125
+    capacity_gross_min: 0.
+    capacity_additional_min: 0. 
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
+
+  # - id: IMPDSL1
+  #   long_name: Diesel supply
+  #   capex: 0
+  #   operating_life: 1
+  #   operating_modes:
+  #     - id: SUPPLY
+  #       long_name: diesel_supply mode
+  #       description: default diesel_supply mode
+  #       output_activity_ratio:
+  #         DSL: 1.
+  #       opex_variable: 10
+  #       emission_activity_ratio:
+  #         CO2: 0.075
+ 
+  - id: IMPHCO1
+    long_name: Coal supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: coal_supply mode
+        description: default coal_supply mode
+        output_activity_ratio:
+          HCO: 1.
+        opex_variable: 2
+        emission_activity_ratio:
+          CO2: 0.089
+ 
+  - id: IMPOIL1
+    long_name: Crude oil supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: crude_oil_supply mode
+        description: default crude_oil_supply mode
+        output_activity_ratio:
+          OIL: 1.
+        opex_variable: 8
+        emission_activity_ratio:
+          CO2: 0.075
+
+  - id: IMPGAS1
+    long_name: Gas supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: gas_supply mode
+        description: default gas_supply mode
+        output_activity_ratio:
+          GAS: 1.
+        opex_variable: 15
+        emission_activity_ratio:
+          CO2: 0.050
+
+  - id: RIV
+    long_name: River to supply hydro power plants
+    capex: 0
+    operating_life: 100
+    operating_modes:
+      - id: SUPPLY
+        long_name: river_supply mode
+        description: default river_supply mode
+        output_activity_ratio:
+          HYD: 1.
+
+  - id: SUN
+    long_name: GHI to supply solar power plants
+    capex: 0
+    operating_life: 100
+    operating_modes:
+      - id: SUPPLY
+        long_name: solar_supply mode
+        description: default solar_supply mode
+        output_activity_ratio:
+          SOL: 1.
+
+  - id: IMPBIO1
+    long_name: Bioenergy supply
+    capex: 0
+    operating_life: 1
+    operating_modes:
+      - id: SUPPLY
+        long_name: bio_supply mode
+        description: default bio_supply mode
+        output_activity_ratio:
+          BIO: 1.
+        opex_variable: 3.0
+        emission_activity_ratio:
+          CO2: 0.
+
+  # - id: IMPURN1
+  #   long_name: Uranium supply
+  #   capex: 0
+  #   operating_life: 1
+  #   operating_modes:
+  #     - id: SUPPLY
+  #       long_name: uranium_supply mode
+  #       description: default uranium_supply mode
+  #       output_activity_ratio:
+  #         URN: 1.
+  #       opex_variable: 2

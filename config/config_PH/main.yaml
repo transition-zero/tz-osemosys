@@ -1,0 +1,201 @@
+# Trial of PH
+
+# electricity profile
+ELEC-DAILY-PROFILE:
+  s1-h1: 0.05 # 0 - 4
+  s1-h2: 0.10 # 4 - 8
+  s1-h3: 0.20 # 8 - 12
+  s1-h4: 0.20 # 12 - 16
+  s1-h5: 0.30 # 16 - 20
+  s1-h6: 0.15 # 20 - 24
+
+# Model Nameplate
+id: PHLLU-model_1
+long_name: "Trial of PH model"
+description: >
+  In this model, the datasets are mostly from ClientEarth and DOE. 
+  The model is run only for Luzon as a trial
+
+
+# REGIONS
+regions:
+  - id: PHLLU
+    long_name: Luzon
+    description: Philippines for Luzon region
+    neighbours: null
+  #     - PHLVI
+  # - id: PHLVI
+  #   long_name: Visayas
+  #   description: Philippines for Visayas region
+  #   neighbours:
+  #     - PHLLU
+  #     - PHLMI
+  # - id: PHLMI
+  #   long_name: Mindanao
+  #   description: Philippines for Visayas region
+  #   neighbours:
+  #     - PHLVI
+
+
+# TIME DEFINTIONS
+time_definition:
+  id: 2023_2050_annual_4hourly
+  years: "range(2023,2051)"
+  daily_time_brackets: 6 #[1,2,3,4,5,6]
+  seasons: 2 #[1,2]
+
+# FINANCIALS
+depreciation_method: "straight-line"
+discount_rate: 0.05 #assumed to be 5%
+
+# COMMODITIES
+commodities:
+  - id: ELEC_PHLLU
+    long_name: Electricity for Luzon
+    description: Electricity for Luzon
+    include_in_joint_reserve_margin: true
+    demand_annual: # TWh/yr
+      2023: 78.8
+      2024: 81.06
+      2025: 87.71
+      2026: 93.13
+      2027: 98.54
+      2028: 103.95
+      2029: 109.38
+      2030: 114.81
+      2031: 121.18
+      2032: 127.55
+      2033: 133.89
+      2034: 140.24
+      2035: 146.58
+      2036: 153.97
+      2037: 161.36
+      2038: 168.76
+      2039: 176.16
+      2040: 183.55
+      2041: 191.41
+      2042: 199.29
+      2043: 207.17
+      2044: 215.01
+      2045: 222.82
+      2046: 231.13
+      2047: 239.49
+      2048: 247.85
+      2049: 256.2
+      2050: 264.56 
+    demand_profile:
+      "*":                           # region
+        "*": "${ELEC-DAILY-PROFILE}"    # year: timeslice
+  - id: ELEC_re_target
+    long_name: Electricity for renewables 
+    description: Dummy electricity demand that must be completed by renewables. Renewables later will be forced to supply xx% of national demand (xx refers to the national re target. 
+    include_in_joint_reserve_margin: true
+    demand_annual: # TWh/yr
+      2023: 0
+      2024: 0
+      2025: 0
+      2026: 0
+      2027: 0
+      2028: 0
+      2029: 0
+      2030: 58.61768836
+      2031: 61.915715015
+      2032: 65.213741635
+      2033: 68.51176829
+      2034: 71.80979491
+      2035: 75.107821565
+      2036: 78.93614029
+      2037: 82.76445905
+      2038: 86.59277781
+      2039: 90.421096535
+      2040: 94.249415295
+      2041: 98.31257373
+      2042: 102.375732165
+      2043: 106.4388906
+      2044: 110.502049035
+      2045: 163.6645821
+      2046: 169.8478119
+      2047: 176.0310416
+      2048: 182.2142714
+      2049: 188.39750115
+      2050: 194.58073095
+    demand_profile:
+      "*":                           # region
+        "*": "${ELEC-DAILY-PROFILE}"    # year: timeslice
+  - id: HCO
+    long_name: Coal
+  # - id: DSL
+  #   long_name: Diesel
+  # - id: GSL
+  #   long_name: Gasoline
+  - id: HYD
+    long_name: Hydro
+  - id: SOL
+    long_name: Solar
+  - id: OIL
+    long_name: Oil
+  - id: GAS
+    long_name: Gas
+  - id: BIO
+    long_name: Bioenergy # will need to add more commodities for biomass and biogas
+
+
+# IMPACTS
+impacts:
+  - id: CO2
+    long_name: equivalent carbon dioxide emissions
+    description: equivalent carbon dioxide emissions
+    penalty: # mn$/mntonne
+      PHLLU: 10.
+      # PHLVI: 10.
+      # PHLMI: 10.
+    constraint_annual: 0.
+
+# targets and constraints
+reserve_margin: 1.2 # 20% of reserve margin
+
+# technologies:
+#   - id: SPV
+#     long_name: solar photovoltaic
+#     description: solar photovoltaic
+#     activity_unit_ratio: 30.41667
+#     capacity_addition_size: null
+#     availability_factor: 1.
+#     capacity_factor: 1.
+#     operating_life: 25
+#     is_renewable: true
+#     include_regions: null
+#     exclude_regions:
+#       - ATLANTIC-MARKET
+#       - PACIFIC-MARKET
+#     capex:
+#       "*": "{y:700 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years}) - min(${time_definition.years})) for y in ${time_definition.years}}"
+#     opex_fixed: 10
+#     operating_modes:
+#       - id: GEN
+#         long_name: generation mode
+#         description: default generation mode
+#         impact_activity_ratio: 0.
+#         input_activity_ratio: null
+#         output_activity_ratio:
+#           "*":            # all regions
+#             ELEC:
+#               "*":        # all years
+#                 1.
+#         to_storage: null
+#         from_storage: null
+#         opex_variable: 0.
+#     residual_capacity: 1.
+#     gross_capacity_max: 35.
+#     additional_capacity_max_ceil: null
+#     additional_capacity_max_floor: 5
+#     additional_capacity_max_growth_rate: 0.1
+#     gross_capacity_min: 0.
+#     additional_capacity_min: 0.
+#     additional_capacity_min_growth_rate: 0.
+
+#     # constraints - activity
+#     annual_activity_max: null
+#     annual_activity_min: null
+#     total_activity_max: null
+#     total_activity_min: null
