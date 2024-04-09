@@ -4,10 +4,6 @@ from tz.osemosys.schemas.region import Region
 
 PASSING_REGION_DEFINITIONS = dict(
     super_basic=dict(id="GB"),
-    with_neighbours=dict(
-        id="GB",
-        neighbours=["FR", "IE"],
-    ),
     with_trade_route=dict(
         id="GB",
         trade_routes={"FR": True, "IE": False},
