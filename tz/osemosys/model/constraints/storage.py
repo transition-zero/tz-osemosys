@@ -281,27 +281,27 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
 
         # YEAR
-        firstyear_mask = ds["YEAR"] == min(ds["YEAR"])
+        firstyear_mask = ds["YEAR"] == ds["YEAR"][0]
         StorageLevelYearStart = 0 + (
             m["StorageLevelYearStart"].shift(YEAR=1)
             + NetChargeWithinYear.shift(YEAR=1).sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~firstyear_mask)
 
-        notlastyear_mask = ds["YEAR"] < max(ds["YEAR"])
+        notlastyear_mask = ds["YEAR"] < ds["YEAR"][-1]
         StorageLevelYearFinish = StorageLevelYearStart.shift(YEAR=-1).where(notlastyear_mask) + (
             StorageLevelYearStart
             + NetChargeWithinYear.sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~notlastyear_mask)
 
         # SEASON
-        firstseason_mask = ds["SEASON"] == min(ds["SEASON"])
+        firstseason_mask = ds["SEASON"] == ds["SEASON"][0]
         StorageLevelSeasonStart = m["StorageLevelYearStart"].where(firstseason_mask) + (
             m["StorageLevelSeasonStart"].shift(SEASON=1)
             + NetChargeWithinYear.shift(SEASON=1).sum(["DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~firstseason_mask)
 
         # DAYTYPE
-        firstdaytype_mask = ds["DAYTYPE"] == min(ds["DAYTYPE"])
+        firstdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][0]
         StorageLevelDayTypeStart = StorageLevelSeasonStart.where(firstdaytype_mask) + (
             m["StorageLevelDayTypeStart"].shift(DAYTYPE=1)
             + (
@@ -311,8 +311,8 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             )
         ).where(~firstdaytype_mask)
 
-        lastseason_mask = ds["SEASON"] == max(ds["SEASON"])
-        lastdaytype_mask = ds["DAYTYPE"] == max(ds["DAYTYPE"])
+        lastseason_mask = ds["SEASON"] == ds["SEASON"][-1]
+        lastdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][-1]
 
         StorageLevelDayTypeFinish = (
             (StorageLevelYearFinish.where((lastseason_mask) & (lastdaytype_mask)))
@@ -329,7 +329,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
 
         ####
         discount_factor_storage = (1 + ds["DiscountRate"]) ** (
-            ds.coords["YEAR"] - min(ds.coords["YEAR"])
+            ds.coords["YEAR"] - ds.coords["YEAR"][0]
         )
 
         new_storage_cap = m["NewStorageCapacity"].rename(YEAR="BUILDYEAR")
@@ -344,7 +344,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         StorageLowerLimit = ds["MinStorageCharge"] * StorageUpperLimit
 
         discount_factor_storage = (1 + ds["DiscountRate"]) ** (
-            ds.coords["YEAR"] - min(ds.coords["YEAR"])
+            ds.coords["YEAR"] - ds.coords["YEAR"][0]
         )
         CapitalInvestmentStorage = ds["CapitalCostStorage"] * m["NewStorageCapacity"]
         con = (CapitalInvestmentStorage / discount_factor_storage) - m[
@@ -353,7 +353,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         m.add_constraints(con, name="SI5_DiscountingCapitalInvestmentStorage")
 
         def numerator_sv1(y: int):
-            return (1 + ds["DiscountRateStorage"]) ** (max(ds.coords["YEAR"]) - y + 1) - 1
+            return (1 + ds["DiscountRateStorage"]) ** (ds.coords["YEAR"][-1] - y + 1) - 1
 
         def denominator_sv1():
             return (1 + ds["DiscountRateStorage"]) ** ds["OperationalLifeStorage"] - 1
@@ -366,13 +366,13 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         con = m["SalvageValueStorage"] - (m["NewStorageCapacity"] * salvage_cost_sv1(ds)) == 0
         mask = (
             (ds["DepreciationMethod"] == 1)
-            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > ds.coords["YEAR"][-1])
             & (ds["DiscountRateStorage"] > 0)
         )
         m.add_constraints(con, name="SI6_SalvageValueStorageAtEndOfPeriod1", mask=mask)
 
         def numerator_sv2(y: int):
-            return max(ds.coords["YEAR"]) - y + 1
+            return ds.coords["YEAR"][-1] - y + 1
 
         def denominator_sv2():
             return ds["OperationalLifeStorage"]
@@ -385,21 +385,21 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         con = m["SalvageValueStorage"] - (m["NewStorageCapacity"] * salvage_cost_sv2(ds)) == 0
         mask = (
             (ds["DepreciationMethod"] == 1)
-            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > ds.coords["YEAR"][-1])
             & (ds["DiscountRateStorage"] == 0)
         ) | (
             (ds["DepreciationMethod"] == 2)
-            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
+            & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > ds.coords["YEAR"][-1])
         )
         m.add_constraints(con, name="SI7_SalvageValueStorageAtEndOfPeriod2", mask=mask)
 
         con = m["SalvageValueStorage"] == 0
-        mask = (ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) <= max(ds.coords["YEAR"])
+        mask = (ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) <= ds.coords["YEAR"][-1]
         m.add_constraints(con, name="SI8_SalvageValueStorageAtEndOfPeriod3", mask=mask)
 
         def discounting(ds):
             return (1 + ds["DiscountRateStorage"]) ** (
-                1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
+                1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
             )
 
         con = m["DiscountedSalvageValueStorage"] - m["SalvageValueStorage"] / discounting(ds) == 0
@@ -439,7 +439,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             - StorageLowerLimit
             >= 0
         )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
         m.add_constraints(con, name="SC2_LowerLimit_EndOfFirstWeek", mask=mask)
 
         con = (
@@ -452,7 +452,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             - StorageUpperLimit
             <= 0
         )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
         m.add_constraints(con, name="SC2_UpperLimit_EndOfFirstWeek", mask=mask)
 
         con = (
@@ -485,7 +485,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             - StorageLowerLimit
             >= 0
         )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
         m.add_constraints(con, name="SC4_LowerLimit_BeginningOfLastWeek", mask=mask)
 
         con = (
@@ -494,7 +494,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             - StorageUpperLimit
             <= 0
         )
-        mask = ds["DAYTYPE"] != min(ds["DAYTYPE"])
+        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
         m.add_constraints(con, name="SC4_UpperLimit_BeginningOfLastWeek", mask=mask)
 
         if "StorageMaxChargeRate" in ds.data_vars:
