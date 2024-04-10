@@ -244,67 +244,6 @@ def format_by_max_length(val: int, max):
     return f"{val}"
 
 
-# def construction_from_yrparts_dayparts_int(values: Any):
-#     """pathway x: years plus yearparts and dayparts as single integer
-#     - build timeslices from yearparts and dayparts
-#     - build adjacency from ordered years and timeslices
-#     """
-#     years = values.get("years")
-#     yearparts = values.get("seasons")
-#     dayparts = values.get("daily_time_brackets")
-#     yearparts = [("s" + format_by_max_length(ii, yearparts)) for ii in range(1, yearparts + 1)]
-#     dayparts = [("h" + format_by_max_length(ii, dayparts)) for ii in range(1, dayparts + 1)]
-
-#     for key in [
-#         "timeslices",
-#         "timeslice_in_timebracket",
-#         "timeslice_in_daytype",
-#         "timeslice_in_season",
-#         "day_types",
-#         "day_split",
-#         "days_in_day_type",
-#         "year_split",
-#     ]:
-#         if values.get(key) is not None:
-#             raise ValueError(
-#                 """If specifying time_definition with a
-#                 number of yearparts and dayparts as integers, no other
-#                 time_definition parameters can be specified."""
-#             )
-
-#     timeslices = build_timeslices_from_parts(yearparts, dayparts)
-#     values["timeslices"] = timeslices
-
-#     values["timeslice_in_timebracket"] = {
-#         timeslice: "".join([time_bracket for time_bracket in dayparts
-#         if time_bracket in timeslice])
-#         for timeslice in timeslices
-#     }
-#     values["timeslice_in_season"] = {
-#         timeslice: "".join([season for season in yearparts if season in timeslice])
-#         for timeslice in timeslices
-#     }
-
-#     values["year_split"] = {timeslice: 1.0 / len(timeslices) for timeslice in timeslices}
-#     values["day_split"] = {daypart: round((1.0 / len(dayparts)) / 365, 10)
-#                            for daypart in dayparts}
-#     values["day_types"] = [1]
-#     values["days_in_day_type"] = {1: 1.0}
-#     values["timeslice_in_daytype"] = {timeslice: 1 for timeslice in timeslices}
-
-#     adj = TimeAdjacency(
-#         years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
-#         timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
-#     )
-#     values["adj"] = adj
-#     values["adj_inv"] = adj.inv()
-
-#     values["seasons"] = yearparts
-#     values["daily_time_brackets"] = dayparts
-
-#     return values
-
-
 class TimeDefinition(OSeMOSYSBase, OtooleTimeDefinition):
     """
     # TimeDefinition
