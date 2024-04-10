@@ -49,8 +49,16 @@ regions:
 time_definition:
   id: 2022_2040_6yrpart_12daypart
   years: "range(2022,2041)"
-  daily_time_brackets: 6
-  seasons: 1
+  daily_time_brackets: [1,2,3,4,5,6]
+  seasons: [1]
+  timeslices: ["s1-h1", "s1-h2", "s1-h3", "s1-h4", "s1-h5", "s1-h6"]
+  timeslice_in_timebracket: {"s1-h1": 1,
+                             "s1-h2": 2,
+                             "s1-h3": 3,
+                             "s1-h4": 4,
+                             "s1-h5": 5,
+                             "s1-h6": 6}
+  timeslice_in_season: {"s1-h1": 1, "s1-h2": 1, "s1-h3": 1, "s1-h4": 1, "s1-h5": 1, "s1-h6": 1}
 
 # FINANCIALS
 depreciation_method: "straight-line"

@@ -8,9 +8,7 @@ Only a single instance of TimeDefinition is needed to run a model and, as a mini
 `years` need to be provided to create a TimeDefinition object.
 
 The other parameters corresponding to the OSeMOSYS time related sets (`seasons`, `timeslices`,
-`day_types`, `daily_time_brackets`) can be provided as lists, ranges, or integers. If given
-as integers, that many unique seasons/timeslices/day_types/daily_time_brackets will be
-constructed.
+`day_types`, `daily_time_brackets`) can be provided as lists or ranges.
 
 One parameter additional to those correponsding to OSeMOSYS parameters is used , `adj`,
 which specified the adjency matrices for `years`, `seasons`, `day_types`,
@@ -30,15 +28,7 @@ adj = {
 If only `years` are provided, the remaining necessary temporal parameters (`seasons`,
 `day_types`, `daily_time_brackets`) are assumed to be singular.
 
-### Pathway 2 - Construction from seasons and daily_time_brackets as single integers
-
-If providing `years`, `seasons` as a single integer, and `daily_time_brackets` as a single
-integer, as many seasons and daily_time_brackets are created as specified by the integer.
-E.g. providing seasons = 6 will create 6 unique seasons.
-
-`day_types` is assumed to be singular, and `timeslices` are constructed from the provided data.
-
-### Pathway 3 - Construction from parts
+### Pathway 2 - Construction from parts
 
 If no timeslice data is provided, but any of the below is, it is used to construct timeslices:
     - seasons
@@ -48,7 +38,7 @@ If no timeslice data is provided, but any of the below is, it is used to constru
     - day_split
     - days_in_day_type
 
-### Pathway 4 - Construction from timeslices
+### Pathway 3 - Construction from timeslices
 
 If timeslices are provided via any of the below parameters, this is used to construct the
 TimeDefinition object:
@@ -117,28 +107,13 @@ basic_time_definition = dict(
 TimeDefinition(**basic_time_definition)
 ```
 
-### Pathway 2 - Construction from seasons and daily_time_brackets as single integers
+### Pathway 2 - Construction from parts
 
 ```python
 from tz.osemosys.schemas.time_definition import TimeDefinition
 
 basic_time_definition = dict(
     id="pathway_2",
-    years=range(2020, 2051),
-    seasons=12,
-    daily_time_brackets=6,
-)
-
-TimeDefinition(**basic_time_definition)
-```
-
-### Pathway 3 - Construction from parts
-
-```python
-from tz.osemosys.schemas.time_definition import TimeDefinition
-
-basic_time_definition = dict(
-    id="pathway_3",
     years=range(2020, 2051),
     seasons=["winter", "summer"],
     daily_time_brackets=["morning", "day", "evening", "night"],
@@ -147,13 +122,13 @@ basic_time_definition = dict(
 TimeDefinition(**basic_time_definition)
 ```
 
-### Pathway 4 - Construction from timeslices
+### Pathway 3 - Construction from timeslices
 
 ```python
 from tz.osemosys.schemas.time_definition import TimeDefinition
 
 basic_time_definition = dict(
-    id="pathway_4",
+    id="pathway_3",
     years=range(2020, 2051),
     timeslices=["A", "B", "C", "D"],
     adj={

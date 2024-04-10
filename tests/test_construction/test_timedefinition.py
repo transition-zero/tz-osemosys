@@ -6,11 +6,11 @@ PASSING_TIME_DEFINITIONS = dict(
     # nameplate params inherited from key
     # Pathway 1
     years_only=dict(years=range(2020, 2051)),
-    # Pathway 4
+    # Pathway 3
     timeslices_simple=dict(  # just timeslices - no adjacency
         years=range(2020, 2051), timeslices=["A", "B", "C", "D"]
     ),
-    # Pathway 4
+    # Pathway 3
     timeslices_adjacency=dict(  # just timeslices - simple adjacency
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
@@ -19,7 +19,7 @@ PASSING_TIME_DEFINITIONS = dict(
             "timeslices": dict(zip(["A", "B", "C"], ["B", "C", "D"])),
         },
     ),
-    # Pathway 4
+    # Pathway 3
     timeslices_with_parts_for_adj=dict(  # infer adjacency from 'seasons' and 'day_types'
         years=range(2020, 2051),
         timeslices=["A", "B", "C", "D"],
@@ -38,24 +38,24 @@ PASSING_TIME_DEFINITIONS = dict(
         seasons=["winter", "summer"],
         day_types=["weekday", "weekend"],
     ),
-    # Pathway 3
+    # Pathway 2
     yearparts_dayparts_inferred=dict(  # infer timeslices from yearparts and daily_time_brackets
         years=range(2020, 2051),
         seasons=["winter", "summer"],
         daily_time_brackets=["morning", "day", "evening", "night"],
     ),
-    # Pathway 3
+    # Pathway 2
     yearparts_dayparts_list_of_int=dict(
         years=range(2020, 2051), seasons=[1, 2], daily_time_brackets=[1, 2]
     ),
-    # Pathway 3
+    # Pathway 2
     yearparts_dayparts_list_of_str=dict(
         years=range(2020, 2051),
         seasons=["winter", "spring", "summer", "autumn"],
         day_types=["weekday", "weekend"],
     ),
-    # Pathway 2
-    yearparts_dayparts_int=dict(years=range(2020, 2051), seasons=12, daily_time_brackets=6),
+    # # Pathway x
+    # yearparts_dayparts_int=dict(years=range(2020, 2051), seasons=12, daily_time_brackets=6),
 )
 
 FAILING_TIME_DEFINITIONS = dict(
