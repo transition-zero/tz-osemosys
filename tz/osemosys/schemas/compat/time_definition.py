@@ -208,17 +208,13 @@ class OtooleTimeDefinition(BaseModel):
         if stem == "YEAR":
             return pd.DataFrame(data={"VALUE": sorted(self.years)})
         elif stem == "SEASON":
-            return pd.DataFrame(data={"VALUE": sorted(self.seasons or [])}, columns=["VALUE"])
+            return pd.DataFrame(data={"VALUE": self.seasons or []}, columns=["VALUE"])
         elif stem == "TIMESLICE":
             return pd.DataFrame(data={"VALUE": sorted(self.timeslices)}, columns=["VALUE"])
         elif stem == "DAILYTIMEBRACKET":
-            return pd.DataFrame(
-                data={"VALUE": sorted(self.daily_time_brackets or [])}, columns=["VALUE"]
-            )
+            return pd.DataFrame(data={"VALUE": self.daily_time_brackets or []}, columns=["VALUE"])
         elif stem == "DAYTYPE":
-            return pd.DataFrame(data={"VALUE": sorted(self.day_types or [])}, columns=["VALUE"])
-        elif stem == "DAILYTIMEBRACKET":
-            return pd.DataFrame(data={"VALUE": sorted(self.day_split or [])}, columns=["VALUE"])
+            return pd.DataFrame(data={"VALUE": self.day_types or []}, columns=["VALUE"])
         elif stem == "DaysInDayType":
             return (
                 pd.DataFrame.from_records(
