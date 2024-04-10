@@ -21,6 +21,25 @@ impacts:
     constraint_total: null
 
 technologies:
+  - id: STO_DAM
+    long_name: Storage technology linked to DAM
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 0
+    capex: 0
+    operating_life: 40
+    operating_modes:
+      - id: GEN
+        long_name: discharging mode
+        description: discharging mode
+        output_activity_ratio:
+          ELC: 1.
+        from_storage: {"*": {"DAM": True}}
+      - id: CHARGE
+        long_name: charging mode
+        description: charging mode
+        input_activity_ratio:
+          ELC: 1.
+        to_storage: {"*": {"DAM": True}}
   - id: E01
     long_name: Coal fuelled power plant
     capacity_activity_unit_ratio: 31.536
@@ -523,22 +542,11 @@ technologies:
           TX: 1.
         opex_variable: 99999
 
-storage_technologies:
+storage:
   - id: DAM
     capex: 0
     operating_life: 100
     residual_capacity: 999
-    operating_modes:
-      - id: charge
-        long_name: charge mode
-        description: default store mode
-        input_activity_ratio:
-          ELC: 1.
-      - id: discharge
-        long_name: discharge mode
-        description: default discharge mode
-        output_activity_ratio:
-          ELC: 1.
 
 
 commodities:
