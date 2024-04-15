@@ -546,7 +546,7 @@ storage:
   - id: DAM
     capex: 0
     operating_life: 100
-    residual_capacity: 999
+    residual_capacity: 0
 
 
 commodities:
