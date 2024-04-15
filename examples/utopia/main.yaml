@@ -657,7 +657,7 @@ regions:
 
 time_definition:
   id: utopia_3yrpt_2daypt
-  years: "range(1990,2021)"
+  years: "range(1990,2011)"
   seasons: [1,2,3]
   day_types: [1]
   daily_time_brackets: [1,2]
