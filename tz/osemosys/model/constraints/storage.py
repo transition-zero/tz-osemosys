@@ -316,13 +316,20 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
 
         StorageLevelDayTypeFinish = (
             (StorageLevelYearFinish.where((lastseason_mask) & (lastdaytype_mask)))
-            + (StorageLevelSeasonStart.shift(SEASON=-1).where(lastdaytype_mask))
+            + (
+                StorageLevelSeasonStart.shift(SEASON=-1).where(
+                    (lastdaytype_mask) & (~lastseason_mask)
+                )
+            )
             + (
                 m["StorageLevelDayTypeFinish"].shift(DAYTYPE=-1)
                 - (
                     NetChargeWithinDay.shift(DAYTYPE=-1) * ds["DaysInDayType"].shift(DAYTYPE=-1)
                 ).sum(["DAILYTIMEBRACKET"])
-            ).where(~(lastseason_mask))
+            ).where(
+                ~((lastseason_mask) & (lastdaytype_mask))
+                & ~((lastdaytype_mask) & (~lastseason_mask))
+            )
         )
         # print(StorageLevelDayTypeFinish.size)
         # print("StorageLevelDayTypeFinish", timer() - start_1)
