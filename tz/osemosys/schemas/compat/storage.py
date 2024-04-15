@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.compat.base import OtooleCfg
 from tz.osemosys.utils import group_to_json
@@ -126,17 +127,17 @@ class OtooleStorage(BaseModel):
                     minimum_charge=(
                         OSeMOSYSData.RY(data=data_json_format["MinStorageCharge"])
                         if data_json_format["MinStorageCharge"] is not None
-                        else None
+                        else defaults.technology_storage_minimum_charge
                     ),
                     initial_level=(
                         OSeMOSYSData.R(data=data_json_format["StorageLevelStart"])
                         if data_json_format["StorageLevelStart"] is not None
-                        else None
+                        else defaults.technology_storage_initial_level
                     ),
                     residual_capacity=(
                         OSeMOSYSData.RY(data=data_json_format["ResidualStorageCapacity"])
                         if data_json_format["ResidualStorageCapacity"] is not None
-                        else None
+                        else defaults.technology_storage_residual_capacity
                     ),
                     max_discharge_rate=(
                         OSeMOSYSData.R(data=data_json_format["StorageMaxDischargeRate"])
