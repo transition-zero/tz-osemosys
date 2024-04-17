@@ -282,23 +282,38 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
 
         # YEAR
         firstyear_mask = ds["YEAR"] == ds["YEAR"][0]
+        # TODO add StorageLevelStart rather that 0
+        # StorageLevelYearStart = ds["StorageLevelStart"].expand_dims(YEAR=ds["YEAR"].values)
+        # .where(firstyear_mask) + (
         StorageLevelYearStart = 0 + (
             m["StorageLevelYearStart"].shift(YEAR=1)
             + NetChargeWithinYear.shift(YEAR=1).sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~firstyear_mask)
+        m.add_constraints(
+            m["StorageLevelYearStart"] == StorageLevelYearStart,
+            name="S5_and_S6_StorageLevelYearStart",
+        )
 
         notlastyear_mask = ds["YEAR"] < ds["YEAR"][-1]
         StorageLevelYearFinish = StorageLevelYearStart.shift(YEAR=-1).where(notlastyear_mask) + (
             StorageLevelYearStart
             + NetChargeWithinYear.sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~notlastyear_mask)
+        m.add_constraints(
+            m["StorageLevelYearFinish"] == StorageLevelYearFinish,
+            name="S7_and_S8_StorageLevelYearFinish",
+        )
 
         # SEASON
         firstseason_mask = ds["SEASON"] == ds["SEASON"][0]
-        StorageLevelSeasonStart = m["StorageLevelYearStart"].where(firstseason_mask) + (
+        StorageLevelSeasonStart = StorageLevelYearStart.where(firstseason_mask) + (
             m["StorageLevelSeasonStart"].shift(SEASON=1)
             + NetChargeWithinYear.shift(SEASON=1).sum(["DAYTYPE", "DAILYTIMEBRACKET"])
         ).where(~firstseason_mask)
+        m.add_constraints(
+            m["StorageLevelSeasonStart"] == StorageLevelSeasonStart,
+            name="S9_and_S10_StorageLevelSeasonStart",
+        )
 
         # DAYTYPE
         firstdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][0]
@@ -310,6 +325,10 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
                 )
             )
         ).where(~firstdaytype_mask)
+        m.add_constraints(
+            m["StorageLevelDayTypeStart"] == StorageLevelDayTypeStart,
+            name="S11_and_S12_StorageLevelDayTypeStart",
+        )
 
         lastseason_mask = ds["SEASON"] == ds["SEASON"][-1]
         lastdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][-1]
@@ -330,6 +349,10 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
                 ~((lastseason_mask) & (lastdaytype_mask))
                 & ~((lastdaytype_mask) & (~lastseason_mask))
             )
+        )
+        m.add_constraints(
+            m["StorageLevelDayTypeFinish"] == StorageLevelDayTypeFinish,
+            name="S13_and_S14_and_S15_StorageLevelDayTypeFinish",
         )
         # print(StorageLevelDayTypeFinish.size)
         # print("StorageLevelDayTypeFinish", timer() - start_1)
