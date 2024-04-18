@@ -9,8 +9,7 @@ from tz.osemosys.model.linear_expressions.emissions import add_lex_emissions
 from tz.osemosys.model.linear_expressions.financials import add_lex_financials
 from tz.osemosys.model.linear_expressions.production import add_lex_quantities
 from tz.osemosys.model.linear_expressions.reserve_margin import add_lex_reserve_margin
-
-# from tz.osemosys.model.linear_expressions.storage import add_lex_storage
+from tz.osemosys.model.linear_expressions.storage import add_lex_storage
 
 
 def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpression]:
@@ -23,7 +22,7 @@ def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpressi
     add_lex_financials(ds, m, lex)
     add_lex_quantities(ds, m, lex)
     add_lex_reserve_margin(ds, m, lex)
-    # if ds["STORAGE"].size > 0:
-    #   add_lex_storage(ds, m, lex)
+    if ds["STORAGE"].size > 0:
+        add_lex_storage(ds, m, lex)
 
     return lex
