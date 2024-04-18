@@ -67,13 +67,13 @@ technologies:
         long_name: discharging mode
         description: discharging mode
         output_activity_ratio:
-          ELC: 1.
+          ELC: 8760
         from_storage: {"*": {"BAT": True}}
       - id: CHARGE
         long_name: charging mode
         description: charging mode
         input_activity_ratio:
-          ELC: 1.
+          ELC: 8760
         to_storage: {"*": {"BAT": True}}
   - id: COAL-GEN
     long_name: Coal-fired power plant
@@ -82,7 +82,7 @@ technologies:
     # straight-line reduction to 2040
     residual_capacity: "{yr: 10 * max((1 - (yr - 2020) / (2040 - 2020), 0)) for yr in range(2020, 2051)}"
     operating_modes:
-      - id: generation
+      - id: GEN
         opex_variable: 71  # $/GW/yr
         output_activity_ratio:
           ELC: 8760  # GWh/yr/GW
@@ -98,7 +98,7 @@ technologies:
       WD: 0.6
       WN: 0.1
     operating_modes:
-      - id: generation
+      - id: GEN
         opex_variable: 0
         output_activity_ratio:
           ELC: 8760
@@ -106,6 +106,6 @@ technologies:
 
 storage:
   - id: BAT
-    capex: 0
+    capex: 0.01
     operating_life: 100
     residual_capacity: 0
