@@ -25,7 +25,7 @@ technologies:
     long_name: Storage technology linked to DAM
     capacity_activity_unit_ratio: 31.536
     opex_fixed: 0
-    capex: 0
+    capex: 0.01
     operating_life: 40
     operating_modes:
       - id: GEN
@@ -34,12 +34,14 @@ technologies:
         output_activity_ratio:
           ELC: 1.
         from_storage: {"*": {"DAM": True}}
+        opex_variable: 0.01
       - id: CHARGE
         long_name: charging mode
         description: charging mode
         input_activity_ratio:
           ELC: 1.
         to_storage: {"*": {"DAM": True}}
+        opex_variable: 0.01
   - id: E01
     long_name: Coal fuelled power plant
     capacity_activity_unit_ratio: 31.536
@@ -544,7 +546,7 @@ technologies:
 
 storage:
   - id: DAM
-    capex: 0
+    capex: 0.01
     operating_life: 100
     residual_capacity: 0
 
