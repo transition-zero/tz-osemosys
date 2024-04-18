@@ -282,9 +282,8 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
 
         # YEAR
         firstyear_mask = ds["YEAR"] == ds["YEAR"][0]
-        # TODO add StorageLevelStart rather that 0
-        # StorageLevelYearStart = ds["StorageLevelStart"].expand_dims(YEAR=ds["YEAR"].values)
-        # .where(firstyear_mask) + (
+        # TODO add StorageLevelStart rather than 0 for the first year
+        # ds["StorageLevelStart"].expand_dims(YEAR=ds["YEAR"].values).where(firstyear_mask)
         StorageLevelYearStart = 0 + (
             m["StorageLevelYearStart"].shift(YEAR=1)
             + NetChargeWithinYear.shift(YEAR=1).sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
