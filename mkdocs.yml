@@ -8,11 +8,12 @@ plugins:
 
 nav:
   - Home: index.md
-  - Model object (Runspec): model.md
+  - Model object: model.md
   - Technologies: technology.md
+  - Operating modes: operating_mode.md
   - Storage: storage.md
-  - Impacts (Emissions): impact.md
-  - Commodities (Fuels): commodity.md
+  - Impacts: impact.md
+  - Commodities: commodity.md
   - Regions: region.md
   - Time definition: time_definition.md
 repo_url: https://github.com/transition-zero/tz-osemosys
