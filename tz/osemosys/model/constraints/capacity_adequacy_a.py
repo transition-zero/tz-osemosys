@@ -66,8 +66,6 @@ def add_capacity_adequacy_a_constraints(
     con = m["TotalCapacityAnnual"] - m["AccumulatedNewCapacity"] == ds["ResidualCapacity"].fillna(0)
     m.add_constraints(con, name="CAa2_TotalAnnualCapacity")
 
-    # RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
-
     con = (
         lex["RateOfTotalActivity"]
         - (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["CapacityToActivityUnit"])
