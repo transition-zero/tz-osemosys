@@ -1,9 +1,13 @@
+from typing import Dict
+
 import xarray as xr
+from linopy import LinearExpression
 from linopy import Model as LPModel
 from linopy import available_solvers
 
 from tz.osemosys.io.load_model import load_cfg
 from tz.osemosys.model.constraints import add_constraints
+from tz.osemosys.model.linear_expressions import add_linear_expressions
 from tz.osemosys.model.objective import add_objective
 from tz.osemosys.model.variables import add_variables
 from tz.osemosys.schemas import RunSpec
@@ -12,6 +16,7 @@ from tz.osemosys.schemas import RunSpec
 class Model(RunSpec):
     _data: xr.Dataset
     _m: LPModel
+    _linear_expressions: Dict[str, LinearExpression]
 
     @classmethod
     def from_yaml(cls, *spec_files):
@@ -23,17 +28,16 @@ class Model(RunSpec):
         return data
 
     def _build_model(self):
-        m = LPModel(force_dim_names=True)
-        m = add_variables(self._data, m)
-        m = add_constraints(self._data, m)
-        m = add_objective(m)
-        return m
+        self._m = LPModel(force_dim_names=True)
+        add_variables(self._data, self._m)
+        self._linear_expressions = add_linear_expressions(self._data, self._m)
+        add_constraints(self._data, self._m, self._linear_expressions)
+        add_objective(self._m)
 
     def _build(self):
         self._data = self._build_dataset()
 
-        self._m = self._build_model()
-        return True
+        self._build_model()
 
     def solve(
         self,

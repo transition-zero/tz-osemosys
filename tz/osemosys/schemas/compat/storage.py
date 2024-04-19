@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, List, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.compat.base import OtooleCfg
 from tz.osemosys.utils import group_to_json
@@ -113,33 +114,41 @@ class OtooleStorage(BaseModel):
                 cls(
                     id=storage,
                     otoole_cfg=otoole_cfg,
-                    capex=OSeMOSYSData.RY(data=data_json_format["CapitalCostStorage"])
-                    if data_json_format["CapitalCostStorage"] is not None
-                    else None,
-                    operating_life=OSeMOSYSData.R.Int(
-                        data=data_json_format["OperationalLifeStorage"]
-                    )
-                    if data_json_format["OperationalLifeStorage"] is not None
-                    else None,
-                    minimum_charge=OSeMOSYSData.RY(data=data_json_format["MinStorageCharge"])
-                    if data_json_format["MinStorageCharge"] is not None
-                    else None,
-                    initial_level=OSeMOSYSData.R(data=data_json_format["StorageLevelStart"])
-                    if data_json_format["StorageLevelStart"] is not None
-                    else None,
-                    residual_capacity=OSeMOSYSData.RY(
-                        data=data_json_format["ResidualStorageCapacity"]
-                    )
-                    if data_json_format["ResidualStorageCapacity"] is not None
-                    else None,
-                    max_discharge_rate=OSeMOSYSData.R(
-                        data=data_json_format["StorageMaxDischargeRate"]
-                    )
-                    if data_json_format["StorageMaxDischargeRate"] is not None
-                    else None,
-                    max_charge_rate=OSeMOSYSData.R(data=data_json_format["StorageMaxChargeRate"])
-                    if data_json_format["StorageMaxChargeRate"] is not None
-                    else None,
+                    capex=(
+                        OSeMOSYSData.RY(data=data_json_format["CapitalCostStorage"])
+                        if data_json_format["CapitalCostStorage"] is not None
+                        else None
+                    ),
+                    operating_life=(
+                        OSeMOSYSData.R.Int(data=data_json_format["OperationalLifeStorage"])
+                        if data_json_format["OperationalLifeStorage"] is not None
+                        else None
+                    ),
+                    minimum_charge=(
+                        OSeMOSYSData.RY(data=data_json_format["MinStorageCharge"])
+                        if data_json_format["MinStorageCharge"] is not None
+                        else defaults.technology_storage_minimum_charge
+                    ),
+                    initial_level=(
+                        OSeMOSYSData.R(data=data_json_format["StorageLevelStart"])
+                        if data_json_format["StorageLevelStart"] is not None
+                        else defaults.technology_storage_initial_level
+                    ),
+                    residual_capacity=(
+                        OSeMOSYSData.RY(data=data_json_format["ResidualStorageCapacity"])
+                        if data_json_format["ResidualStorageCapacity"] is not None
+                        else defaults.technology_storage_residual_capacity
+                    ),
+                    max_discharge_rate=(
+                        OSeMOSYSData.R(data=data_json_format["StorageMaxDischargeRate"])
+                        if data_json_format["StorageMaxDischargeRate"] is not None
+                        else None
+                    ),
+                    max_charge_rate=(
+                        OSeMOSYSData.R(data=data_json_format["StorageMaxChargeRate"])
+                        if data_json_format["StorageMaxChargeRate"] is not None
+                        else None
+                    ),
                 )
             )
 

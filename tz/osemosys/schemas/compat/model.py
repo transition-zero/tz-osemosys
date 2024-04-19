@@ -15,6 +15,7 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.validation.timedefinition_validation import time_adj_to_list
 from tz.osemosys.utils import flatten, group_to_json
 
 
@@ -127,6 +128,14 @@ class RunSpecOtoole(BaseModel):
             if var_name.isupper() and var_name != "YEAR"
         }
         coords["YEAR"] = data_dfs["YEAR"]["VALUE"].astype(int).tolist()
+
+        # Order seasons/day_types/time_brackets chronologically by adjacency if provided
+        if coords["SEASON"] and self.time_definition.adj.seasons:
+            coords["SEASON"] = time_adj_to_list(self.time_definition.adj.seasons)
+        if coords["DAYTYPE"] and self.time_definition.adj.day_types:
+            coords["DAYTYPE"] = time_adj_to_list(self.time_definition.adj.day_types)
+        if coords["DAILYTIMEBRACKET"] and self.time_definition.adj.time_brackets:
+            coords["DAILYTIMEBRACKET"] = time_adj_to_list(self.time_definition.adj.time_brackets)
 
         ds = xr.Dataset(data_vars=data_arrays, coords=coords)
 

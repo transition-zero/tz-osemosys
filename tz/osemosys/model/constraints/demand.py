@@ -1,8 +1,10 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_demand_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_demand_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
     """Add demand constraint to the model.
     Sets user-defined demand(s) for all relevant commodities in each timeslice and year.
 

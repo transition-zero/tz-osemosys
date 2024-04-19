@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_accounting_technology_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_accounting_technology_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add accounting_technology constraints to the model.
     Creates intermediate results variables that are not strictly needed for the optimisation but
     are useful when analysing results. E.g. 'ProductionByTechnology' and 'UseByTechnology'.

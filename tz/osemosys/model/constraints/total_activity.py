@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_total_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_total_activity_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Total Activity constraints to the model.
     Constrains model period activity of a technology based on user-defined lower and upper limits.
 
@@ -12,6 +16,8 @@ def add_total_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------
@@ -39,15 +45,18 @@ def add_total_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalTechnologyModelPeriodActivityLowerLimit[r,t] ;
     ```
     """
-    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
-    TotalTechnologyAnnualActivity = (RateOfTotalActivity * ds["YearSplit"]).sum("TIMESLICE")
-    TotalTechnologyModelPeriodActivity = TotalTechnologyAnnualActivity.sum(dims="YEAR")
 
-    con = TotalTechnologyModelPeriodActivity <= ds["TotalTechnologyModelPeriodActivityUpperLimit"]
+    con = (
+        lex["TotalTechnologyModelPeriodActivity"]
+        <= ds["TotalTechnologyModelPeriodActivityUpperLimit"]
+    )
     mask = ds["TotalTechnologyModelPeriodActivityUpperLimit"] >= 0
     m.add_constraints(con, name="TAC2_TotalModelHorizonTechnologyActivityUpperLimit", mask=mask)
 
-    con = TotalTechnologyModelPeriodActivity >= ds["TotalTechnologyModelPeriodActivityLowerLimit"]
+    con = (
+        lex["TotalTechnologyModelPeriodActivity"]
+        >= ds["TotalTechnologyModelPeriodActivityLowerLimit"]
+    )
     mask = ds["TotalTechnologyModelPeriodActivityLowerLimit"] > 0
     m.add_constraints(con, name="TAC3_TotalModelHorizenTechnologyActivityLowerLimit", mask=mask)
 

@@ -1,10 +1,13 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
 def add_capital_costs_constraints(
     ds: xr.Dataset,
     m: Model,
+    lex: Dict[str, LinearExpression],
 ) -> Model:
     """Add Capital Costs constraint to the model.
     Calculates the total capital expenditure - both discounted and undiscounted - of new technology
@@ -43,22 +46,6 @@ def add_capital_costs_constraints(
     ```
     """
 
-    discount_factor = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
-
-    pv_annuity = (
-        (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
-        * (1 + ds["DiscountRateIdv"])
-        / ds["DiscountRateIdv"]
-    )
-
-    capital_recovery_factor = (1 - (1 + ds["DiscountRateIdv"]) ** (-1)) / (
-        1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
-    )
-
-    CapitalInvestment = (
-        ds["CapitalCost"].fillna(0) * m["NewCapacity"] * capital_recovery_factor * pv_annuity
-    )
-
-    con = (CapitalInvestment / discount_factor) - m["DiscountedCapitalInvestment"] == 0
+    con = (lex["CapitalInvestment"] / lex["DiscountFactor"]) - m["DiscountedCapitalInvestment"] == 0
     m.add_constraints(con, name="CC2_DiscountingCapitalInvestment")
     return m

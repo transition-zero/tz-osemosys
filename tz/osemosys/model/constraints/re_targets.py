@@ -1,8 +1,10 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_re_targets_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_re_targets_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
     """Add Renewable Energy target constraints to the model.
     Sets user-defined renewable energy constraints for specific years and technologies.
 
@@ -12,6 +14,8 @@ def add_re_targets_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------

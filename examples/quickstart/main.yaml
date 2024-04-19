@@ -1,0 +1,111 @@
+# Model Nameplate
+id: quickstart
+long_name: "Quickstart Model - an OSeMOSYS starter template"
+description: >
+  YAML implementation of the quickstart model for tz-osemosys
+
+time_definition:
+  id: quickstart_2yrpt_2daypt
+  years: "range(2020,2051)"
+  seasons: [1,2]
+  day_types: [1]
+  daily_time_brackets: [1,2]
+  timeslices: ["SD", "SN", "WD", "WN"]
+  timeslice_in_season:
+    SD: 1
+    SN: 1
+    WD: 2
+    WN: 2
+  timeslice_in_daytype:
+    SD: 1
+    SN: 1
+    WD: 1
+    WN: 1
+  timeslice_in_timebracket:
+    SD: 1
+    SN: 2
+    WD: 1
+    WN: 2
+  year_split:
+    SD: 0.25
+    SN: 0.25
+    WD: 0.25
+    WN: 0.25
+
+commodities:
+  - id: ELC
+    long_name: Electricity
+    demand_annual: 219000
+    demand_profile:
+      SD: 0.15
+      SN: 0.2
+      WD: 0.3
+      WN: 0.35
+
+regions:
+  - id: UTOPIA
+
+# FINANCIALS
+depreciation_method: "straight-line"
+discount_rate: 0.05
+
+impacts:
+  - id: CO2
+    long_name: equivalent carbon dioxide emissions
+    description: equivalent carbon dioxide emissions
+    penalty: 60
+
+technologies:
+  - id: STO_BAT
+    long_name: Storage technology linked to BAT
+    capacity_activity_unit_ratio: 31.536
+    opex_fixed: 0
+    capex: 5
+    operating_life: 15
+    operating_modes:
+      - id: GEN
+        long_name: discharging mode
+        description: discharging mode
+        output_activity_ratio:
+          ELC: 8760
+        from_storage: {"*": {"BAT": True}}
+      - id: CHARGE
+        long_name: charging mode
+        description: charging mode
+        input_activity_ratio:
+          ELC: 8760
+        to_storage: {"*": {"BAT": True}}
+  - id: COAL-GEN
+    long_name: Coal-fired power plant
+    operating_life: 40  # years
+    capex: 800  # mn$/GW
+    # straight-line reduction to 2040
+    residual_capacity: "{yr: 10 * max((1 - (yr - 2020) / (2040 - 2020), 0)) for yr in range(2020, 2051)}"
+    operating_modes:
+      - id: GEN
+        opex_variable: 71  # $/GW/yr
+        output_activity_ratio:
+          ELC: 8760  # GWh/yr/GW
+        emission_activity_ratio:
+          CO2: 3.10  # Mtco2/TWh * 8760GWh/Gw/yr /1000 GWh/TWh
+  - id: SOLAR-PV
+    long_name: Solar PV
+    operating_life: 25
+    capex: 1200
+    capacity_factor:
+      SD: 1.0
+      SN: 0.2
+      WD: 0.6
+      WN: 0.1
+    operating_modes:
+      - id: GEN
+        opex_variable: 0
+        output_activity_ratio:
+          ELC: 8760
+
+
+storage:
+  - id: BAT
+    capex: 0.01
+    operating_life: 100
+    residual_capacity: 0
