@@ -4,7 +4,8 @@ The Technology class contains data related to technologies and operating modes.
 One Technology instance is given for each technology.
 
 One parameter of the Technology class is the OperatingMode subclass, which contains all
-technology data which has an operating mode associated with it.
+technology data which has an operating mode associated with it. See the "Operating modes"
+documentation for a more detailed description.
 
 ## Parameters
 
@@ -13,7 +14,7 @@ technology data which has an operating mode associated with it.
 `operating_modes` `(List[OperatingMode])`: A list containing one OperatingMode object for each
 operating mode relevant to the current technology. Each OperatingMode object contains data
 relevant for the corresponding operating mode, ie.e. input/output/emission activity ratios,
-variable costs, tag linking the technology to storage. See the OperatingMode documentation for
+variable costs, tag linking the technology to storage. See the "Operating modes" documentation for
 a more detailed description.
 
 `operating_life` `({region:int})` - OSeMOSYS OperationalLife. Integer value of operating life
