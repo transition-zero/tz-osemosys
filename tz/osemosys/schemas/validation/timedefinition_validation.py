@@ -270,6 +270,25 @@ def build_adjacency(
     )
 
 
+def time_adj_to_list(adj_dict: dict):
+    """
+    Convert a time adjacency dict to a chronologically ordered list
+    """
+    chronological_list = []
+    # Add first item
+    chronological_list.append(
+        [item for item in adj_dict.keys() if item not in adj_dict.values()][0]
+    )
+    # iteratively add remaining items
+    add_to_list = True
+    while add_to_list:
+        chronological_list.append(adj_dict[chronological_list[-1]])
+        if chronological_list[-1] not in adj_dict.keys():
+            add_to_list = False
+
+    return chronological_list
+
+
 # ##########################################
 # Validation if timeslices are not defined #
 # ##########################################

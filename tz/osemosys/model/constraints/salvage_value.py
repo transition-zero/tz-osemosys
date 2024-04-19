@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_salvage_value_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Salvage Value constraints to the model.
     Calculates the value of a technology if it's retired before the end of its operational life.
 
@@ -12,6 +16,8 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------
@@ -55,18 +61,7 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
     ```
     """
 
-    def numerator_sv1(y: int):
-        return (1 + ds["DiscountRateIdv"]) ** (max(ds.coords["YEAR"]) - y + 1) - 1
-
-    def denominator_sv1():
-        return (1 + ds["DiscountRateIdv"]) ** ds["OperationalLife"] - 1
-
-    def salvage_cost_sv1(ds):
-        return ds["CapitalCost"].fillna(0) * (
-            1 - (numerator_sv1(ds.coords["YEAR"]) / denominator_sv1())
-        )
-
-    con = m["SalvageValue"] - (m["NewCapacity"] * salvage_cost_sv1(ds)) == 0
+    con = m["SalvageValue"] - (m["NewCapacity"] * lex["SV1Cost"]) == 0
     mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
@@ -74,18 +69,7 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
     )
     m.add_constraints(con, name="SV1_SalvageValueAtEndOfPeriod1", mask=mask)
 
-    def numerator_sv2(y: int):
-        return max(ds.coords["YEAR"]) - y + 1
-
-    def denominator_sv2():
-        return ds["OperationalLife"]
-
-    def salvage_cost_sv2(ds):
-        return ds["CapitalCost"].fillna(0) * (
-            1 - (numerator_sv2(ds.coords["YEAR"]) / denominator_sv2())
-        )
-
-    con = m["SalvageValue"] - (m["NewCapacity"] * salvage_cost_sv2(ds)) == 0
+    con = m["SalvageValue"] - (m["NewCapacity"] * lex["SV2Cost"]) == 0
     mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
@@ -100,10 +84,7 @@ def add_salvage_value_constraints(ds: xr.Dataset, m: Model) -> Model:
     mask = (ds.coords["YEAR"] + ds["OperationalLife"] - 1) <= max(ds.coords["YEAR"])
     m.add_constraints(con, name="SV3_SalvageValueAtEndOfPeriod3", mask=mask)
 
-    def discounting(ds):
-        return (1 + ds["DiscountRateIdv"]) ** (1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"]))
-
-    con = m["DiscountedSalvageValue"] - m["SalvageValue"] / discounting(ds) == 0
+    con = m["DiscountedSalvageValue"] - m["SalvageValue"] / lex["DiscountFactorSalvage"] == 0
     m.add_constraints(con, name="SV4_SalvageValueDiscountedToStartYear")
 
     return m

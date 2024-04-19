@@ -369,9 +369,9 @@ class SimpleEval:  # pylint: disable=too-few-public-methods
         # py3.6, f-strings
         if hasattr(ast, "JoinedStr"):
             self.nodes[ast.JoinedStr] = self._eval_joinedstr  # f-string
-            self.nodes[
-                ast.FormattedValue
-            ] = self._eval_formattedvalue  # formatted value in f-string
+            self.nodes[ast.FormattedValue] = (
+                self._eval_formattedvalue
+            )  # formatted value in f-string
 
         # py3.8 uses ast.Constant instead of ast.Num, ast.Str, ast.NameConstant
         if hasattr(ast, "Constant"):

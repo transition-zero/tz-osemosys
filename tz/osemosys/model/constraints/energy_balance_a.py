@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_energy_balance_a_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Energy Balance A constraints to the model.
     Ensures that energy balances of all commodities are maintained for each timeslice.
 
@@ -12,6 +16,8 @@ def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
         The parameters dataset
     m: linopy.Model
         A linopy model
+    lex: Dict[str, LinearExpression]
+        A dictionary of linear expressions, persisted after solve
 
     Returns
     -------
@@ -105,34 +111,14 @@ def add_energy_balance_a_constraints(ds: xr.Dataset, m: Model) -> Model:
     con = m["Trade"].where(from_mask) + m["Trade"].where(to_mask) == 0
     m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4")
 
-    # Linear expressions
-
-    # Production
-    RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
-        ds["OutputActivityRatio"].notnull()
-    )
-    RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
-        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
-    Production = RateOfProduction * ds["YearSplit"]
-
-    # Use
-    RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
-        ds["InputActivityRatio"].notnull()
-    )
-    RateOfUseByTechnology = RateOfUseByTechnologyByMode.where(
-        ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfUse = RateOfUseByTechnology.sum(dims="TECHNOLOGY")
-    Use = RateOfUse * ds["YearSplit"]
-
-    # Demand
-    Demand = (m["RateOfDemand"] * ds["YearSplit"]).where(ds["SpecifiedAnnualDemand"].notnull())
-
     # Constraint
     con = (
-        Production - (Demand + Use + (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION"))
+        lex["Production"]
+        - (
+            lex["Demand"]
+            + lex["Use"]
+            + (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION")
+        )
         >= 0
     )
     m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_alt")

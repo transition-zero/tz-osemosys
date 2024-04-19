@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_capacity_adequacy_b_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_capacity_adequacy_b_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Capacity Adequacy B constraints to the model.
     Ensures that there is sufficient capacity of technologies to meet demand(s) in each year,
     taking planned maintainence into consideration.
@@ -30,10 +34,9 @@ def add_capacity_adequacy_b_constraints(ds: xr.Dataset, m: Model) -> Model:
         YearSplit[l,y]) * AvailabilityFactor[r,t,y] * CapacityToActivityUnit[r,t];
     ```
     """
-    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
 
     mask = ds["AvailabilityFactor"] < 1
-    con = (RateOfTotalActivity * ds["YearSplit"]).sum(dims="TIMESLICE") - (
+    con = (lex["RateOfTotalActivity"] * ds["YearSplit"]).sum(dims="TIMESLICE") - (
         (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["YearSplit"]).sum(dims="TIMESLICE")
         * ds["AvailabilityFactor"]
         * ds["CapacityToActivityUnit"]

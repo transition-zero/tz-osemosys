@@ -1,8 +1,12 @@
+from typing import Dict
+
 import xarray as xr
-from linopy import Model
+from linopy import LinearExpression, Model
 
 
-def add_annual_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
+def add_annual_activity_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
     """Add Annual Activity constraints to the model.
     Constrains annual activity of a technology based on user-defined lower and upper limits.
 
@@ -37,14 +41,12 @@ def add_annual_activity_constraints(ds: xr.Dataset, m: Model) -> Model:
         TotalTechnologyAnnualActivity[r,t,y] >= TotalTechnologyAnnualActivityLowerLimit[r,t,y] ;
     ```
     """
-    RateOfTotalActivity = m["RateOfActivity"].sum(dims="MODE_OF_OPERATION")
-    TotalTechnologyAnnualActivity = (RateOfTotalActivity * ds["YearSplit"]).sum("TIMESLICE")
 
-    con = TotalTechnologyAnnualActivity <= ds["TotalTechnologyAnnualActivityUpperLimit"]
+    con = lex["TotalTechnologyAnnualActivity"] <= ds["TotalTechnologyAnnualActivityUpperLimit"]
     mask = ds["TotalTechnologyAnnualActivityUpperLimit"] >= 0
     m.add_constraints(con, name="AAC2_TotalAnnualTechnologyActivityUpperLimit", mask=mask)
 
-    con = TotalTechnologyAnnualActivity >= ds["TotalTechnologyAnnualActivityLowerLimit"]
+    con = lex["TotalTechnologyAnnualActivity"] >= ds["TotalTechnologyAnnualActivityLowerLimit"]
     mask = ds["TotalTechnologyAnnualActivityLowerLimit"] > 0
     m.add_constraints(con, name="AAC3_TotalAnnualTechnologyActivityLowerLimit", mask=mask)
     return m
