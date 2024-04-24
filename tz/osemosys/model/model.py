@@ -10,8 +10,8 @@ from tz.osemosys.model.constraints import add_constraints
 from tz.osemosys.model.linear_expressions import add_linear_expressions
 from tz.osemosys.model.objective import add_objective
 from tz.osemosys.model.variables import add_variables
+from tz.osemosys.model.results import Results
 from tz.osemosys.schemas import RunSpec
-
 
 class Model(RunSpec):
     _data: xr.Dataset
@@ -36,7 +36,6 @@ class Model(RunSpec):
 
     def _build(self):
         self._data = self._build_dataset()
-
         self._build_model()
 
     def solve(
@@ -59,5 +58,9 @@ class Model(RunSpec):
             self._m.to_file(lp_path)
 
         self._m.solve(solver_name=solver, io_api=io_api, log_fn=log_fn)
+
+        if self._m.termination_condition == "optimal":
+            # write results to self
+            self._results = Results(self._m)
 
         return True
