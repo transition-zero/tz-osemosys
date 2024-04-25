@@ -8,16 +8,17 @@ class Results:
             linopy_model: LPModel
         ):
 
-        self._m = linopy_model
+        # save results data
+        self.results_tables = list(linopy_model.variables)
 
         # append results singular
-        self.NewCapacity = self._m["NewCapacity"].solution.to_dataframe()
+        self.NewCapacity = linopy_model["NewCapacity"].solution.to_dataframe()
 
         # append results in loop
-        for var_name in self._m.variables:
+        for var_name in list(self.results_tables):
 
             setattr(
                 self, 
                 var_name, 
-                self._m[var_name].solution.to_dataframe()
+                linopy_model[var_name].solution.to_dataframe()
             )

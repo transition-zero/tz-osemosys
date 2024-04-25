@@ -60,7 +60,10 @@ class Model(RunSpec):
         self._m.solve(solver_name=solver, io_api=io_api, log_fn=log_fn)
 
         if self._m.termination_condition == "optimal":
-            # write results to self
             self._results = Results(self._m)
 
         return True
+
+    @property
+    def results(self):
+        return self._results
