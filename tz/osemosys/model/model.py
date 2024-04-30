@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import xarray as xr
 from linopy import LinearExpression
@@ -17,6 +17,7 @@ class Model(RunSpec):
     _data: xr.Dataset
     _m: LPModel
     _linear_expressions: Dict[str, LinearExpression]
+    _solution: Optional[xr.Dataset] = None
 
     @classmethod
     def from_yaml(cls, *spec_files):
@@ -36,8 +37,18 @@ class Model(RunSpec):
 
     def _build(self):
         self._data = self._build_dataset()
-
         self._build_model()
+
+    def _get_solution(self):
+        return self._m.solution.merge(
+            xr.Dataset(
+                {
+                    k: v.solution
+                    for k, v in self._linear_expressions.items()
+                    if (k not in self._m.solution) and hasattr(v, "solution")
+                }
+            )
+        )
 
     def solve(
         self,
@@ -60,4 +71,11 @@ class Model(RunSpec):
 
         self._m.solve(solver_name=solver, io_api=io_api, log_fn=log_fn)
 
+        if self._m.termination_condition == "optimal":
+            self._solution = self._get_solution()
+
         return True
+
+    @property
+    def solution(self):
+        return self._solution
