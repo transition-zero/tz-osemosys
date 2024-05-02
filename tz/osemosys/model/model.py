@@ -47,28 +47,52 @@ class Model(RunSpec):
                 for key in [
                     "EBa11_EnergyBalanceEachTS5_alt",
                     "EBb4_EnergyBalanceEachYear4",
-                    "E8_AnnualEmissionsLimit",
-                    "E9_ModelPeriodEmissionsLimit",
                 ]
             }
-        ).rename(
+        )
+
+        duals = duals.merge(
+            xr.Dataset(
+                {
+                    key: getattr(self._m.constraints, key).dual
+                    for key in [
+                        "E8_AnnualEmissionsLimit",
+                        "E9_ModelPeriodEmissionsLimit",
+                    ]
+                    if hasattr(self._m.constraints, key)
+                }
+            )
+        )
+
+        duals = duals.rename(
             dict(
                 zip(
                     [
                         "EBa11_EnergyBalanceEachTS5_alt",
                         "EBb4_EnergyBalanceEachYear4",
-                        "E8_AnnualEmissionsLimit",
-                        "E9_ModelPeriodEmissionsLimit",
                     ],
                     [
                         "marginal_cost_of_demand",
                         "marginal_cost_of_demand_annual",
-                        "marginal_cost_of_emissions_annual",
-                        "marginal_cost_of_emissions_total",
                     ],
                 )
             )
         )
+        if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals:
+            duals = duals.rename(
+                dict(
+                    zip(
+                        [
+                            "E8_AnnualEmissionsLimit",
+                            "E9_ModelPeriodEmissionsLimit",
+                        ],
+                        [
+                            "marginal_cost_of_emissions_annual",
+                            "marginal_cost_of_emissions_total",
+                        ],
+                    )
+                )
+            )
 
         return self._m.solution.merge(
             xr.Dataset(
