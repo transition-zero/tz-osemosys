@@ -167,9 +167,9 @@ YAML is a human-readable data serialisation language. We've build a custom YAML 
 - single or multiple `.yaml` files can be composed together, allowing you to separate, e.g. `technologies.yaml`, from the rest of your model.
 
 ```python
-from tz.osemosys import load_model
+from tz.osemosys import Model
 
-my_model = load_model("path/to/yaml/directory")
+my_model = Model.from_yaml("path/to/yaml/directory")
 ```
 
 ### From Otoole outputs (legacy)
