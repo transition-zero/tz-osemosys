@@ -8,7 +8,6 @@ from .annual_activity import add_annual_activity_constraints
 from .capacity_adequacy_a import add_capacity_adequacy_a_constraints
 from .capacity_adequacy_b import add_capacity_adequacy_b_constraints
 from .capital_costs import add_capital_costs_constraints
-from .demand import add_demand_constraints
 from .emissions import add_emissions_constraints
 from .energy_balance_a import add_energy_balance_a_constraints
 from .energy_balance_b import add_energy_balance_b_constraints
@@ -39,7 +38,6 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     """
 
     # restore one at a time
-    m = add_demand_constraints(ds, m, lex)
     m = add_capacity_adequacy_a_constraints(ds, m, lex)
     m = add_capacity_adequacy_b_constraints(ds, m, lex)
     m = add_energy_balance_a_constraints(ds, m, lex)
