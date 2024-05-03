@@ -26,9 +26,6 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     Use = RateOfUse * ds["YearSplit"]
     UseAnnual = Use.sum(dims="TIMESLICE")
 
-    # Demand
-    Demand = (m["RateOfDemand"] * ds["YearSplit"]).where(ds["SpecifiedAnnualDemand"].notnull())
-
     lex.update(
         {
             "RateOfProductionByTechnologyByMode": RateOfProductionByTechnologyByMode,
@@ -41,6 +38,5 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "RateOfUse": RateOfUse,
             "Use": Use,
             "UseAnnual": UseAnnual,
-            "Demand": Demand,
         }
     )

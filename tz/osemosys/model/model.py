@@ -40,6 +40,60 @@ class Model(RunSpec):
         self._build_model()
 
     def _get_solution(self):
+
+        duals = xr.Dataset(
+            {
+                key: getattr(self._m.constraints, key).dual
+                for key in [
+                    "EBa11_EnergyBalanceEachTS5_alt",
+                    "EBb4_EnergyBalanceEachYear4",
+                ]
+            }
+        )
+
+        duals = duals.merge(
+            xr.Dataset(
+                {
+                    key: getattr(self._m.constraints, key).dual
+                    for key in [
+                        "E8_AnnualEmissionsLimit",
+                        "E9_ModelPeriodEmissionsLimit",
+                    ]
+                    if hasattr(self._m.constraints, key)
+                }
+            )
+        )
+
+        duals = duals.rename(
+            dict(
+                zip(
+                    [
+                        "EBa11_EnergyBalanceEachTS5_alt",
+                        "EBb4_EnergyBalanceEachYear4",
+                    ],
+                    [
+                        "marginal_cost_of_demand",
+                        "marginal_cost_of_demand_annual",
+                    ],
+                )
+            )
+        )
+        if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals:
+            duals = duals.rename(
+                dict(
+                    zip(
+                        [
+                            "E8_AnnualEmissionsLimit",
+                            "E9_ModelPeriodEmissionsLimit",
+                        ],
+                        [
+                            "marginal_cost_of_emissions_annual",
+                            "marginal_cost_of_emissions_total",
+                        ],
+                    )
+                )
+            )
+
         return self._m.solution.merge(
             xr.Dataset(
                 {
@@ -48,7 +102,7 @@ class Model(RunSpec):
                     if (k not in self._m.solution) and hasattr(v, "solution")
                 }
             )
-        )
+        ).merge(duals)
 
     def solve(
         self,

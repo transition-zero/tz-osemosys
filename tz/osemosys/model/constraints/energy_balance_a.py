@@ -114,12 +114,9 @@ def add_energy_balance_a_constraints(
     # Constraint
     con = (
         lex["Production"]
-        - (
-            lex["Demand"]
-            + lex["Use"]
-            + (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION")
-        )
-        >= 0
-    )
+        - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
+        - lex["Use"]
+        - (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION")
+    ) >= 0
     m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_alt")
     return m
