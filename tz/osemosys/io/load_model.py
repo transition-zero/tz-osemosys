@@ -105,10 +105,12 @@ def load_cfg(*spec_files):
     substitute_functions = utils.substitute_factory(cfg)
 
     for f in substitute_functions:
-        cfg = utils.walk_dict(cfg, f)
+        utils.walk_dict(cfg, f)
 
     # eval strings
-    cfg = utils.walk_dict(cfg, utils.maybe_eval_string)
+    changes_made = True
+    while changes_made:
+        changes_made = utils.walk_dict(cfg, utils.maybe_eval_string)
 
     return cfg
 
