@@ -69,6 +69,8 @@ commodities:
   - id: ELEC
     long_name: Electricity
     description: Electricity
+    include_in_joint_reserve_margin: true
+    include_in_joint_renewable_target: true
     demand_annual: # EJ/yr
       US-CA: "{y:(0.7*1.1**(y-2022)) for y in ${time_definition.years}}"
       US-TX: "{y:(1.73*1.1**(y-2022)) for y in ${time_definition.years}}"
