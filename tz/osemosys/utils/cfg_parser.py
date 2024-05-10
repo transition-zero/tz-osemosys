@@ -110,8 +110,12 @@ def substitute_factory(cfg: dict):
 def walk_dict(d, f, *args):
     list_of_keys = recursive_keys([], d)
 
-    for sublist in list_of_keys:
-        val = rgetattr(d, sublist)
-        rsetattr(d, sublist, f(val, *args))
+    changes_flag = False
 
-    return d
+    for sublist in list_of_keys:
+        old_val = rgetattr(d, sublist)
+        new_val = f(old_val, *args)
+        rsetattr(d, sublist, new_val)
+        changes_flag = changes_flag or (old_val != new_val)
+
+    return changes_flag
