@@ -1,6 +1,6 @@
 [project]
 name = "tz-osemosys"  # Required
-version = "0.0.1"  # Required
+version = "0.0.3"  # Required
 description = "An OSeMOSYS implementation for the Future Energy Outlook by TransitionZero"  # Optional
 readme = "README.md" # Optional
 requires-python = ">=3.11"
