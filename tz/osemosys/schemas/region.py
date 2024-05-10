@@ -69,5 +69,17 @@ class Region(OSeMOSYSBase, OtooleRegion):
         values = discount_rate_as_decimals(values)
         return values
 
-    def compose(self, **kwargs):
+    def compose(self, **sets):
+        # compose root OSeMOSYSData
+        for field, _info in self.model_fields.items():
+            field_val = getattr(self, field)
+
+            if field_val is not None:
+                if isinstance(field_val, OSeMOSYSData):
+                    setattr(
+                        self,
+                        field,
+                        field_val.compose(self.id, field_val.data, **sets),
+                    )
+
         return self

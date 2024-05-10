@@ -98,6 +98,15 @@ class OtooleRegion(BaseModel):
         # Define class instances #
         ##########################
 
+        # Identify regions with trade route defined
+        if "TradeRoute" not in otoole_cfg.empty_dfs:
+            regions_with_trade = []
+            for region in src_regions["VALUE"].values:
+                if not dfs["TradeRoute"].loc[dfs["TradeRoute"]["REGION"] == region].empty:
+                    regions_with_trade.append(region)
+        else:
+            regions_with_trade = []
+
         region_instances = []
         for _index, region in src_regions.iterrows():
             region_instances.append(
@@ -115,7 +124,7 @@ class OtooleRegion(BaseModel):
                                 target_column="VALUE",
                             )
                         )
-                        if "TradeRoute" not in otoole_cfg.empty_dfs
+                        if region["VALUE"] in regions_with_trade
                         else None
                     ),
                 )
