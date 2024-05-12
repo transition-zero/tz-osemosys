@@ -84,7 +84,4 @@ def add_salvage_value_constraints(
     mask = (ds.coords["YEAR"] + ds["OperationalLife"] - 1) <= max(ds.coords["YEAR"])
     m.add_constraints(con, name="SV3_SalvageValueAtEndOfPeriod3", mask=mask)
 
-    con = m["DiscountedSalvageValue"] - m["SalvageValue"] / lex["DiscountFactorSalvage"] == 0
-    m.add_constraints(con, name="SV4_SalvageValueDiscountedToStartYear")
-
     return m
