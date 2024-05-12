@@ -46,6 +46,7 @@ def add_capital_costs_constraints(
     ```
     """
 
-    con = (lex["CapitalInvestment"] / lex["DiscountFactor"]) - m["DiscountedCapitalInvestment"] == 0
-    m.add_constraints(con, name="CC2_DiscountingCapitalInvestment")
+    # NOTE: These constraints have all been replaced by linear expressions in other constraints
+    #       This file remains just for reference
+
     return m
