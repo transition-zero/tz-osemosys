@@ -61,27 +61,4 @@ def add_salvage_value_constraints(
     ```
     """
 
-    con = m["SalvageValue"] - (m["NewCapacity"] * lex["SV1Cost"]) == 0
-    mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] > 0)
-    )
-    m.add_constraints(con, name="SV1_SalvageValueAtEndOfPeriod1", mask=mask)
-
-    con = m["SalvageValue"] - (m["NewCapacity"] * lex["SV2Cost"]) == 0
-    mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] == 0)
-    ) | (
-        (ds["DepreciationMethod"] == 2)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-    )
-    m.add_constraints(con, name="SV2_SalvageValueAtEndOfPeriod2", mask=mask)
-
-    con = m["SalvageValue"] == 0
-    mask = (ds.coords["YEAR"] + ds["OperationalLife"] - 1) <= max(ds.coords["YEAR"])
-    m.add_constraints(con, name="SV3_SalvageValueAtEndOfPeriod3", mask=mask)
-
     return m

@@ -63,7 +63,25 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     DiscountedCapitalInvestment = CapitalInvestment / DiscountFactor
 
-    DiscountedSalvageValue = m["SalvageValue"] / DiscountFactorSalvage
+    sv1_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRateIdv"] > 0)
+    )
+    sv2_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRateIdv"] == 0)
+    ) | (
+        (ds["DepreciationMethod"] == 2)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+    )
+
+    SalvageValue = (
+        m["NewCapacity"] * SV1Cost.where(sv1_mask) + m["NewCapacity"] * SV2Cost.where(sv2_mask)
+    ).fillna(0)
+
+    DiscountedSalvageValue = SalvageValue / DiscountFactorSalvage
 
     TotalDiscountedCostByTechnology = (
         DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
@@ -112,5 +130,6 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "TotalDiscountedCost": TotalDiscountedCost,
             "SV1Cost": SV1Cost,
             "SV2Cost": SV2Cost,
+            "SalvageValue": SalvageValue,
         }
     )
