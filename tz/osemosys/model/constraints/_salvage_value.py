@@ -61,4 +61,7 @@ def add_salvage_value_constraints(
     ```
     """
 
+    # NOTE: These constraints have all been replaced by linear expressions in other constraints
+    #       This file remains just for reference
+
     return m
