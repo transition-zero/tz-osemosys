@@ -15,7 +15,7 @@
 # -------------------------------------------------------------------------
 
 time_definition:
-  id: v20_default
+  id: trm_default
   years: "range(2024,2031)"
   seasons: [1,2,3]
   day_types: [1]
