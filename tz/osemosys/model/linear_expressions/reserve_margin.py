@@ -9,7 +9,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
         (
             ds["ReserveMarginTagTechnology"]
             * ds["CapacityToActivityUnit"]
-            * m["TotalCapacityAnnual"]
+            * lex["TotalCapacityAnnual"]
         ).where(
             (ds["ReserveMargin"] > 0)
             & (ds["ReserveMarginTagTechnology"] == 1)

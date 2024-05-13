@@ -17,20 +17,7 @@ def add_cost_variables(ds: xr.Dataset, m: Model) -> Model:
     -------
     linopy.Model
     """
-    RTeY = [ds.coords["REGION"], ds.coords["TECHNOLOGY"], ds.coords["YEAR"]]
-    RY = [ds.coords["REGION"], ds.coords["YEAR"]]
 
-    m.add_variables(
-        lower=0, upper=inf, coords=RTeY, name="DiscountedCapitalInvestment", integer=False
-    )
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="SalvageValue", integer=False)
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="DiscountedSalvageValue", integer=False)
-    m.add_variables(lower=0, upper=inf, coords=RTeY, name="DiscountedOperatingCost", integer=False)
-
-    m.add_variables(
-        lower=0, upper=inf, coords=RTeY, name="TotalDiscountedCostByTechnology", integer=False
-    )
-    m.add_variables(lower=0, upper=inf, coords=RY, name="TotalDiscountedCost", integer=False)
     coords = [ds.coords["REGION"]]
     m.add_variables(
         lower=0, upper=inf, coords=coords, name="ModelPeriodCostByRegion", integer=False

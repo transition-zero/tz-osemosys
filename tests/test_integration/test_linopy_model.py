@@ -29,7 +29,7 @@ def test_linopy_model():
             ref_results_df = pd.read_csv(Path(results_path) / "TotalDiscountedCost.csv")
 
         assert np.isclose(
-            model._m.solution.TotalDiscountedCost.sum().values,
+            model.objective,
             ref_results_df["VALUE"].sum(),
             rtol=TOL,
         )
