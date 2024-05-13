@@ -7,7 +7,7 @@ The two-region model (TRM) was developed to serve as a starter kit for multi-reg
 ## Overview
 TRM is an illustrative model for two separate regions that have an interconnected power system and shared primary fuel resources. The model schematic is illustrated below:  
 
-<img src="https://github.com/transition-zero/tz-osemosys/blob/add-tutorials/examples/two-region-model/two-region-model-schematic.png" alt="" width="650" align="center">
+<img src="https://github.com/transition-zero/tz-osemosys/blob/add-tutorials/examples/two-region-model/two-region-model-schematic.png" alt="" width="800" align="center">
 
 The model captures three sources of energy: primary energy, secondary energy and final energy. As shown in the figure above, the primary energy inputs consist of: 
 
