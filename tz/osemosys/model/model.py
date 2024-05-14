@@ -18,6 +18,8 @@ class Model(RunSpec):
     _m: LPModel
     _linear_expressions: Dict[str, LinearExpression]
     _solution: Optional[xr.Dataset] = None
+    _objective: Optional[float] = None
+    _objective_constant: Optional[float] = None
 
     @classmethod
     def from_yaml(cls, *spec_files):
@@ -33,7 +35,7 @@ class Model(RunSpec):
         add_variables(self._data, self._m)
         self._linear_expressions = add_linear_expressions(self._data, self._m)
         add_constraints(self._data, self._m, self._linear_expressions)
-        add_objective(self._m)
+        self._objective_constant = add_objective(self._m, self._linear_expressions)
 
     def _build(self):
         self._data = self._build_dataset()
@@ -128,8 +130,19 @@ class Model(RunSpec):
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution()
 
+        # rather hacky - constants not currently supported in objective functions:
+        # https://github.com/PyPSA/linopy/issues/236
+        # TODO: find out why and add constant back on: + self._objective_constant
+        self._objective = self._solution.TotalDiscountedCost.sum().values
+
         return True
 
     @property
     def solution(self):
         return self._solution
+
+    @property
+    def objective(self):
+        if not self._objective:
+            raise ValueError("Model has not been solved yet or the solution is not optimal.")
+        return self._objective

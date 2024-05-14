@@ -40,7 +40,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
         )
     )
-    AnnualFixedOperatingCost = m["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
+    AnnualFixedOperatingCost = lex["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
     OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
     # salvage value
@@ -58,6 +58,60 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (SV2Numerator / SV2Denominator))
 
+    # costs
+    DiscountedOperatingCost = OperatingCost / DiscountFactorMid
+
+    DiscountedCapitalInvestment = CapitalInvestment / DiscountFactor
+
+    sv1_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRateIdv"] > 0)
+    )
+    sv2_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRateIdv"] == 0)
+    ) | (
+        (ds["DepreciationMethod"] == 2)
+        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
+    )
+
+    SalvageValue = (
+        m["NewCapacity"] * SV1Cost.where(sv1_mask) + m["NewCapacity"] * SV2Cost.where(sv2_mask)
+    ).fillna(0)
+
+    DiscountedSalvageValue = SalvageValue / DiscountFactorSalvage
+
+    TotalDiscountedCostByTechnology = (
+        DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
+    )
+
+    if ds["EMISSION"].size > 0:
+        DiscountedTechnologyEmissionsPenalty = (
+            lex["AnnualTechnologyEmissionsPenalty"] / DiscountFactorMid
+        )
+
+        TotalDiscountedCostByTechnology = (
+            TotalDiscountedCostByTechnology + DiscountedTechnologyEmissionsPenalty
+        )
+
+        lex.update(
+            {
+                "DiscountedTechnologyEmissionsPenalty": DiscountedTechnologyEmissionsPenalty,
+            }
+        )
+
+    if ds["STORAGE"].size > 0:
+        # total costs with storage
+        TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY") + m[
+            "TotalDiscountedStorageCost"
+        ].sum("STORAGE")
+
+    else:
+        # total costs without storage
+        TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY")
+
     lex.update(
         {
             "DiscountFactor": DiscountFactor,
@@ -69,7 +123,13 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "AnnualVariableOperatingCost": AnnualVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
+            "DiscountedOperatingCost": DiscountedOperatingCost,
+            "DiscountedCapitalInvestment": DiscountedCapitalInvestment,
+            "DiscountedSalvageValue": DiscountedSalvageValue,
+            "TotalDiscountedCostByTechnology": TotalDiscountedCostByTechnology,
+            "TotalDiscountedCost": TotalDiscountedCost,
             "SV1Cost": SV1Cost,
             "SV2Cost": SV2Cost,
+            "SalvageValue": SalvageValue,
         }
     )

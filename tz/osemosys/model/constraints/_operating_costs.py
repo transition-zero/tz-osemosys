@@ -55,6 +55,7 @@ def add_operating_costs_constraints(
     ```
     """
 
-    con = (lex["OperatingCost"] / lex["DiscountFactorMid"]) - m["DiscountedOperatingCost"] == 0
-    m.add_constraints(con, name="OC4_DiscountedOperatingCostsTotalAnnual")
+    # NOTE: These constraints have all been replaced by linear expressions in other constraints
+    #       This file remains just for reference
+
     return m

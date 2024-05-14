@@ -37,7 +37,13 @@ def add_capacity_adequacy_b_constraints(
 
     mask = ds["AvailabilityFactor"] < 1
     con = (lex["RateOfTotalActivity"] * ds["YearSplit"]).sum(dims="TIMESLICE") - (
-        (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["YearSplit"]).sum(dims="TIMESLICE")
+        (
+            lex["TotalCapacityAnnual"].assign_coords(
+                {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
+            )
+            * ds["CapacityFactor"]
+            * ds["YearSplit"]
+        ).sum(dims="TIMESLICE")
         * ds["AvailabilityFactor"]
         * ds["CapacityToActivityUnit"]
     ) <= 0
