@@ -230,6 +230,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     """
 
     model_config = ConfigDict(extra="forbid")
+    __resource_name__ = "technology"
+    __pluralised__ = "technologies"
 
     # REQUIRED PARAMETERS
     # -----
@@ -242,7 +244,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # REQUIRED PARAMETERS WITH DEFAULTS
     # -----
     capex: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_capex))
-    opex_fixed: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.technology_opex_fixed_cost))
+    opex_fixed: OSeMOSYSData.RY = Field(
+        OSeMOSYSData.RY(defaults.technology_opex_fixed_cost)
+    )
     residual_capacity: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_residual_capacity)
     )
@@ -252,7 +256,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     availability_factor: OSeMOSYSData.RY = Field(
         OSeMOSYSData.RY(defaults.technology_availability_factor)
     )
-    capacity_factor: OSeMOSYSData.RYS = Field(OSeMOSYSData.RYS(defaults.technology_capacity_factor))
+    capacity_factor: OSeMOSYSData.RYS = Field(
+        OSeMOSYSData.RYS(defaults.technology_capacity_factor)
+    )
 
     # NON-REQUIRED PARAMETERS
 
@@ -326,15 +332,23 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
         #         raise ValueError(
         #           "Minimum gross capacity is not less than maximum gross capacity.")
 
-        if self.capacity_additional_min is not None and self.capacity_additional_max is not None:
+        if (
+            self.capacity_additional_min is not None
+            and self.capacity_additional_max is not None
+        ):
             if not check_min_vals_lower_max(
                 self.capacity_additional_min,
                 self.capacity_additional_max,
                 ["REGION", "YEAR", "VALUE"],
             ):
-                raise ValueError("Minimum gross capacity is not less than maximum gross capacity.")
+                raise ValueError(
+                    "Minimum gross capacity is not less than maximum gross capacity."
+                )
 
-        if self.activity_annual_min is not None and self.activity_annual_max is not None:
+        if (
+            self.activity_annual_min is not None
+            and self.activity_annual_max is not None
+        ):
             if not check_min_vals_lower_max(
                 self.activity_annual_min,
                 self.activity_annual_max,
@@ -350,6 +364,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
                 self.activity_total_max,
                 ["REGION", "VALUE"],
             ):
-                raise ValueError("Minimum total activity is not less than maximum total activity.")
+                raise ValueError(
+                    "Minimum total activity is not less than maximum total activity."
+                )
 
         return self
