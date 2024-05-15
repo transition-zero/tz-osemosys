@@ -25,9 +25,14 @@ def check_min_vals_lower_max(min_data, max_data, columns):
         bool: True if all data in max_data is >= corresponding data in min_data, otherwise False
     """
     # Convert JSON style data to dataframes
-    min_df = pd.json_normalize(min_data.data)
-    max_df = pd.json_normalize(max_data.data)
 
+    min_df = pd.json_normalize(min_data.data).T.reset_index()
+    min_df[["0", "1"]] = min_df["index"].str.split(".", expand=True)
+    min_df = min_df.drop(columns=["index"]).reindex(columns=["0", "1", 0])
+
+    max_df = pd.json_normalize(max_data.data).T.reset_index()
+    max_df[["0", "1"]] = max_df["index"].str.split(".", expand=True)
+    max_df = max_df.drop(columns=["index"]).reindex(columns=["0", "1", 0])
     if len(min_df.columns) == 1:
         min_df.columns = ["VALUE_min"]
     else:
