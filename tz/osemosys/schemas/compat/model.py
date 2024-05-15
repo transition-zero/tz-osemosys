@@ -15,6 +15,7 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.transmission import Transmission
 from tz.osemosys.schemas.validation.timedefinition_validation import time_adj_to_list
 from tz.osemosys.utils import flatten, group_to_json
 
@@ -108,7 +109,7 @@ class RunSpecOtoole(BaseModel):
             if not df_name.isupper():
                 data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
 
-        for obj in Impact, Region, Technology, Commodity, TimeDefinition, self:
+        for obj in Impact, Technology, Commodity, TimeDefinition, Transmission, self:
             for stem, params in obj.otoole_stems.items():
                 if stem not in data_dfs.keys():
                     data_dfs[stem] = pd.DataFrame(columns=params["columns"]).set_index(
@@ -189,12 +190,10 @@ class RunSpecOtoole(BaseModel):
         storage = Storage.from_otoole_csv(root_dir=root_dir)
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
+        transmission = Transmission.from_otoole_csv(root_dir=root_dir)
 
         otoole_cfg.empty_dfs += list(
             set(flatten([impact.otoole_cfg.empty_dfs for impact in impacts]))
-        )
-        otoole_cfg.empty_dfs += list(
-            set(flatten([region.otoole_cfg.empty_dfs for region in regions]))
         )
         otoole_cfg.empty_dfs += list(
             set(flatten([technology.otoole_cfg.empty_dfs for technology in technologies]))
@@ -336,6 +335,7 @@ class RunSpecOtoole(BaseModel):
             storage=storage,
             commodities=commodities,
             time_definition=time_definition,
+            transmission=transmission,
             otoole_cfg=otoole_cfg,
         )
 
@@ -479,6 +479,8 @@ class RunSpecOtoole(BaseModel):
         dfs.update(self.time_definition.to_dataframes())
         if self.storage is not None:
             dfs.update(Storage.to_dataframes(storage=self.storage))
+        if self.transmission is not None:
+            dfs.update(self.transmission.to_dataframes())
 
         return dfs
 
@@ -493,6 +495,8 @@ class RunSpecOtoole(BaseModel):
         self.time_definition.to_otoole_csv(output_directory=output_directory)
         if self.storage is not None:
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
+        if self.transmission is not None:
+            self.transmission.to_otoole_csv(output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

@@ -17,6 +17,7 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.transmission import Transmission
 from tz.osemosys.schemas.validation.model_composition import (
     check_tech_consuming_commodity,
     check_tech_linked_to_storage,
@@ -191,6 +192,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
+    transmission: Transmission | None = Field(None)
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
     storage: List[Storage] | None = Field(None)
@@ -306,6 +308,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
         if self.storage:
             self.storage = [storage.compose(**sets) for storage in self.storage]
+        if self.transmission:
+            self.transmission = self.transmission.compose(**sets)
 
         # compose own parameters
         if self.depreciation_method:

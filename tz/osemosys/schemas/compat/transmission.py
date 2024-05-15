@@ -20,28 +20,28 @@ class OtooleTransmission(BaseModel):
     otoole_cfg: OtooleCfg | None = Field(default=None)
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "TradeRoute": {
-            "attribute": "year_split",
-            "columns": ["TIMESLICE", "YEAR", "VALUE"],
+            "attribute": "trade_routes",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "TradeLossBetweenRegions": {
-            "attribute": "day_split",
-            "columns": ["DAILYTIMEBRACKET", "YEAR", "VALUE"],
+            "attribute": "trade_loss",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "TotalAnnualMaxTradeInvestment": {
-            "attribute": "days_in_day_type",
-            "columns": ["SEASON", "DAYTYPE", "YEAR", "VALUE"],
+            "attribute": "capacity_additional_max",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "ResidualTradeCapacity": {
-            "attribute": "timeslice_in_timebracket",
-            "columns": ["TIMESLICE", "DAILYTIMEBRACKET", "VALUE"],
+            "attribute": "residual_capacity",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "OperationalLifeTrade": {
-            "attribute": "timeslice_in_daytype",
-            "columns": ["TIMESLICE", "DAYTYPE", "VALUE"],
+            "attribute": "operational_life",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "CapitalCostTrade": {
-            "attribute": "timeslice_in_season",
-            "columns": ["TIMESLICE", "SEASON", "VALUE"],
+            "attribute": "capex",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
     }
 
@@ -80,13 +80,13 @@ class OtooleTransmission(BaseModel):
         #####################
 
         # Rename _REGION to LINKED_REGION
-        for df in dfs:
-            df = df.rename(columns={"_REGION": "LINKED_REGION"})
+        for name, df in dfs.items():
+            dfs[name] = df.rename(columns={"_REGION": "LINKED_REGION"})
 
         return cls(
             id=Path(root_dir).name,
             trade_routes=(
-                OSeMOSYSData.RRCY(
+                OSeMOSYSData.RRCY.Bool(
                     group_to_json(
                         g=dfs["TradeRoute"],
                         data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
@@ -141,7 +141,7 @@ class OtooleTransmission(BaseModel):
                 else None
             ),
             operational_life=(
-                OSeMOSYSData.RRCY(
+                OSeMOSYSData.RRCY.Int(
                     group_to_json(
                         g=dfs["OperationalLifeTrade"],
                         data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
@@ -162,61 +162,50 @@ class OtooleTransmission(BaseModel):
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
+            df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
             dfs["TradeRoute"] = df
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
+        if self.trade_loss is not None:
+            df = pd.json_normalize(self.trade_loss.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            dfs["TradeRoute"] = df
+            dfs["TradeLossBetweenRegions"] = df
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
+        if self.capacity_additional_max is not None:
+            df = pd.json_normalize(self.capacity_additional_max.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            dfs["TradeRoute"] = df
+            dfs["TotalAnnualMaxTradeInvestment"] = df
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
+        if self.residual_capacity is not None:
+            df = pd.json_normalize(self.residual_capacity.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            dfs["TradeRoute"] = df
+            dfs["ResidualTradeCapacity"] = df
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
+        if self.operational_life is not None:
+            df = pd.json_normalize(self.operational_life.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            dfs["TradeRoute"] = df
+            dfs["OperationalLifeTrade"] = df
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
+        if self.capex is not None:
+            df = pd.json_normalize(self.capex.data).T.rename(columns={0: "VALUE"})
             df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
-            dfs["TradeRoute"] = df
-
-            # "TradeRoute"
-
-        # "TradeLossBetweenRegions": {
-
-        # "TotalAnnualMaxTradeInvestment": {
-
-        # "ResidualTradeCapacity": {
-
-        # "OperationalLifeTrade": {
-
-        # "CapitalCostTrade": {
+            dfs["CapitalCostTrade"] = df
 
         return dfs
 
     def to_otoole_csv(self, output_directory):
 
-        dfs = self.to_dataframes(self)
+        dfs = self.to_dataframes()
 
         for stem, _params in self.otoole_stems.items():
             if stem not in self.otoole_cfg.empty_dfs:
-                dfs(stem).to_csv(Path(output_directory) / f"{stem}.csv", index=False)
+                dfs[stem].to_csv(Path(output_directory) / f"{stem}.csv", index=False)
