@@ -271,18 +271,6 @@ def group_to_json(
     return orjson.loads(orjson.dumps(d, option=orjson.OPT_NON_STR_KEYS))
 
 
-def json_dict_to_dataframe(data: dict) -> pd.DataFrame:
-    """Transforms json data to a pandas DataFrame.
-
-    Args:
-        data (dict): JSON data to be transformed.
-
-    Returns:
-        pd.DataFrame: The transformed DataFrame.
-    """
-    return pd.json_normalize(data, record_path=None, meta=None, record_prefix=None)
-
-
 def add_instance_data_to_output_dfs(
     instance, output_dfs, otoole_stems, root_column=None
 ):

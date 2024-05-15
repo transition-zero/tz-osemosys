@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from tz.osemosys.utils import json_dict_to_dataframe
-
 
 def check_sums_one(data, leniency, cols, cols_to_groupby):
-    data_df = json_dict_to_dataframe(data)
+    data_df = pd.json_normalize(data)
     data_df.columns = cols
-    assert np.allclose(data_df.groupby(cols_to_groupby)["VALUE"].sum(), 1, atol=leniency), (
+    assert np.allclose(
+        data_df.groupby(cols_to_groupby)["VALUE"].sum(), 1, atol=leniency
+    ), (
         f"demand_profile must sum to one (within {leniency}) for all REGION,"
         f" YEAR, and commodity; commodity {id} does not"
     )
@@ -25,8 +25,8 @@ def check_min_vals_lower_max(min_data, max_data, columns):
         bool: True if all data in max_data is >= corresponding data in min_data, otherwise False
     """
     # Convert JSON style data to dataframes
-    min_df = json_dict_to_dataframe(min_data.data)
-    max_df = json_dict_to_dataframe(max_data.data)
+    min_df = pd.json_normalize(min_data.data)
+    max_df = pd.json_normalize(max_data.data)
 
     if len(min_df.columns) == 1:
         min_df.columns = ["VALUE_min"]
