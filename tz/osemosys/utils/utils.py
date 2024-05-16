@@ -282,7 +282,8 @@ def json_dict_to_dataframe(data, prefix=""):
         DataFrame: data in pandas DataFrame format
     """
 
-    if isinstance(data, dict):
+    # Check if data is not empty
+    if isinstance(data, dict) and len(data) > 0:
         # If data is a dictionary, iterate through its items
         result = pd.DataFrame()
         for key, value in data.items():
@@ -295,7 +296,6 @@ def json_dict_to_dataframe(data, prefix=""):
             result = result.T
             result = result.reset_index()
 
-            # Fix here
             result = pd.concat([result["index"].str.split("-", expand=True), result[0]], axis=1)
             return result
         else:
