@@ -103,20 +103,27 @@ def add_energy_balance_a_constraints(
         Production[r,l,f,y]
         >=
         Demand[r,l,f,y] + Use[r,l,f,y] + sum{rr in REGION} Trade[r,rr,l,f,y] * TradeRoute[r,rr,f,y];
+
+    s.t. EBa12_EnergyBalanceEachTS5{
+        r in REGION, l in TIMESLICE, f in FUEL, y in YEAR}:
+        Production[r,l,f,y]
+        >=
+        Demand[r,l,f,y] + Use[r,l,f,y] + sum{rr in REGION} Trade[r,rr,l,f,y] * TradeRoute[r,rr,f,y];
+
     ```
     """
-    tr = ds["TradeRoute"]
-    from_mask = tr.where(tr.REGION != tr._REGION).notnull()
-    to_mask = tr.where(tr._REGION != tr.REGION).notnull()
-    con = m["Trade"].where(from_mask) + m["Trade"].where(to_mask) == 0
-    m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4")
+    con = m["Export"] == m["Import"]
+    m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_trn")
+
+    con = m["NetTrade"] == (m["Export"] * ds["TradeLossBetweenRegions"]) - m["Import"]
+    m.add_constraints(con, name="EBa12")
 
     # Constraint
     con = (
         lex["Production"]
         - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
         - lex["Use"]
-        - (m["Trade"] * ds["TradeRoute"].fillna(0)).sum(dims="_REGION")
+        - m["NetTrade"]
     ) >= 0
-    m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_alt")
+    m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_trn")
     return m
