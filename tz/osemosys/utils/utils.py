@@ -152,7 +152,9 @@ def nested_dict_get(obj, list_of_attrs, original_list_of_vars):
         try:
             obj[list_of_attrs[0]]
         except KeyError:
-            raise exceptions.MissingVar(f"Missing var: {'.'.join(original_list_of_vars)}")
+            raise exceptions.MissingVar(
+                f"Missing var: {'.'.join(original_list_of_vars)}"
+            )
         except Exception as e:
             raise e
     else:
@@ -197,8 +199,8 @@ def _fill_d(d, target_column, data_columns, t):
         if len(data_columns) == 1:
             d[str(getattr(t, data_columns[0]))] = getattr(t, target_column)
         elif len(data_columns) == 2:
-            d[str(getattr(t, data_columns[0]))][str(getattr(t, data_columns[1]))] = getattr(
-                t, target_column
+            d[str(getattr(t, data_columns[0]))][str(getattr(t, data_columns[1]))] = (
+                getattr(t, target_column)
             )
         elif len(data_columns) == 3:
             d[(getattr(t, data_columns[0]))][str(getattr(t, data_columns[1]))][
@@ -294,7 +296,11 @@ def json_dict_to_dataframe(data, prefix=""):
         ):  # Execute this step if all iterations complete and final result ready to be returned
             result = result.T
             result = result.reset_index()
-            result = pd.concat([result["index"].str.split("-", expand=True), result[0]], axis=1)
+
+            # Fix here
+            result = pd.concat(
+                [result["index"].str.split("-", expand=True), result[0]], axis=1
+            )
             return result
         else:
             return result
@@ -304,7 +310,9 @@ def json_dict_to_dataframe(data, prefix=""):
         return pd.DataFrame({prefix: [data]})
 
 
-def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column=None):
+def add_instance_data_to_output_dfs(
+    instance, output_dfs, otoole_stems, root_column=None
+):
     """Add data from the given class instance to the given output dfs, returning the modified dfs
     If root_column is given, add root_column as a column to the instance data with values of self.id
     (to account for data from multiple instances, e.g. technology, being added to the same df)
@@ -329,7 +337,9 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
             if isinstance(getattr(instance, f"{sub_attribute}"), list):
                 data = pd.DataFrame({"VALUE": getattr(instance, f"{sub_attribute}")})
             else:
-                data = json_dict_to_dataframe(getattr(instance, f"{sub_attribute}").data)
+                data = json_dict_to_dataframe(
+                    getattr(instance, f"{sub_attribute}").data
+                )
 
             columns = otoole_stems[output_file]["columns"][:]
             if root_column is not None:
@@ -358,10 +368,22 @@ def to_df_helper(self):
     """
     # Attribute and root column names
     attributes = {
-        "time_definition": {"otoole_stems": self.time_definition.otoole_stems, "root_column": None},
-        "regions": {"otoole_stems": self.regions[0].otoole_stems, "root_column": "REGION"},
-        "commodities": {"otoole_stems": self.commodities[0].otoole_stems, "root_column": "FUEL"},
-        "impacts": {"otoole_stems": self.impacts[0].otoole_stems, "root_column": "EMISSION"},
+        "time_definition": {
+            "otoole_stems": self.time_definition.otoole_stems,
+            "root_column": None,
+        },
+        "regions": {
+            "otoole_stems": self.regions[0].otoole_stems,
+            "root_column": "REGION",
+        },
+        "commodities": {
+            "otoole_stems": self.commodities[0].otoole_stems,
+            "root_column": "FUEL",
+        },
+        "impacts": {
+            "otoole_stems": self.impacts[0].otoole_stems,
+            "root_column": "EMISSION",
+        },
         "technologies": {
             "otoole_stems": self.technologies[0].otoole_stems,
             "root_column": "TECHNOLOGY",
@@ -387,7 +409,9 @@ def to_df_helper(self):
         # Add data to output dfs iteratively for attributes with multiple instances (eg. impacts)
         if isinstance(getattr(self, f"{attribute}"), list):
             if root_column is None:
-                raise ValueError("root_column is required for attributes with multiple instances")
+                raise ValueError(
+                    "root_column is required for attributes with multiple instances"
+                )
             id_list = []
             for instance in getattr(self, f"{attribute}"):
                 id_list.append(instance.id)
