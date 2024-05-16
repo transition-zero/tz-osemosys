@@ -50,7 +50,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     )
     CapitalInvestmentTrade = (
         ds["CapitalCostTrade"].fillna(0)
-        * m["NewCapacityTrade"]
+        * m["NewTradeCapacity"]
         * CapitalRecoveryFactorTrade
         * PVAnnuityTrade
     )
@@ -145,8 +145,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     )
 
     SalvageValueTrade = (
-        m["NewCapacityTrade"] * SV1CostTrade.where(sv1_mask)
-        + m["NewCapacityTrade"] * SV2CostTrade.where(sv2_mask)
+        m["NewTradeCapacity"] * SV1CostTrade.where(sv1_mask)
+        + m["NewTradeCapacity"] * SV2CostTrade.where(sv2_mask)
     ).fillna(0)
 
     DiscountedSalvageValueTrade = SalvageValueTrade / DiscountFactorSalvageTrade
