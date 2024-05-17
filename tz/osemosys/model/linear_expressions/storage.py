@@ -5,6 +5,11 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
+
+    DiscountFactorStorage = (1 + ds["DiscountRateStorage"]) ** (
+        1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
+    )
+
     ConversionFactor = ds["Conversionlh"] * ds["Conversionld"] * ds["Conversionls"]
 
     RateOfStorageCharge = (
@@ -83,6 +88,34 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     StorageLowerLimit = ds["MinStorageCharge"] * StorageUpperLimit
 
+    NewStorageCapacity = m["NewStorageCapacity"].rename(YEAR="BUILDYEAR")
+
+    mask = (ds.YEAR - NewStorageCapacity.data.BUILDYEAR >= 0) & (
+        ds.YEAR - NewStorageCapacity.data.BUILDYEAR < ds.OperationalLifeStorage
+    )
+
+    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask).sum("BUILDYEAR")
+
+    CapitalInvestmentStorage = ds["CapitalCostStorage"] * m["NewStorageCapacity"]
+    DiscountedCapitalInvestmentStorage = CapitalInvestmentStorage / lex["DiscountFactor"]
+
+    SV1CostStorage = ds["CapitalCostStorage"].fillna(0) * (
+        1 - (lex["SV1Numerator"] / lex["SV1Denominator"])
+    )
+
+    SV2CostStorage = ds["CapitalCostStorage"].fillna(0) * (
+        1 - (lex["SV2Numerator"] / lex["SV2Denominator"])
+    )
+
+    SalvageValueStorage = (
+        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"])
+        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"])
+    ).fillna(0)
+
+    DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage
+
+    TotalDiscountedStorageCost = DiscountedCapitalInvestmentStorage - DiscountedSalvageValueStorage
+
     lex.update(
         {
             "RateOfStorageCharge": RateOfStorageCharge,
@@ -96,5 +129,10 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "StorageLevelDayTypeFinish": StorageLevelDayTypeFinish,
             "StorageUpperLimit": StorageUpperLimit,
             "StorageLowerLimit": StorageLowerLimit,
+            "NewStorageCapacity": NewStorageCapacity,
+            "AccumulatedNewStorageCapacity": AccumulatedNewStorageCapacity,
+            "CapitalInvestmentStorage": CapitalInvestmentStorage,
+            "DiscountedCapitalInvestmentStorage": DiscountedCapitalInvestmentStorage,
+            "TotalDiscountedStorageCost": TotalDiscountedStorageCost,
         }
     )
