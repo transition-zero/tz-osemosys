@@ -61,26 +61,11 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         )
 
     if ds["STORAGE"].size > 0:
-        print(TotalDiscountedCostByTechnology)
-        print(TotalDiscountedCostByTechnology.shape)
-        # breakpoint()
-
-        print(TotalDiscountedCostByTechnology.sum("TECHNOLOGY"))
-        print(TotalDiscountedCostByTechnology.sum("TECHNOLOGY").shape)
-        # breakpoint()
-
-        print(lex["TotalDiscountedStorageCost"].sum("STORAGE"))
-        print(lex["TotalDiscountedStorageCost"].sum("STORAGE").shape)
-        # breakpoint()
 
         # total costs with storage
         TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY") + lex[
             "TotalDiscountedStorageCost"
         ].sum(["STORAGE", "TECHNOLOGY"])
-
-        print(TotalDiscountedCost)
-        print(TotalDiscountedCost.shape)
-        # breakpoint()
 
     else:
         # total costs without storage
