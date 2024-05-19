@@ -121,15 +121,12 @@ def add_energy_balance_a_constraints(
     con = (m["Import"]).where(mask) == 0
     m.add_constraints(con, name="test")
 
-    con = m["NetTrade"] == (m["Export"] * ds["TradeLossBetweenRegions"]) - m["Import"]
-    m.add_constraints(con, name="EBa12")
-
     # Constraint
     con = (
         lex["Production"]
         - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
         - lex["Use"]
-        - m["NetTrade"]
+        - lex["NetTrade"]
     ) >= 0
     m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_trn")
     return m
