@@ -255,117 +255,25 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
     """
     if ds["STORAGE"].size > 0:
 
-        m.add_constraints(
-            m["StorageLevelYearStart"] == lex["StorageLevelYearStart"],
-            name="S5_and_S6_StorageLevelYearStart",
-        )
-        m.add_constraints(
-            m["StorageLevelYearFinish"] == lex["StorageLevelYearFinish"],
-            name="S7_and_S8_StorageLevelYearFinish",
-        )
-        m.add_constraints(
-            m["StorageLevelSeasonStart"] == lex["StorageLevelSeasonStart"],
-            name="S9_and_S10_StorageLevelSeasonStart",
-        )
-        m.add_constraints(
-            m["StorageLevelDayTypeStart"] == lex["StorageLevelDayTypeStart"],
-            name="S11_and_S12_StorageLevelDayTypeStart",
-        )
-        m.add_constraints(
-            m["StorageLevelDayTypeFinish"] == lex["StorageLevelDayTypeFinish"],
-            name="S13_and_S14_and_S15_StorageLevelDayTypeFinish",
-        )
+        # storage level may not exceed gross capacity
+        con = lex["StorageLevel"] <= lex["GrossStorageCapacity"].expand_dims(
+            {"TIMESLICE": ds["TIMESLICE"]}
+        ).stack(YRTS=["YEAR", "TIMESLICE"])
+        m.add_constraints(con, name="StorageGrossCapacitySufficiency")
 
-        # CAPACITY CONSTRAINTS
+        # storage level may not be less than minimum charge
+        if "MinStorageCharge" in ds.data_vars:
+            con = lex["StorageLevel"].fillna(0) >= ds["MinStorageCharge"].expand_dims(
+                {"TIMESLICE": ds["TIMESLICE"]}
+            ).stack(YRTS=["YEAR", "TIMESLICE"])
+            m.add_constraints(con, name="StorageMinimumCharge")
 
-        con = (
-            lex["StorageLevelDayTypeStart"]
-            + lex["NetChargeWithinDay"].shift(DAILYTIMEBRACKET=1).cumsum("DAILYTIMEBRACKET")
-            - lex["StorageLowerLimit"]
-            >= 0
-        )
-        m.add_constraints(con, name="SC1_LowerLimit_BeginningOfFirstWeek")
-
-        con = (
-            lex["StorageLevelDayTypeStart"]
-            + lex["NetChargeWithinDay"].shift(DAILYTIMEBRACKET=1).cumsum("DAILYTIMEBRACKET")
-            - lex["StorageUpperLimit"]
-            <= 0
-        )
-        m.add_constraints(con, name="SC1_UpperLimit_BeginningOfFirstWeek")
-
-        con = (
-            lex["StorageLevelDayTypeStart"]
-            # sum minus cumsum gives the sum of DAILYTIMEBRACKET for all future timebrackets
-            - (
-                lex["NetChargeWithinDay"].shift(DAYTYPE=1).sum("DAILYTIMEBRACKET")
-                - lex["NetChargeWithinDay"].shift(DAYTYPE=1).cumsum("DAILYTIMEBRACKET")
-            )
-            - lex["StorageLowerLimit"]
-            >= 0
-        )
-        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
-        m.add_constraints(con, name="SC2_LowerLimit_EndOfFirstWeek", mask=mask)
-
-        con = (
-            lex["StorageLevelDayTypeStart"]
-            # sum minus cumsum gives the sum of DAILYTIMEBRACKET for all future timebrackets
-            - (
-                lex["NetChargeWithinDay"].shift(DAYTYPE=1).sum("DAILYTIMEBRACKET")
-                - lex["NetChargeWithinDay"].shift(DAYTYPE=1).cumsum("DAILYTIMEBRACKET")
-            )
-            - lex["StorageUpperLimit"]
-            <= 0
-        )
-        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
-        m.add_constraints(con, name="SC2_UpperLimit_EndOfFirstWeek", mask=mask)
-
-        con = (
-            lex["StorageLevelDayTypeFinish"]
-            # sum minus cumsum gives the sum of DAILYTIMEBRACKET for all future timebrackets
-            - (
-                lex["NetChargeWithinDay"].sum("DAILYTIMEBRACKET")
-                - lex["NetChargeWithinDay"].cumsum("DAILYTIMEBRACKET")
-            )
-            - lex["StorageLowerLimit"]
-            >= 0
-        )
-        m.add_constraints(con, name="SC3_LowerLimit_EndOfLastWeek")
-
-        con = (
-            lex["StorageLevelDayTypeFinish"]
-            # sum minus cumsum gives the sum of DAILYTIMEBRACKET for all future timebrackets
-            - (
-                lex["NetChargeWithinDay"].sum("DAILYTIMEBRACKET")
-                - lex["NetChargeWithinDay"].cumsum("DAILYTIMEBRACKET")
-            )
-            - lex["StorageUpperLimit"]
-            <= 0
-        )
-        m.add_constraints(con, name="SC3_UpperLimit_EndOfLastWeek")
-
-        con = (
-            lex["StorageLevelDayTypeFinish"].shift(DAYTYPE=1)
-            + lex["NetChargeWithinDay"].shift(DAILYTIMEBRACKET=1).cumsum("DAILYTIMEBRACKET")
-            - lex["StorageLowerLimit"]
-            >= 0
-        )
-        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
-        m.add_constraints(con, name="SC4_LowerLimit_BeginningOfLastWeek", mask=mask)
-
-        con = (
-            lex["StorageLevelDayTypeFinish"].shift(DAYTYPE=1)
-            + lex["NetChargeWithinDay"].shift(DAILYTIMEBRACKET=1).cumsum("DAILYTIMEBRACKET")
-            - lex["StorageUpperLimit"]
-            <= 0
-        )
-        mask = ds["DAYTYPE"] != ds["DAYTYPE"][0]
-        m.add_constraints(con, name="SC4_UpperLimit_BeginningOfLastWeek", mask=mask)
-
+        # storage charge rate may not exceed max charge rate
         if "StorageMaxChargeRate" in ds.data_vars:
             con = lex["RateOfStorageCharge"] <= ds["StorageMaxChargeRate"]
             m.add_constraints(con, name="SC5_MaxChargeConstraint")
 
+        # # storage discharge rate may not exceed max discharge rate
         if "StorageMaxDischargeRate" in ds.data_vars:
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
