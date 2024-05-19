@@ -1,6 +1,6 @@
 import numpy as np
 
-from tz.osemosys import Model
+from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
 
 EXAMPLE_YAML = "examples/utopia/main.yaml"
 
@@ -49,3 +49,82 @@ def test_most_simple():
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 45736.0
+
+
+def test_simple_storage():
+
+    time_definition = TimeDefinition(
+        id="years-only",
+        years=range(2020, 2030),
+        seasons=[1],
+        day_types=[1],
+        daily_time_steps=[1, 2],
+        timeslices=["D", "N"],
+        timeslice_in_season={"D": 1, "N": 1},
+        timeslice_in_daytype={"D": 1, "N": 1},
+        timeslice_in_timebracket={"D": 1, "N": 2},
+        year_split={"D": 0.5, "N": 0.5},
+    )
+    regions = [Region(id="single-region")]
+    commodities = [
+        Commodity(id="electricity", demand_annual=25, demand_profile={"D": 0.5, "N": 0.5})
+    ]
+    impacts = []
+    technologies = [
+        Technology(
+            id="solar-pv",
+            operating_life=2,  # years
+            capex=10,
+            capacity_factor={"D": 1, "N": 0},
+            operating_modes=[
+                OperatingMode(
+                    id="generation", opex_variable=0.0, output_activity_ratio={"electricity": 1.0}
+                )
+            ],
+        ),
+        Technology(
+            id="bat-tech",
+            operating_life=3,
+            capex=20,
+            operating_modes=[
+                OperatingMode(
+                    id="charge",
+                    opex_variable=0,
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge",
+                    opex_variable=0,
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage": True}},
+                ),
+            ],
+        ),
+    ]
+
+    storage = [
+        Storage(
+            id="bat-storage",
+            capex=0.01,
+            operating_life=100,
+            residual_capacity=0,
+        )
+    ]
+
+    model = Model(
+        id="simple-carbon-price",
+        time_definition=time_definition,
+        regions=regions,
+        commodities=commodities,
+        impacts=impacts,
+        storage=storage,
+        technologies=technologies,
+    )
+
+    model.solve()
+
+    print(model.solution.NewStorageCapacity.values)
+
+    assert model.solution.NewStorageCapacity.values[0][0][0] == 25.0
+    assert np.round(model.objective) == 3495.0
