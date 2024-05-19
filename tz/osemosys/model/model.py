@@ -43,6 +43,7 @@ class Model(RunSpec):
 
     def _get_solution(self):
 
+        # construct duals separately
         duals = xr.Dataset(
             {
                 key: getattr(self._m.constraints, key).dual
@@ -96,15 +97,27 @@ class Model(RunSpec):
                 )
             )
 
-        return self._m.solution.merge(
+        # also merge on StorageLevel after unstacking
+        solution = self._m.solution.merge(
             xr.Dataset(
                 {
                     k: v.solution
                     for k, v in self._linear_expressions.items()
-                    if (k not in self._m.solution) and hasattr(v, "solution")
+                    if (
+                        (k not in self._m.solution)
+                        and (hasattr(v, "solution"))
+                        and ("YRTS" not in v.coords)
+                    )
                 }
             )
         ).merge(duals)
+
+        if "StorageLevel" in self._linear_expressions:
+            solution = solution.merge(
+                self._linear_expressions["StorageLevel"].solution.unstack("YRTS")
+            )
+
+        return solution
 
     def solve(
         self,
