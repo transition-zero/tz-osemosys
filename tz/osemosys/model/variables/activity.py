@@ -52,6 +52,5 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
 
     m.add_variables(lower=0, upper=inf, coords=RRTiFY, name="Export", integer=False)
     m.add_variables(lower=0, upper=inf, coords=RRTiFY_rev, name="Import", integer=False)
-    m.add_variables(lower=-inf, upper=inf, coords=RTiFY, name="NetTrade", integer=False)
 
     return m
