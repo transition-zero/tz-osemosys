@@ -124,7 +124,5 @@ def test_simple_storage():
 
     model.solve()
 
-    print(model.solution.NewStorageCapacity.values)
-
     assert model.solution.NewStorageCapacity.values[0][0][0] == 25.0
     assert np.round(model.objective) == 3495.0
