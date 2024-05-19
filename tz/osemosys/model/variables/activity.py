@@ -32,12 +32,6 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
         ds.coords["FUEL"],
         ds.coords["YEAR"],
     ]
-    RTiFY = [
-        ds.coords["REGION"],
-        ds.coords["TIMESLICE"],
-        ds.coords["FUEL"],
-        ds.coords["YEAR"],
-    ]
     RTiTeMY = [
         ds.coords["REGION"],
         ds.coords["TIMESLICE"],
