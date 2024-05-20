@@ -114,7 +114,9 @@ class Model(RunSpec):
 
         if "StorageLevel" in self._linear_expressions:
             solution = solution.merge(
-                self._linear_expressions["StorageLevel"].solution.unstack("YRTS")
+                self._linear_expressions["StorageLevel"]
+                .solution.unstack("YRTS")
+                .rename("StorageLevel")
             )
 
         return solution
