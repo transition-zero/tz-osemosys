@@ -12,6 +12,43 @@ from tz.osemosys.model.objective import add_objective
 from tz.osemosys.model.variables import add_variables
 from tz.osemosys.schemas import RunSpec
 
+SOLUTION_KEYS = [
+    "AccumulatedNewCapacity",
+    "AccumulatedNewStorageCapacity",
+    "AnnualFixedOperatingCost",
+    "AnnualVariableOperatingCost",
+    "CapitalInvestment",
+    "CapitalInvestmentStorage",
+    "DemandNeedingReserveMargin",
+    "DiscountedCapitalInvestment",
+    "DiscountedCapitalInvestmentStorage",
+    "DiscountedOperatingCost",
+    "DiscountedSalvageValue",
+    "GrossStorageCapacity",
+    "NetCharge",
+    "NewCapacity",
+    "NewStorageCapacity",
+    "NumberOfNewTechnologyUnits",
+    "OperatingCost",
+    "Production",
+    "SalvageValue",
+    "StorageLevel",
+    "TotalAnnualTechnologyActivityByMode",
+    "TotalCapacityAnnual",
+    "TotalCapacityInReserveMargin",
+    "TotalDiscountedCost",
+    "TotalDiscountedCostByTechnology",
+    "TotalDiscountedStorageCost",
+    "TotalTechnologyAnnualActivity",
+    "TotalTechnologyModelPeriodActivity",
+    "Trade",
+    "Use",
+    "marginal_cost_of_demand",
+    "marginal_cost_of_demand_annual",
+    "marginal_cost_of_emissions_total",
+    "marginal_cost_of_emissions_annual",
+]
+
 
 class Model(RunSpec):
     _data: xr.Dataset
@@ -41,7 +78,7 @@ class Model(RunSpec):
         self._data = self._build_dataset()
         self._build_model()
 
-    def _get_solution(self):
+    def _get_solution(self, solution_vars: list[str] | str | None = None):
 
         # construct duals separately
         duals = xr.Dataset(
@@ -98,7 +135,7 @@ class Model(RunSpec):
             )
 
         # also merge on StorageLevel after unstacking
-        solution = self._m.solution.merge(
+        solution_base = self._m.solution.merge(
             xr.Dataset(
                 {
                     k: v.solution
@@ -113,13 +150,27 @@ class Model(RunSpec):
         ).merge(duals)
 
         if "StorageLevel" in self._linear_expressions:
-            solution = solution.merge(
+            solution_base = solution_base.merge(
                 self._linear_expressions["StorageLevel"]
                 .solution.unstack("YRTS")
                 .rename("StorageLevel")
             )
 
-        return solution
+        if solution_vars is None:
+            return xr.Dataset(
+                {
+                    k: solution_base[k]
+                    for k in sorted(list(solution_base.keys()))
+                    if k in SOLUTION_KEYS
+                }
+            )
+        elif solution_vars == "all":
+            return xr.Dataset({k: solution_base[k] for k in sorted(list(solution_base.keys()))})
+        else:
+            # ensure TotalDiscountedCost is always included
+            if "TotalDiscountedCost" not in solution_vars:
+                solution_vars.append("TotalDiscountedCost")
+            return xr.Dataset({k: solution_base[k] for k in solution_vars})
 
     def solve(
         self,
@@ -127,6 +178,7 @@ class Model(RunSpec):
         lp_path: str | None = None,
         io_api: str = "lp",
         log_fn: str | None = None,
+        solution_vars: list[str] | str | None = None,
     ):
         self._build()
 
@@ -143,7 +195,7 @@ class Model(RunSpec):
         self._m.solve(solver_name=solver, io_api=io_api, log_fn=log_fn)
 
         if self._m.termination_condition == "optimal":
-            self._solution = self._get_solution()
+            self._solution = self._get_solution(solution_vars)
 
         # rather hacky - constants not currently supported in objective functions:
         # https://github.com/PyPSA/linopy/issues/236
