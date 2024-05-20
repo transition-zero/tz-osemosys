@@ -13,8 +13,6 @@ from tz.osemosys.model.variables import add_variables
 from tz.osemosys.schemas import RunSpec
 
 SOLUTION_KEYS = [
-    "AccumulatedNewCapacity",
-    "AccumulatedNewStorageCapacity",
     "AnnualFixedOperatingCost",
     "AnnualVariableOperatingCost",
     "CapitalInvestment",
@@ -34,7 +32,7 @@ SOLUTION_KEYS = [
     "SalvageValue",
     "StorageLevel",
     "TotalAnnualTechnologyActivityByMode",
-    "TotalCapacityAnnual",
+    "GrossCapacity",
     "TotalCapacityInReserveMargin",
     "TotalDiscountedCost",
     "TotalDiscountedCostByTechnology",

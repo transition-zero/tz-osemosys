@@ -61,7 +61,7 @@ def add_capacity_adequacy_a_constraints(
     con = (
         lex["RateOfTotalActivity"]
         - (
-            lex["TotalCapacityAnnual"].assign_coords(
+            lex["GrossCapacity"].assign_coords(
                 {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
             )
             * ds["CapacityFactor"]
