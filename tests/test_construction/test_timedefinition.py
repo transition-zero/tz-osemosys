@@ -1,3 +1,6 @@
+import json
+from tempfile import NamedTemporaryFile
+
 import pytest
 
 from tz.osemosys.schemas.time_definition import TimeDefinition
@@ -93,3 +96,12 @@ def test_timedefinition_construction_failcases():
     for name, params in FAILING_TIME_DEFINITIONS.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
             TimeDefinition(id=name, **params)
+
+
+def test_timedefinition_roundtrip():
+    tmp = NamedTemporaryFile()
+    for name, params in PASSING_TIME_DEFINITIONS.items():
+        td = TimeDefinition(id=name, **params)
+        json.dump(td.model_dump(), open(tmp.name, "w"))
+        td_recovered = TimeDefinition(**json.load(open(tmp.name)))
+        assert td == td_recovered
