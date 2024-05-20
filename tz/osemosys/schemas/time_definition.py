@@ -40,10 +40,14 @@ class TimeAdjacency(BaseModel):
     def inv(self):
         return TimeAdjacency(
             years={v: k for k, v in self.years.items()},
-            seasons={v: k for k, v in self.seasons.items()} if self.seasons else None,
-            day_types=({v: k for k, v in self.day_types.items()} if self.day_types else None),
+            seasons={v: k for k, v in self.seasons.items()} if self.seasons is not None else None,
+            day_types=(
+                {v: k for k, v in self.day_types.items()} if self.day_types is not None else None
+            ),
             time_brackets=(
-                {v: k for k, v in self.time_brackets.items()} if self.time_brackets else None
+                {v: k for k, v in self.time_brackets.items()}
+                if self.time_brackets is not None
+                else None
             ),
             timeslices={v: k for k, v in self.timeslices.items()},
         )
@@ -147,6 +151,12 @@ def construction_from_parts(values: Any):
           - else: raise error for required parameter
     """
 
+    def _first_part_in_timeslice(parts, timeslice):
+        for part in parts:
+            if part in timeslice:
+                return part
+        raise ValueError(f"None of {parts} are in {timeslices}")
+
     # Convert list of int to list of str
     for key in values.keys():
         if isinstance(values[key], list):
@@ -164,32 +174,33 @@ def construction_from_parts(values: Any):
     # build time_brackets/seasons/day_types and link to timeslice if necessary
     if time_brackets:
         values["timeslice_in_timebracket"] = {
-            timeslice: [time_bracket for time_bracket in time_brackets if time_bracket in timeslice]
+            timeslice: _first_part_in_timeslice(time_brackets, timeslice)
             for timeslice in timeslices
         }
     else:
-        values["daily_time_brackets"] = [1]
-        values["timeslice_in_timebracket"] = {timeslice: [1] for timeslice in timeslices}
+        values["daily_time_brackets"] = ["1"]
+        values["timeslice_in_timebracket"] = {timeslice: "1" for timeslice in timeslices}
     if seasons:
         values["timeslice_in_season"] = {
-            timeslice: [season for season in seasons if season in timeslice]
-            for timeslice in timeslices
+            timeslice: _first_part_in_timeslice(seasons, timeslice) for timeslice in timeslices
         }
     else:
-        values["seasons"] = [1]
-        values["timeslice_in_season"] = {timeslice: [1] for timeslice in timeslices}
+        values["seasons"] = ["1"]
+        values["timeslice_in_season"] = {timeslice: "1" for timeslice in timeslices}
     if day_types:
         values["timeslice_in_daytype"] = {
-            timeslice: [day_type for day_type in day_types if day_type in timeslice]
-            for timeslice in timeslices
+            timeslice: _first_part_in_timeslice(day_types, timeslice) for timeslice in timeslices
         }
     else:
-        values["day_types"] = [1]
-        values["timeslice_in_daytype"] = {timeslice: [1] for timeslice in timeslices}
+        values["day_types"] = ["1"]
+        values["timeslice_in_daytype"] = {timeslice: "1" for timeslice in timeslices}
 
     # validate keys on splits, if any, or maybe get parts
     year_split, days_in_day_type, day_split = validate_parts_from_splits(
-        timeslices, day_types, time_brackets, values
+        timeslices,
+        day_types or values["day_types"],
+        time_brackets or values["daily_time_brackets"],
+        values,
     )
     values["year_split"] = year_split
     values["day_split"] = day_split
@@ -200,10 +211,24 @@ def construction_from_parts(values: Any):
     if adj is not None:
         validate_adjacency_keys(adj, timeslices, years, seasons, day_types, time_brackets)
     else:
-        adj = TimeAdjacency(
+        build_adj = dict(
             years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
             timeslices=dict(zip(timeslices[:-1], timeslices[1:])),
         )
+        if seasons is not None:
+            build_adj["seasons"] = (
+                dict(zip(seasons[:-1], seasons[1:])) if len(seasons) > 1 else None
+            )
+        if day_types is not None:
+            build_adj["day_types"] = (
+                dict(zip(day_types[:-1], day_types[1:])) if len(day_types) > 1 else None
+            )
+        if time_brackets is not None:
+            build_adj["time_brackets"] = (
+                dict(zip(time_brackets[:-1], time_brackets[1:])) if len(time_brackets) > 1 else None
+            )
+
+        adj = TimeAdjacency(**build_adj)
         values["adj"] = adj
 
     return values
@@ -216,22 +241,24 @@ def construction_from_years_only(values: Any):
     """
     years = values.get("years")
 
-    values["yearparts"] = [1]
-    values["day_types"] = [1]
-    values["seasons"] = [1]
-    values["timeslices"] = [1]
-    values["daily_time_brackets"] = [1]
-    values["dayparts"] = [1]
+    values["yearparts"] = ["1"]
+    values["day_types"] = ["1"]
+    values["seasons"] = ["1"]
+    values["timeslices"] = ["1"]
+    values["daily_time_brackets"] = ["1"]
+    values["dayparts"] = ["1"]
 
-    values["year_split"] = {1: 1.0}
-    values["day_split"] = {1: 1.0}
-    values["days_in_day_type"] = {1: 1.0}
+    values["year_split"] = {"1": 1.0}
+    values["day_split"] = {"1": 1.0}
+    values["days_in_day_type"] = {"1": 1.0}
 
-    values["timeslice_in_timebracket"] = {1: 1}
-    values["timeslice_in_daytype"] = {1: 1}
-    values["timeslice_in_season"] = {1: 1}
-    values["adj"] = TimeAdjacency.from_years(years)
-    values["adj_inv"] = TimeAdjacency.from_years(years).inv()
+    values["timeslice_in_timebracket"] = {"1": "1"}
+    values["timeslice_in_daytype"] = {"1": "1"}
+    values["timeslice_in_season"] = {"1": "1"}
+    values["adj"] = TimeAdjacency(
+        years=dict(zip(sorted(years)[:-1], sorted(years)[1:])),
+    )
+    values["adj_inv"] = values["adj"].inv()
 
     return values
 

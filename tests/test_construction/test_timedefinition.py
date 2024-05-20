@@ -104,4 +104,5 @@ def test_timedefinition_roundtrip():
         td = TimeDefinition(id=name, **params)
         json.dump(td.model_dump(), open(tmp.name, "w"))
         td_recovered = TimeDefinition(**json.load(open(tmp.name)))
+
         assert td == td_recovered
