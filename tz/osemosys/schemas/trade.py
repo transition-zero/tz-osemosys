@@ -3,12 +3,12 @@ from typing import Any
 from pydantic import Field, model_validator
 
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
-from tz.osemosys.schemas.compat.transmission import OtooleTransmission
+from tz.osemosys.schemas.compat.trade import OtooleTrade
 
 
-class Transmission(OSeMOSYSBase, OtooleTransmission):
+class Trade(OSeMOSYSBase, OtooleTrade):
     """
-    # Transmission
+    # Trade
 
 
     """

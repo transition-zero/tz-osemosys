@@ -9,12 +9,12 @@ from tz.osemosys.schemas.compat.base import OtooleCfg
 from tz.osemosys.utils import group_to_json
 
 if TYPE_CHECKING:
-    from tz.osemosys.schemas.transmission import Transmission
+    from tz.osemosys.schemas.trade import Trade
 
 
-class OtooleTransmission(BaseModel):
+class OtooleTrade(BaseModel):
     """
-    Class to contain methods for converting Transmission data to and from otoole style CSVs
+    Class to contain methods for converting Trade data to and from otoole style CSVs
     """
 
     otoole_cfg: OtooleCfg | None = Field(default=None)
@@ -46,9 +46,9 @@ class OtooleTransmission(BaseModel):
     }
 
     @classmethod
-    def from_otoole_csv(cls, root_dir) -> "Transmission":
+    def from_otoole_csv(cls, root_dir) -> "Trade":
         """
-        Instantiate a single Transmission object containing all relevant data from
+        Instantiate a single Trade object containing all relevant data from
         otoole-organised csvs.
 
         Parameters
@@ -58,8 +58,8 @@ class OtooleTransmission(BaseModel):
 
         Returns
         -------
-        Transmission
-            A single Transmission instance that can be used downstream or dumped to json/yaml
+        Trade
+            A single Trade instance that can be used downstream or dumped to json/yaml
         """
 
         # ###########
