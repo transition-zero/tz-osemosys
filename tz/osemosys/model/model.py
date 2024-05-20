@@ -9,43 +9,9 @@ from tz.osemosys.io.load_model import load_cfg
 from tz.osemosys.model.constraints import add_constraints
 from tz.osemosys.model.linear_expressions import add_linear_expressions
 from tz.osemosys.model.objective import add_objective
+from tz.osemosys.model.solution import build_solution
 from tz.osemosys.model.variables import add_variables
 from tz.osemosys.schemas import RunSpec
-
-SOLUTION_KEYS = [
-    "AnnualFixedOperatingCost",
-    "AnnualVariableOperatingCost",
-    "CapitalInvestment",
-    "CapitalInvestmentStorage",
-    "DemandNeedingReserveMargin",
-    "DiscountedCapitalInvestment",
-    "DiscountedCapitalInvestmentStorage",
-    "DiscountedOperatingCost",
-    "DiscountedSalvageValue",
-    "GrossStorageCapacity",
-    "NetCharge",
-    "NewCapacity",
-    "NewStorageCapacity",
-    "NumberOfNewTechnologyUnits",
-    "OperatingCost",
-    "Production",
-    "SalvageValue",
-    "StorageLevel",
-    "TotalAnnualTechnologyActivityByMode",
-    "GrossCapacity",
-    "TotalCapacityInReserveMargin",
-    "TotalDiscountedCost",
-    "TotalDiscountedCostByTechnology",
-    "TotalDiscountedStorageCost",
-    "TotalTechnologyAnnualActivity",
-    "TotalTechnologyModelPeriodActivity",
-    "Trade",
-    "Use",
-    "marginal_cost_of_demand",
-    "marginal_cost_of_demand_annual",
-    "marginal_cost_of_emissions_total",
-    "marginal_cost_of_emissions_annual",
-]
 
 
 class Model(RunSpec):
@@ -77,98 +43,7 @@ class Model(RunSpec):
         self._build_model()
 
     def _get_solution(self, solution_vars: list[str] | str | None = None):
-
-        # construct duals separately
-        duals = xr.Dataset(
-            {
-                key: getattr(self._m.constraints, key).dual
-                for key in [
-                    "EBa11_EnergyBalanceEachTS5_alt",
-                    "EBb4_EnergyBalanceEachYear4",
-                ]
-            }
-        )
-
-        duals = duals.merge(
-            xr.Dataset(
-                {
-                    key: getattr(self._m.constraints, key).dual
-                    for key in [
-                        "E8_AnnualEmissionsLimit",
-                        "E9_ModelPeriodEmissionsLimit",
-                    ]
-                    if hasattr(self._m.constraints, key)
-                }
-            )
-        )
-
-        duals = duals.rename(
-            dict(
-                zip(
-                    [
-                        "EBa11_EnergyBalanceEachTS5_alt",
-                        "EBb4_EnergyBalanceEachYear4",
-                    ],
-                    [
-                        "marginal_cost_of_demand",
-                        "marginal_cost_of_demand_annual",
-                    ],
-                )
-            )
-        )
-        if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals:
-            duals = duals.rename(
-                dict(
-                    zip(
-                        [
-                            "E8_AnnualEmissionsLimit",
-                            "E9_ModelPeriodEmissionsLimit",
-                        ],
-                        [
-                            "marginal_cost_of_emissions_annual",
-                            "marginal_cost_of_emissions_total",
-                        ],
-                    )
-                )
-            )
-
-        # also merge on StorageLevel after unstacking
-        solution_base = self._m.solution.merge(
-            xr.Dataset(
-                {
-                    k: v.solution
-                    for k, v in self._linear_expressions.items()
-                    if (
-                        (k not in self._m.solution)
-                        and (hasattr(v, "solution"))
-                        and ("YRTS" not in v.coords)
-                    )
-                }
-            )
-        ).merge(duals)
-
-        if "StorageLevel" in self._linear_expressions:
-            solution_base = solution_base.merge(
-                self._linear_expressions["StorageLevel"]
-                .solution.unstack("YRTS")
-                .rename("StorageLevel")
-            )
-
-        if solution_vars is None:
-            return xr.Dataset(
-                {
-                    k: solution_base[k]
-                    for k in sorted(list(solution_base.keys()))
-                    if k in SOLUTION_KEYS
-                }
-            )
-        elif solution_vars == "all":
-            return xr.Dataset({k: solution_base[k] for k in sorted(list(solution_base.keys()))})
-        else:
-            # ensure TotalDiscountedCost is always included
-            if "TotalDiscountedCost" not in solution_vars:
-                solution_vars.append("TotalDiscountedCost")
-            return xr.Dataset({k: solution_base[k] for k in solution_vars})
+        return build_solution(self._m, self._linear_expressions, solution_vars)
 
     def solve(
         self,
