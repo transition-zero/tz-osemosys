@@ -289,7 +289,13 @@ class OSeMOSYSData(BaseModel):
                     "If initialising via a dict keyed by 'data', 'data' must be the only key."
                 )
             elif "data" in data.keys():
-                super().__init__(data=data["data"])
+                if isinstance(data["data"], dict):
+                    if "data" in data["data"].keys():
+                        super().__init__(**data["data"])
+                    else:
+                        super().__init__(**data)
+                else:
+                    super().__init__(**data)
             else:
                 super().__init__(data=data)
 
