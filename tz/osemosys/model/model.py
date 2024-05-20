@@ -47,7 +47,7 @@ class Model(RunSpec):
             {
                 key: getattr(self._m.constraints, key).dual
                 for key in [
-                    "EBa11_EnergyBalanceEachTS5_alt",
+                    "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
                 ]
             }
@@ -70,7 +70,7 @@ class Model(RunSpec):
             dict(
                 zip(
                     [
-                        "EBa11_EnergyBalanceEachTS5_alt",
+                        "EBa11_EnergyBalanceEachTS5_trn",
                         "EBb4_EnergyBalanceEachYear4",
                     ],
                     [
