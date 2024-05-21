@@ -28,22 +28,35 @@ regions:
   - id: US-CA
     long_name: California
     description: "The US state of California"
-    trade_routes: {US-TX: {"*": {"*": True}}, PACIFIC-MARKET: {"*": {"*": True}}}
 
   - id: US-TX
     long_name: Texas
     description: "The US state of Texas"
-    trade_routes: {US-CA: {"*": {"*": True}}, ATLANTIC-MARKET: {"*": {"*": True}}}
 
   - id: ATLANTIC-MARKET
     long_name: atlantic market
     description: a node representing atlantic import markets
-    trade_routes: {US-TX: {"*": {"*": True}}}
 
   - id: PACIFIC-MARKET
     long_name: pacific market
     description: a node representing pacific import markets
-    trade_routes: {US-CA: {"*": {"*": True}}}
+
+# TRADE ROUTES
+trade:
+  id: "trade routes"
+  long_name: "trade routes"
+  description: "trade routes for whole model"
+  trade_routes: {
+    "US-CA":
+      {
+      "US-TX": {"*": {"*": True}},
+      "PACIFIC-MARKET": {"*": {"*": True}}
+      },
+    "US-TX":
+      {
+      "ATLANTIC-MARKET": {"*": {"*": True}},
+      },
+  }
 
 # TIME DEFINTIONS
 time_definition:
