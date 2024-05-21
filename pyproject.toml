@@ -1,6 +1,6 @@
 [project]
 name = "tz-osemosys"  # Required
-version = "0.0.3"  # Required
+dynamic = ["version"]
 description = "An OSeMOSYS implementation for the Future Energy Outlook by TransitionZero"  # Optional
 readme = "README.md" # Optional
 requires-python = ">=3.11"
@@ -12,11 +12,7 @@ authors = [
   {name = "Abhishek Shivakumar", email = "abhishek0208@gmail.com" },
 ]
 
-#maintainers = [
-#  {name = "A. Great Maintainer", email = "maintainer@example.com" } # Optional
-#]
 
-# For a list of valid classifiers, see https://pypi.org/classifiers/
 classifiers = [  # Optional
   # How mature is this project? Common values are
   #   3 - Alpha
@@ -38,6 +34,14 @@ dependencies = [
   "linopy",
 
 ]
+
+
+#maintainers = [
+#  {name = "A. Great Maintainer", email = "maintainer@example.com" } # Optional
+#]
+
+# For a list of valid classifiers, see https://pypi.org/classifiers/
+
 
 [project.optional-dependencies] # Optional
 dev = [
@@ -79,5 +83,6 @@ find = {}
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=43.0.0","setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+[tool.setuptools_scm]

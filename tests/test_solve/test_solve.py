@@ -17,7 +17,7 @@ def test_model_construction_from_yaml():
     model._m.solve()
 
     assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 28599.0
+    assert np.round(model._m.objective.value) == 29044.0
 
 
 def test_most_simple():
@@ -124,5 +124,5 @@ def test_simple_storage():
 
     model.solve()
 
-    assert model.solution.NewStorageCapacity.values[0][0][0] == 25.0
-    assert np.round(model.objective) == 3495.0
+    assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
+    assert np.round(model.objective) == 3494.0

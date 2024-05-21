@@ -289,7 +289,13 @@ class OSeMOSYSData(BaseModel):
                     "If initialising via a dict keyed by 'data', 'data' must be the only key."
                 )
             elif "data" in data.keys():
-                super().__init__(data=data["data"])
+                if isinstance(data["data"], dict):
+                    if "data" in data["data"].keys():
+                        super().__init__(**data["data"])
+                    else:
+                        super().__init__(**data)
+                else:
+                    super().__init__(**data)
             else:
                 super().__init__(data=data)
 
@@ -302,6 +308,12 @@ class OSeMOSYSData(BaseModel):
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
     ]
+
+    def __getitem__(self, key: Any):
+        return self.data[key]
+
+    def __setitem__(self, key: Any, value: Any):
+        self.data[key] = value
 
 
 class DepreciationMethod(str, Enum):
@@ -518,14 +530,19 @@ for key, func in zip(
     ],
 ):
     # add a new OSEMOSYSData class for each data cooridinate key
-    setattr(OSeMOSYSData, key, create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData))
+    setattr(
+        OSeMOSYSData,
+        key,
+        create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData),
+    )
 
     # add the compose method to each new class
     getattr(OSeMOSYSData, key).compose = func
 
     # add the datatype constructors
     for _type, validator in zip(
-        ["Int", "Bool", "SumOne"], [check_or_cast_int, check_or_cast_bool, nested_sum_one]
+        ["Int", "Bool", "SumOne"],
+        [check_or_cast_int, check_or_cast_bool, nested_sum_one],
     ):
         setattr(
             getattr(OSeMOSYSData, key),

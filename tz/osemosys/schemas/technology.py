@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import ConfigDict, Field, conlist, model_validator
+from pydantic import ConfigDict, Field, conlist, field_serializer, model_validator
 
 from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
@@ -68,12 +68,21 @@ class OperatingMode(OSeMOSYSBase):
     ```
     """
 
+    @field_serializer
+    def osemosysdata_serializer(cls, value: Any, serializer_field):
+        if isinstance(value, serializer_field.type_):
+            return value.data
+        else:
+            return value
+
     model_config = ConfigDict(extra="forbid")
 
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
     )
-    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
+    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(
+        None, serializer=osemosysdata_serializer
+    )
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     to_storage: OSeMOSYSData.RO.Bool | None = Field(None)
