@@ -39,11 +39,11 @@ def add_total_capacity_constraints(
     ```
     """
 
-    con = lex["TotalCapacityAnnual"] <= ds["TotalAnnualMaxCapacity"]
+    con = lex["GrossCapacity"] <= ds["TotalAnnualMaxCapacity"]
     mask = ds["TotalAnnualMaxCapacity"] >= 0
     m.add_constraints(con, name="TCC1_TotalAnnualMaxCapacityConstraint", mask=mask)
 
-    con = lex["TotalCapacityAnnual"] >= ds["TotalAnnualMinCapacity"]
+    con = lex["GrossCapacity"] >= ds["TotalAnnualMinCapacity"]
     mask = ds["TotalAnnualMinCapacity"] > 0
     m.add_constraints(con, name="TCC2_TotalAnnualMinCapacityConstraint", mask=mask)
     return m
