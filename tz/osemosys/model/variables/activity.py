@@ -32,15 +32,15 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
         ds.coords["FUEL"],
         ds.coords["YEAR"],
     ]
-    RTiTeMY = [
+    RTeMYTi = [
         ds.coords["REGION"],
-        ds.coords["TIMESLICE"],
         ds.coords["TECHNOLOGY"],
         ds.coords["MODE_OF_OPERATION"],
         ds.coords["YEAR"],
+        ds.coords["TIMESLICE"],
     ]
 
-    m.add_variables(lower=0, upper=inf, coords=RTiTeMY, name="RateOfActivity", integer=False)
+    m.add_variables(lower=0, upper=inf, coords=RTeMYTi, name="RateOfActivity", integer=False)
 
     m.add_variables(lower=-inf, upper=inf, coords=RRTiFY, name="Trade", integer=False)
 

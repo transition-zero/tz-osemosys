@@ -6,58 +6,24 @@ from linopy import LinearExpression, Model
 
 def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
-    # discounting
-    DiscountFactor = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
-
-    DiscountFactorTrade = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
-
-    DiscountFactorMid = (1 + ds["DiscountRate"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
-    )
-
-    DiscountFactorSalvage = (1 + ds["DiscountRateIdv"]) ** (
-        1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
-    )
-
-    DiscountFactorSalvageTrade = (1 + ds["DiscountRate"]) ** (
-        1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
-    )
-
-    PVAnnuity = (
-        (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
-        * (1 + ds["DiscountRateIdv"])
-        / ds["DiscountRateIdv"]
-    )
-
-    CapitalRecoveryFactor = (1 - (1 + ds["DiscountRateIdv"]) ** (-1)) / (
-        1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
-    )
-
     CapitalInvestment = (
-        ds["CapitalCost"].fillna(0) * m["NewCapacity"] * CapitalRecoveryFactor * PVAnnuity
-    )
-
-    PVAnnuityTrade = (
-        (1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLifeTrade"])))
-        * (1 + ds["DiscountRate"])
-        / ds["DiscountRate"]
-    )
-
-    CapitalRecoveryFactorTrade = (1 - (1 + ds["DiscountRate"]) ** (-1)) / (
-        1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLifeTrade"]))
+        ds["CapitalCost"].fillna(0)
+        * m["NewCapacity"]
+        * lex["CapitalRecoveryFactor"]
+        * lex["PVAnnuity"]
     )
     CapitalInvestmentTrade = (
         ds["CapitalCostTrade"].fillna(0)
         * m["NewTradeCapacity"]
-        * CapitalRecoveryFactorTrade
-        * PVAnnuityTrade
+        * lex["CapitalRecoveryFactorTrade"]
+        * lex["PVAnnuityTrade"]
     )
 
-    DiscountedCapitalInvestment = CapitalInvestment / DiscountFactor
+    DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
-    DiscountedCapitalInvestmentTrade = CapitalInvestmentTrade / DiscountFactorTrade
+    DiscountedCapitalInvestmentTrade = CapitalInvestmentTrade / lex["DiscountFactorTrade"]
 
-    # operating costs
+    # costs
     AnnualVariableOperatingCost = (
         (lex["TotalAnnualTechnologyActivityByMode"] * ds["VariableCost"].fillna(0))
         .sum(dims="MODE_OF_OPERATION")
@@ -66,47 +32,24 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
         )
     )
-    AnnualFixedOperatingCost = lex["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
+    AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
     OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
-    DiscountedOperatingCost = OperatingCost / DiscountFactorMid
+    SV1Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV1Numerator"] / lex["SV1Denominator"]))
 
-    # salvage value factors (non-trade)
-    SV1Numerator = (1 + ds["DiscountRateIdv"]) ** (
-        max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
-    ) - 1
+    SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV2Numerator"] / lex["SV2Denominator"]))
 
-    SV1Denominator = (1 + ds["DiscountRateIdv"]) ** ds["OperationalLife"] - 1
+    # costs
+    DiscountedOperatingCost = OperatingCost / lex["DiscountFactorMid"]
 
-    SV1Cost = ds["CapitalCost"].fillna(0) * (1 - (SV1Numerator / SV1Denominator))
-
-    SV2Numerator = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
-
-    SV2Denominator = ds["OperationalLife"]
-
-    SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (SV2Numerator / SV2Denominator))
-
-    # salvage value (non-trade)
-
-    sv1_mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] > 0)
-    )
-    sv2_mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] == 0)
-    ) | (
-        (ds["DepreciationMethod"] == 2)
-        & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-    )
+    DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     SalvageValue = (
-        m["NewCapacity"] * SV1Cost.where(sv1_mask) + m["NewCapacity"] * SV2Cost.where(sv2_mask)
+        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"])
+        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"])
     ).fillna(0)
 
-    DiscountedSalvageValue = SalvageValue / DiscountFactorSalvage
+    DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]
 
     # salvage value factors (trade)
     SV1NumeratorTrade = (1 + ds["DiscountRate"]) ** (
@@ -147,8 +90,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         + m["NewTradeCapacity"] * SV2CostTrade.where(sv2_mask)
     ).fillna(0)
 
-    DiscountedSalvageValueTrade = SalvageValueTrade / DiscountFactorSalvageTrade
-
+    DiscountedSalvageValueTrade = SalvageValueTrade / lex["DiscountFactorSalvageTrade"]
     # Total discounted costs
     TotalDiscountedCostByTechnology = (
         DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
@@ -158,7 +100,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     if ds["EMISSION"].size > 0:
         DiscountedTechnologyEmissionsPenalty = (
-            lex["AnnualTechnologyEmissionsPenalty"] / DiscountFactorMid
+            lex["AnnualTechnologyEmissionsPenalty"] / lex["DiscountFactorMid"]
         )
 
         TotalDiscountedCostByTechnology = (
@@ -172,12 +114,11 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         )
 
     if ds["STORAGE"].size > 0:
+
         # total costs with storage
-        TotalDiscountedCost = (
-            TotalDiscountedCostByTechnology.sum("TECHNOLOGY")
-            + m["TotalDiscountedStorageCost"].sum("STORAGE")
-            + TotalDiscountedCostTrade.sum(["FUEL", "_REGION"])
-        )
+        TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY") + lex[
+            "TotalDiscountedStorageCost"
+        ].sum(["STORAGE", "TECHNOLOGY"])
 
     else:
         # total costs without storage
@@ -187,11 +128,6 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     lex.update(
         {
-            "DiscountFactor": DiscountFactor,
-            "DiscountFactorMid": DiscountFactorMid,
-            "DiscountFactorSalvage": DiscountFactorSalvage,
-            "PVAnnuity": PVAnnuity,
-            "CapitalRecoveryFactor": CapitalRecoveryFactor,
             "CapitalInvestment": CapitalInvestment,
             "AnnualVariableOperatingCost": AnnualVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
@@ -207,10 +143,6 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "SV1CostTrade": SV1CostTrade,
             "SV2CostTrade": SV2CostTrade,
             "SalvageValueTrade": SalvageValueTrade,
-            "DiscountFactorTrade": DiscountFactorTrade,
-            "DiscountFactorSalvageTrade": DiscountFactorSalvageTrade,
-            "PVAnnuityTrade": PVAnnuityTrade,
-            "CapitalRecoveryFactorTrade": CapitalRecoveryFactorTrade,
             "CapitalInvestmentTrade": CapitalInvestmentTrade,
             "DiscountedCapitalInvestmentTrade": DiscountedCapitalInvestmentTrade,
             "DiscountedSalvageValueTrade": DiscountedSalvageValueTrade,
