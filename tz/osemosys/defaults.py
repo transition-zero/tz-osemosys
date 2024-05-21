@@ -20,6 +20,10 @@ class Defaults(BaseSettings):
     depreciation_method: str = "sinking-fund"
     discount_rate: float = Field(0.05)
     reserve_margin: float = Field(1.0)
+    trade_loss: float = Field(0.00001)
+    trade_residual_capacity: float = Field(0.0)
+    trade_capex: float = Field(0.00001)
+    trade_operating_life: int = Field(1)
 
 
 class DefaultsLinopy(BaseSettings):

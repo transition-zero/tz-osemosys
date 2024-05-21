@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, ClassVar, Union
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.compat.base import OtooleCfg
 from tz.osemosys.utils import group_to_json
@@ -105,7 +106,7 @@ class OtooleTrade(BaseModel):
                     )
                 )
                 if "TradeLossBetweenRegions" not in otoole_cfg.empty_dfs
-                else None
+                else OSeMOSYSData.RRCY(defaults.trade_loss)
             ),
             residual_capacity=(
                 OSeMOSYSData.RRCY(
@@ -116,7 +117,7 @@ class OtooleTrade(BaseModel):
                     )
                 )
                 if "ResidualTradeCapacity" not in otoole_cfg.empty_dfs
-                else None
+                else OSeMOSYSData.RRCY(defaults.trade_residual_capacity)
             ),
             capex=(
                 OSeMOSYSData.RRCY(
@@ -127,7 +128,7 @@ class OtooleTrade(BaseModel):
                     )
                 )
                 if "CapitalCostTrade" not in otoole_cfg.empty_dfs
-                else None
+                else OSeMOSYSData.RRCY(defaults.trade_capex)
             ),
             capacity_additional_max=(
                 OSeMOSYSData.RRCY(
@@ -149,7 +150,7 @@ class OtooleTrade(BaseModel):
                     )
                 )
                 if "OperationalLifeTrade" not in otoole_cfg.empty_dfs
-                else None
+                else OSeMOSYSData.RRCY.Int(defaults.trade_operating_life)
             ),
             otoole_cfg=otoole_cfg,
         )

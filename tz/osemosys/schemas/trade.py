@@ -2,6 +2,7 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.trade import OtooleTrade
 
@@ -14,11 +15,15 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     """
 
     trade_routes: OSeMOSYSData.RRCY.Bool | None = Field(default=None)
-    trade_loss: OSeMOSYSData.RRCY | None = Field(default=None)
-    residual_capacity: OSeMOSYSData.RRCY | None = Field(default=None)
-    capex: OSeMOSYSData.RRCY | None = Field(default=None)
+    trade_loss: OSeMOSYSData.RRCY = Field(OSeMOSYSData.RRCY(defaults.trade_loss))
+    residual_capacity: OSeMOSYSData.RRCY = Field(
+        OSeMOSYSData.RRCY(defaults.trade_residual_capacity)
+    )
+    capex: OSeMOSYSData.RRCY = Field(OSeMOSYSData.RRCY(defaults.trade_capex))
     capacity_additional_max: OSeMOSYSData.RRCY | None = Field(default=None)
-    operational_life: OSeMOSYSData.RRCY.Int | None = Field(default=None)
+    operational_life: OSeMOSYSData.RRCY.Int = Field(
+        OSeMOSYSData.RRCY.Int(defaults.trade_operating_life)
+    )
 
     @model_validator(mode="before")
     @classmethod
