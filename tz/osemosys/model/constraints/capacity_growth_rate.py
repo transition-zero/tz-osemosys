@@ -44,24 +44,35 @@ def add_capacity_growthrate_constraints(
     if ("CapacityAdditionalMaxFloor" in ds.data_vars) and (
         "CapacityAdditionalMaxGrowthRate" in ds.data_vars
     ):
+
         # pull m["OR_CapacityAdditionalFloor_OR_GR"] DOWN (==0) if (GrossCapacity * GrowthRate) >= MaxFloor # NOQA E501
         # if (GrossCapacity * GrowthRate) < MaxFloor, then m["OR_CapacityAdditionalFloor_OR_GR"] -> 0 # NOQA E501
         con = (
-            m["OR_CapacityAdditionalFloor_OR_GR"]
+            m["OR_GrowthRateFloor"]
             <= (lex["GrossCapacity"].shift(YEAR=-1) * ds["CapacityAdditionalMaxGrowthRate"])
             / ds["CapacityAdditionalMaxFloor"]
         )
         m.add_constraints(con, name="CapAdditionalMaxFloor")
 
-        # pull m["OR_CapacityAdditionalFloor_OR_GR"] UP (==1) if NewCapacity.shift(YEAR=-1) < MaxFloor # NOQA E501
-        # If both MaxFloor and MaxGrowthRate are defined, then pick the min of either of them using Big M notation # NOQA E501
+        # BIG M notation
+        # https://or.stackexchange.com/questions/135/what-is-the-big-m-method-and-are-there-two-of-them
+        # x <= M*y
+        # TODO: pick big M from data
+        M = 1e5
+
+        # m['NewCapacity'] <= M * m['OR_GrowthRateFloor'] + ds["CapacityAdditionalMaxFloor"]
+        con = m["NewCapacity"] <= M * m["OR_GrowthRateFloor"] + ds[
+            "CapacityAdditionalMaxFloor"
+        ].fillna(0)
+        m.add_constraints(con, name="CapAdditionalMaxFloor2")
+
+        # m['NewCapacity'] <= M * (1 - m['OR_GrowthRateFloor'])
+        #    + lex['GrossCapacity'].shift(YEAR=1) * ds['CapacityAdditionalMaxGrowthRate']
         con = (
             m["NewCapacity"]
-            <= (1 - m["OR_CapacityAdditionalFloor_OR_GR"]) * ds["CapacityAdditionalMaxFloor"]
-            + m["OR_CapacityAdditionalFloor_OR_GR"]
-            * lex["GrossCapacity"].shift(YEAR=-1)
-            * ds["CapacityAdditionalMaxGrowthRate"]
+            <= M * (-1 * m["OR_GrowthRateFloor"] + 1)
+            + lex["GrossCapacity"].shift(YEAR=1) * ds["CapacityAdditionalMaxGrowthRate"]
         )
-        m.add_constraints(con, name="AAC1_MinStorageCharge", mask=ds["MinStorageCharge"] > 0)
+        m.add_constraints(con, name="CapAdditionalMaxFloor3")
 
     return m
