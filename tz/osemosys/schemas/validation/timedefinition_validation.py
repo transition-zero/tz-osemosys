@@ -151,28 +151,52 @@ def validate_adjacency_keys(
     day_types: List[str] | None,
     time_brackets: List[str] | None,
 ):
-    if set(list(adj["timeslices"].keys()) + list(adj["timeslices"].values())) != set(timeslices):
+    if len(timeslices) > 1 and (
+        set(list(adj["timeslices"].keys()) + list(adj["timeslices"].values())) != set(timeslices)
+    ):
         raise ValueError("provided 'timeslices' do not match keys or values of 'adj.timeslices'")
-    if set(list(adj["years"].keys()) + list(adj["years"].values())) != set(years):
+    if {int(yr) for yr in list(adj["years"].keys()) + list(adj["years"].values())} != set(years):
         raise ValueError("provided 'years' do not match keys or values of 'adj.years'")
     if seasons is not None and "seasons" in adj.keys():
-        if set(list(adj["seasons"].keys()) + list(adj["seasons"].values())) != set(seasons):
-            raise ValueError("provided 'seasons' do not match keys or values of 'adj.seasons'")
-    elif seasons is not None or "seasons" in adj.keys():
+        if len(seasons) > 1:
+            if set(list(adj["seasons"].keys()) + list(adj["seasons"].values())) != set(seasons):
+                raise ValueError("provided 'seasons' do not match keys or values of 'adj.seasons'")
+        else:
+            if adj["seasons"] != {}:
+                raise ValueError(
+                    f"Adjacency provided for seasons, but only one season {seasons} is defined."
+                )
+    elif seasons is not None or adj.get("seasons"):
         raise ValueError("seasons provided without adjacency.")
     if day_types is not None and "day_types" in adj.keys():
-        if set(list(adj["day_types"].keys()) + list(adj["day_types"].values())) != set(day_types):
-            raise ValueError("provided 'day_types' do not match keys or values of 'adj.day_types'")
-    elif day_types is not None or "day_types" in adj.keys():
+        if len(day_types) > 1:
+            if set(list(adj["day_types"].keys()) + list(adj["day_types"].values())) != set(
+                day_types
+            ):
+                raise ValueError(
+                    "provided 'day_types' do not match keys or values of 'adj.day_types'"
+                )
+        else:
+            if adj["day_types"] != {}:
+                raise ValueError(
+                    f"Adjacency provided for day_types, but only one day_type {day_types} is defined."  # NOQA E501
+                )
+    elif day_types is not None or adj.get("day_types"):
         raise ValueError("day_types provided without adjacency")
     if time_brackets is not None and "time_brackets" in adj.keys():
-        if set(list(adj["time_brackets"].keys()) + list(adj["time_brackets"].values())) != set(
-            time_brackets
-        ):
-            raise ValueError(
-                "provided 'time_brackets' do not match keys or values of 'adj.time_brackets'"
-            )
-    elif time_brackets is not None or "time_brackets" in adj.keys():
+        if len(time_brackets) > 1:
+            if set(list(adj["time_brackets"].keys()) + list(adj["time_brackets"].values())) != set(
+                time_brackets
+            ):
+                raise ValueError(
+                    "provided 'time_brackets' do not match keys or values of 'adj.time_brackets'"
+                )
+        else:
+            if adj["time_brackets"] != {}:
+                raise ValueError(
+                    f"Adjacency provided for time_brackets, but only one time_bracket {time_brackets} is defined."  # NOQA E501
+                )
+    elif time_brackets is not None or adj.get("time_brackets"):
         raise ValueError("time_brackets provided without adjacency")
 
 
