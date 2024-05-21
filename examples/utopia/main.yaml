@@ -353,7 +353,7 @@ technologies:
         input_activity_ratio:
           ELC: 1.
         output_activity_ratio:
-          RH: 1.
+          RL: 1.
     residual_capacity:
       1990: 5.6
       1991: 5

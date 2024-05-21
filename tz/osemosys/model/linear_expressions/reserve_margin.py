@@ -7,9 +7,7 @@ from linopy import LinearExpression, Model
 def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     TotalCapacityInReserveMargin = (
         (
-            ds["ReserveMarginTagTechnology"]
-            * ds["CapacityToActivityUnit"]
-            * lex["TotalCapacityAnnual"]
+            ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"] * lex["GrossCapacity"]
         ).where(
             (ds["ReserveMargin"] > 0)
             & (ds["ReserveMarginTagTechnology"] == 1)

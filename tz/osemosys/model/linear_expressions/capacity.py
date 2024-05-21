@@ -13,12 +13,12 @@ def add_lex_capacity(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression])
 
     AccumulatedNewCapacity = NewCapacity.where(mask).sum("BUILDYEAR")
 
-    TotalCapacityAnnual = AccumulatedNewCapacity + ds["ResidualCapacity"].fillna(0)
+    GrossCapacity = AccumulatedNewCapacity + ds["ResidualCapacity"].fillna(0)
 
     lex.update(
         {
             "NewCapacity": NewCapacity,
             "AccumulatedNewCapacity": AccumulatedNewCapacity,
-            "TotalCapacityAnnual": TotalCapacityAnnual,
+            "GrossCapacity": GrossCapacity,
         }
     )

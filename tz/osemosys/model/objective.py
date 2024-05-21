@@ -10,7 +10,7 @@ def add_objective(m: Model, lex: Dict[str, LinearExpression]) -> Model:
 
     # constants not currently supported in objective functions:
     # https://github.com/PyPSA/linopy/issues/236
-    if objective.const != 0:
+    if (objective.const != 0).any():
         objective_constant = deepcopy(objective.const)
         objective.const = 0
     else:
