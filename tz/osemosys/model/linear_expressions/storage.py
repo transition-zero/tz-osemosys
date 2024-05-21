@@ -24,7 +24,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
-    NetCharge = RateOfStorageCharge - RateOfStorageDischarge
+    NetCharge = ds["YearSplit"] * (RateOfStorageCharge - RateOfStorageDischarge)
 
     NetChargeReshape = NetCharge.stack(YRTS=["YEAR", "TIMESLICE"])
 
