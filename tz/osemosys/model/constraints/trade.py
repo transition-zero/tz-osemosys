@@ -60,4 +60,6 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     m.add_constraints(con, name="TC1b_TradeConstraint_Import")
 
     con = lex["NewTradeCapacity"] <= ds["TotalAnnualMaxTradeInvestment"] * ds["TradeRoute"]
+    m.add_constraints(con, name="TC4_TradeConstraint")
+
     return m
