@@ -30,7 +30,7 @@ SOLUTION_KEYS = [
     "TotalDiscountedStorageCost",
     "TotalTechnologyAnnualActivity",
     "TotalTechnologyModelPeriodActivity",
-    "Trade",
+    # "Trade",
     "Use",
     "marginal_cost_of_demand",
     "marginal_cost_of_demand_annual",
