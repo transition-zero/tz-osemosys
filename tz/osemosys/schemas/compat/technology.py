@@ -26,6 +26,10 @@ class OtooleTechnology(BaseModel):
             "attribute": "capacity_additional_max_growth_rate",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],
         },
+        "CapacityAdditionalMinGrowthRate": {
+            "attribute": "capacity_additional_min_growth_rate",
+            "columns": ["REGION", "TECHNOLOGY", "VALUE"],
+        },
         "CapacityAdditionalMaxFloor": {
             "attribute": "capacity_additional_max_floor",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],

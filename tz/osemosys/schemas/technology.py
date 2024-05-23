@@ -274,15 +274,16 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     capacity_gross_max: OSeMOSYSData.RY | None = Field(None)
     capacity_gross_min: OSeMOSYSData.RY | None = Field(None)
 
-    # additional capacity max/min in each year
+    # additional capacity upper bounds
     capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
-
-    # growth rate and max additional capacity in model period
     capacity_additional_max_growth_rate: OSeMOSYSData.R | None = Field(None)
-    # capacity_additional_max_ceil: OSeMOSYSData.R | None = Field(None)
+    # upper bound floor: if used with growth_rate,
+    # limits capacity growth to the floor or growth-rate, whichever is greater
     capacity_additional_max_floor: OSeMOSYSData.R | None = Field(None)
-    # capacity_additional_min_growth_rate: OSeMOSYSData.R | None  = Field(None)
+
+    # additional capacity lower bounds (MUST build)
+    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_min_growth_rate: OSeMOSYSData.R | None = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
