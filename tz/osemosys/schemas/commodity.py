@@ -31,7 +31,7 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     is treated as having an accumulated demand, which must be met for each year within any
     combination of timeslices. Optional, defaults to `None`.
 
-    `is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagFuel.
+    `include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagFuel.
     Boolean tag to mark commodities which are considered
     as renewable for applying renewable generation targets. Optional, defaults to `None`.
 
@@ -79,7 +79,7 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
 
     demand_annual: OSeMOSYSData.RY | None = Field(None)
     demand_profile: OSeMOSYSData.RYS.SumOne | None = Field(None)
-    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # include this technology in joint reserve margin and renewables targets
     include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)

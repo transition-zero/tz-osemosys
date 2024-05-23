@@ -125,14 +125,26 @@ class OtooleTechnology(BaseModel):
         },
         "TechnologyToStorage": {
             "attribute": "to_storage",
-            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+            "columns": [
+                "MODE_OF_OPERATION",
+                "REGION",
+                "TECHNOLOGY",
+                "STORAGE",
+                "VALUE",
+            ],
         },
         "TechnologyFromStorage": {
             "attribute": "from_storage",
-            "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "STORAGE", "VALUE"],
+            "columns": [
+                "MODE_OF_OPERATION",
+                "REGION",
+                "TECHNOLOGY",
+                "STORAGE",
+                "VALUE",
+            ],
         },
         "RETagTechnology": {
-            "attribute": "is_renewable",
+            "attribute": "include_in_joint_renewable_target",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
         },
     }
@@ -328,7 +340,7 @@ class OtooleTechnology(BaseModel):
                         is not None
                         else None
                     ),
-                    is_renewable=(
+                    include_in_joint_renewable_target=(
                         OSeMOSYSData.RY.Bool(data=data_json_format["RETagTechnology"])
                         if data_json_format["RETagTechnology"] is not None
                         else None

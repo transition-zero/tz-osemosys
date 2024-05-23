@@ -166,7 +166,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     technology will be installed only in batches of the specified capacity and the problem will
     turn into a Mixed Integer Linear Problem. Optional, defaults to `None`.
 
-    `is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
+    `include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
     Boolean tagging the renewable technologies that must contribute to reaching the indicated
     minimum renewable production target. It has value True for thetechnologies contributing,
     False otherwise. Optional, defaults to `None`.
@@ -266,7 +266,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # NON-REQUIRED PARAMETERS
 
     capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
-    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS
     # -----

@@ -48,7 +48,7 @@ Capacity of one new unit of a technology. In case the user sets this parameter, 
 technology will be installed only in batches of the specified capacity and the problem will
 turn into a Mixed Integer Linear Problem. Optional, defaults to `None`.
 
-`is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
+`include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
 Boolean tagging the renewable technologies that must contribute to reaching the indicated
 minimum renewable production target. It has value True for thetechnologies contributing,
 False otherwise. Optional, defaults to `None`.
