@@ -15,6 +15,7 @@ from .reserve_margin import add_reserve_margin_constraints
 from .storage import add_storage_constraints
 from .total_activity import add_total_activity_constraints
 from .total_capacity import add_total_capacity_constraints
+from .trade import add_trade_constraints
 
 
 def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
@@ -45,5 +46,6 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     m = add_storage_constraints(ds, m, lex)
     m = add_total_activity_constraints(ds, m, lex)
     m = add_total_capacity_constraints(ds, m, lex)
+    m = add_trade_constraints(ds, m, lex)
 
     return m
