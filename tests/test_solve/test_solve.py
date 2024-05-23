@@ -126,3 +126,45 @@ def test_simple_storage():
 
     assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
     assert np.round(model.objective) == 3494.0
+
+
+def test_simple_trade():
+    """
+    2 region model, both regions have electricity demand, but generating capacity can only be
+    installed in region 1, and region 2 must have it's electricity imported from region 1.
+    """
+    model = Model(
+        id="test-trade",
+        time_definition=dict(id="years-only", years=range(2020, 2031)),
+        regions=[dict(id="R1"), dict(id="R2")],
+        trade=dict(
+            id="trade",
+            trade_routes={"R1": {"R2": {"*": {"*": True}}}, "R2": {"R1": {"*": {"*": True}}}},
+            #    capex={"R1": {"R2": {"*" : {"*" : 100}}}},
+            #    operational_life={"R1": {"R2": {"*" : {"*" : 2}}}}
+        ),
+        commodities=[dict(id="electricity", demand_annual=25)],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=2,
+                capex=400,
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+                # capacity_gross_max={"R2": {"*": 0}},
+            )
+        ],
+    )
+
+    model._build()
+
+    model._m.solve()
+
+    assert model._m.termination_condition == "optimal"
+    # assert np.round(model._m.objective.value) == 45736.0
