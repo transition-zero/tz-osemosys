@@ -114,7 +114,7 @@ def test_growth_rate_min():
     In this model, we add a 'bad generator', one that is expensive to build and run.
     The model would prefer to build 'generator' and fall back to 'unmet-demand'.
     We have set a min_growth_rate on 'bad-generator' of 0.1, and a residual capacity of 10GM
-    So we expect
+    So we expect new capacity in 2021 to be 1GW, and in 2022 to be 1.1GW.
     """
 
     time_definition = TimeDefinition(id="yrs", years=range(2020, 2030))
