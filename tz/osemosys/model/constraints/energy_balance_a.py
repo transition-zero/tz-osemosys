@@ -112,14 +112,14 @@ def add_energy_balance_a_constraints(
 
     ```
     """
-    tr = ds["TradeRoute"]
-    mask = tr.where(tr.REGION != tr._REGION).notnull()
-    con = (m["Export"] - m["Import"]).where(mask) == 0
+    con = (m["Export"] * ds["TradeRoute"] - m["Import"] * ds["TradeRoute"]) == 0
     m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_trn")
 
-    mask = tr.where(tr.REGION == tr._REGION)
-    con = (m["Import"]).where(mask) == 0
-    m.add_constraints(con, name="test")
+    con = m["Export"].where(ds["TradeRoute"] != 1) == 0
+    m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_export")
+
+    con = m["Import"].where(ds["TradeRoute"] != 1) == 0
+    m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_import")
 
     # Constraint
     con = (
