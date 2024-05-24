@@ -182,8 +182,22 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     `capacity_additional_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacityInvestment.
     Maximum capacity of a technology, expressed in power units. Optional, defaults to `None`.
 
+    `capacity_additional_max_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxGrowthRate. Maximum allowed percentage growth in the given technology's
+    capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
+
+    `capacity_additional_max_floor` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxFloor. Maximum allowed growth in the given technology's capacity year on
+    year, expressed in capacity units. If used in conjunction with
+    capacity_additional_max_growth_rate it limits capacity growth to whichever is greater.
+    Optional, defaults to `None`.
+
     `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
     Minimum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+
+    `capacity_additional_min_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMinGrowthRate. Minimum allowed percentage growth in the given technology's
+    capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
     `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
     TotalTechnologyAnnualActivityUpperLimit.
