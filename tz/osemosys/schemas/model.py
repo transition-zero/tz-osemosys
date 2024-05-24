@@ -80,6 +80,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Discount rate specified by region and storage.
     Optional parameter, defaults to `None`.
 
+    `cost_of_capital_trade` `({region:{region:{commodity:float}}})` - Parameter additional to
+    OSeMOSYS base variables. Discount rate specified for trade (transmission) technologies.
+    Optional parameter, defaults to `None`.
+
     `reserve_margin` `({region:{year:float}})` - OSeMOSYS ReserveMargin.
     Minimum level of the reserve margin required to be provided for all the tagged commodities, by
     the tagged technologies. If no reserve margin is required, the parameter will have value 1; if,
@@ -202,6 +206,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # DiscountRateIdv
     cost_of_capital: OSeMOSYSData.RT | None = Field(None)
     cost_of_capital_storage: OSeMOSYSData.RO | None = Field(None)
+    # cost_of_capital_trade: OSeMOSYSData.RRCY | None = Field(None)
     discount_rate: OSeMOSYSData.R = Field(OSeMOSYSData.R(defaults.discount_rate))
     reserve_margin: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 
