@@ -27,4 +27,16 @@ def add_capacity_variables(ds: xr.Dataset, m: Model) -> Model:
         lower=0, upper=inf, coords=RTeY, name="NumberOfNewTechnologyUnits", integer=True, mask=mask
     )
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="NewCapacity", integer=False)
+
+    if ("CapacityAdditionalMaxFloor" in ds.data_vars) and (
+        "CapacityAdditionalMaxGrowthRate" in ds.data_vars
+    ):
+        m.add_variables(
+            lower=0,
+            upper=1,
+            coords=RTeY,
+            name="OR_GrowthRateFloor",
+            integer=True,
+        )
+
     return m
