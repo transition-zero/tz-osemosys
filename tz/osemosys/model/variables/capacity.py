@@ -28,8 +28,9 @@ def add_capacity_variables(ds: xr.Dataset, m: Model) -> Model:
     )
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="NewCapacity", integer=False)
 
-    if ("CapacityAdditionalMaxFloor" in ds.data_vars) and (
-        "CapacityAdditionalMaxGrowthRate" in ds.data_vars
+    if (
+        ds["CapacityAdditionalMaxFloor"].notnull().any()
+        and ds["CapacityAdditionalMaxGrowthRate"].notnull().any()
     ):
         m.add_variables(
             lower=0,
