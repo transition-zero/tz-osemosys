@@ -140,8 +140,9 @@ def test_simple_trade():
         trade=dict(
             id="trade",
             trade_routes={"R1": {"R2": {"*": {"*": True}}}, "R2": {"R1": {"*": {"*": True}}}},
-            #    capex={"R1": {"R2": {"*" : {"*" : 100}}}},
-            #    operational_life={"R1": {"R2": {"*" : {"*" : 2}}}}
+            capex={"R1": {"R2": {"*": {"*": 100}}}},
+            operational_life={"R1": {"R2": {"*": {"*": 2}}}},
+            trade_loss={"*": {"*": {"*": {"*": 0.1}}}},
         ),
         commodities=[dict(id="electricity", demand_annual=25)],
         impacts=[],
@@ -157,14 +158,12 @@ def test_simple_trade():
                         output_activity_ratio={"electricity": 1},
                     )
                 ],
-                # capacity_gross_max={"R2": {"*": 0}},
+                capacity_gross_max={"R2": {"*": 0}},
             )
         ],
     )
 
-    model._build()
-
-    model._m.solve()
+    model.solve()
 
     assert model._m.termination_condition == "optimal"
-    # assert np.round(model._m.objective.value) == 45736.0
+    assert np.round(model._m.objective.value) == 96046.0

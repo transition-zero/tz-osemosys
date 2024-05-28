@@ -113,7 +113,9 @@ def add_energy_balance_a_constraints(
     ```
     """
     # Constraint
-    con = (m["Export"] - m["Import"]) * ds["TradeRoute"] == 0
+    con = (m["Export"] - m["Import"].rename({"REGION": "_REGION", "_REGION": "REGION"})) * ds[
+        "TradeRoute"
+    ] == 0
     m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_trn")
 
     # Constraint
