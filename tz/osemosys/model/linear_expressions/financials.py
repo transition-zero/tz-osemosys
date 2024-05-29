@@ -35,6 +35,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
     OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
+    # salvage value
     SV1Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV1Numerator"] / lex["SV1Denominator"]))
 
     SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV2Numerator"] / lex["SV2Denominator"]))
@@ -52,45 +53,22 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]
 
     # salvage value factors (trade)
-    SV1NumeratorTrade = (1 + ds["DiscountRate"]) ** (
-        max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
-    ) - 1
-
-    SV1DenominatorTrade = (1 + ds["DiscountRate"]) ** ds["OperationalLifeTrade"] - 1
-
     SV1CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV1NumeratorTrade / SV1DenominatorTrade)
+        1 - (lex["SV1NumeratorTrade"] / lex["SV1DenominatorTrade"])
     )
 
-    SV2NumeratorTrade = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
-
-    SV2DenominatorTrade = ds["OperationalLifeTrade"]
-
     SV2CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV2NumeratorTrade / SV2DenominatorTrade)
+        1 - (lex["SV2NumeratorTrade"] / lex["SV2DenominatorTrade"])
     )
 
     # salvage value (trade)
-    sv1_mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRate"] > 0)
-    )
-    sv2_mask = (
-        (ds["DepreciationMethod"] == 1)
-        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRate"] == 0)
-    ) | (
-        (ds["DepreciationMethod"] == 2)
-        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
-    )
-
     SalvageValueTrade = (
-        m["NewTradeCapacity"] * SV1CostTrade.where(sv1_mask)
-        + m["NewTradeCapacity"] * SV2CostTrade.where(sv2_mask)
+        m["NewTradeCapacity"] * SV1CostTrade.where(lex["sv1_trade_mask"])
+        + m["NewTradeCapacity"] * SV2CostTrade.where(lex["sv2_trade_mask"])
     ).fillna(0)
 
     DiscountedSalvageValueTrade = SalvageValueTrade / lex["DiscountFactorSalvageTrade"]
+
     # Total discounted costs
     TotalDiscountedCostByTechnology = (
         DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue

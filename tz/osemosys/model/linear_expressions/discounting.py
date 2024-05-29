@@ -68,6 +68,30 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
     )
 
+    SV1NumeratorTrade = (1 + ds["DiscountRate"]) ** (
+        max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
+    ) - 1
+
+    SV1DenominatorTrade = (1 + ds["DiscountRate"]) ** ds["OperationalLifeTrade"] - 1
+
+    SV2NumeratorTrade = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
+
+    SV2DenominatorTrade = ds["OperationalLifeTrade"]
+
+    sv1_trade_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRate"] > 0)
+    )
+    sv2_trade_mask = (
+        (ds["DepreciationMethod"] == 1)
+        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
+        & (ds["DiscountRate"] == 0)
+    ) | (
+        (ds["DepreciationMethod"] == 2)
+        & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
+    )
+
     lex.update(
         {
             "DiscountFactor": DiscountFactor,
@@ -81,6 +105,12 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
             "SV2Denominator": SV2Denominator,
             "sv1_mask": sv1_mask,
             "sv2_mask": sv2_mask,
+            "SV1NumeratorTrade": SV1NumeratorTrade,
+            "SV1DenominatorTrade": SV1DenominatorTrade,
+            "SV2NumeratorTrade": SV2NumeratorTrade,
+            "SV2DenominatorTrade": SV2DenominatorTrade,
+            "sv1_trade_mask": sv1_trade_mask,
+            "sv2_trade_mask": sv2_trade_mask,
             "DiscountFactorTrade": DiscountFactorTrade,
             "DiscountFactorSalvageTrade": DiscountFactorSalvageTrade,
             "PVAnnuityTrade": PVAnnuityTrade,
