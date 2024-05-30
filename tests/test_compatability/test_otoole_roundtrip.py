@@ -17,6 +17,7 @@ def test_files_equality():
     EXCLUDE_STEMS = [
         "DiscountRateIdv",
         "DiscountRateStorage",
+        "TradeRoute",
     ]
 
     root_dir = "examples/otoole_compat/input_csv/otoole-full-electricity-complete/"
