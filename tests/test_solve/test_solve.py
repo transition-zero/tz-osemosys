@@ -130,8 +130,12 @@ def test_simple_storage():
 
 def test_simple_trade():
     """
-    2 region model, both regions have electricity demand, but generating capacity can only be
-    installed in region 1, and region 2 must have it's electricity imported from region 1.
+    2 region model, both regions have electricity demand and are able to trade with each other, but
+    generating capacity can be constructed with 0 capex in the first region (R1), and non-zero cost
+    in the second region (R2).
+
+    Trade capacity additions are limited so that R2 imports as much energy as it can from R1, and
+    then installs its own generating capacity to make up any shortfall.
     """
     model = Model(
         id="test-trade",
@@ -139,10 +143,12 @@ def test_simple_trade():
         regions=[dict(id="R1"), dict(id="R2")],
         trade=dict(
             id="trade",
-            trade_routes={"R1": {"R2": {"*": {"*": True}}}, "R2": {"R1": {"*": {"*": True}}}},
+            trade_routes={"R1": {"R2": {"*": {"*": True}}}},
             capex={"R1": {"R2": {"*": {"*": 100}}}},
             operational_life={"R1": {"R2": {"*": {"*": 2}}}},
             trade_loss={"*": {"*": {"*": {"*": 0.1}}}},
+            residual_capacity={"R1": {"R2": {"*": {"*": 5}}}},
+            capacity_additional_max={"R1": {"R2": {"*": {"*": 5}}}},
         ),
         commodities=[dict(id="electricity", demand_annual=25)],
         impacts=[],
@@ -150,7 +156,7 @@ def test_simple_trade():
             dict(
                 id="coal-gen",
                 operating_life=2,
-                capex=400,
+                capex={"R1": {"*": 0}, "R2": {"*": 400}},
                 operating_modes=[
                     dict(
                         id="generation",
@@ -158,12 +164,11 @@ def test_simple_trade():
                         output_activity_ratio={"electricity": 1},
                     )
                 ],
-                capacity_gross_max={"R2": {"*": 0}},
             )
         ],
     )
 
     model.solve()
 
-    assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 106949.0
+    assert model.solution["NetTrade"].values[0][2][0] == 15
+    assert np.round(model._m.objective.value) == 29047.0
