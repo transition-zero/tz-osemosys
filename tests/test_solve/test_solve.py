@@ -149,6 +149,7 @@ def test_simple_trade():
             trade_loss={"*": {"*": {"*": {"*": 0.1}}}},
             residual_capacity={"R1": {"R2": {"*": {"*": 5}}}},
             capacity_additional_max={"R1": {"R2": {"*": {"*": 5}}}},
+            cost_of_capital={"R1": {"R2": {"*": 0.1}}},
         ),
         commodities=[dict(id="electricity", demand_annual=25)],
         impacts=[],
@@ -171,4 +172,4 @@ def test_simple_trade():
     model.solve()
 
     assert model.solution["NetTrade"].values[0][2][0] == 15
-    assert np.round(model._m.objective.value) == 29047.0
+    assert np.round(model._m.objective.value) == 28200.0

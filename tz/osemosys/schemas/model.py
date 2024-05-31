@@ -206,7 +206,6 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # DiscountRateIdv
     cost_of_capital: OSeMOSYSData.RT | None = Field(None)
     cost_of_capital_storage: OSeMOSYSData.RO | None = Field(None)
-    # cost_of_capital_trade: OSeMOSYSData.RRCY | None = Field(None)
     discount_rate: OSeMOSYSData.R = Field(OSeMOSYSData.R(defaults.discount_rate))
     reserve_margin: OSeMOSYSData.RY = Field(OSeMOSYSData.RY(defaults.reserve_margin))
 

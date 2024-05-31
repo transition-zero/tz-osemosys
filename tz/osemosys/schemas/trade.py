@@ -24,6 +24,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     operational_life: OSeMOSYSData.RRCY.Int = Field(
         OSeMOSYSData.RRCY.Int(defaults.trade_operating_life)
     )
+    cost_of_capital: OSeMOSYSData.RRC = Field(OSeMOSYSData.RRC(defaults.discount_rate))
 
     @model_validator(mode="before")
     @classmethod
@@ -106,5 +107,8 @@ class Trade(OSeMOSYSBase, OtooleTrade):
 
         if self.operational_life is not None:
             self.construct_region_pairs(self.operational_life)
+
+        if self.cost_of_capital is not None:
+            self.construct_region_pairs(self.cost_of_capital)
 
         return self

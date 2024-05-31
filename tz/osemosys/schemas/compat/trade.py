@@ -44,6 +44,10 @@ class OtooleTrade(BaseModel):
             "attribute": "capex",
             "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
+        "DiscountRateTrade": {
+            "attribute": "cost_of_capital",
+            "columns": ["REGION", "_REGION", "FUEL", "VALUE"],
+        },
     }
 
     @classmethod
@@ -200,6 +204,13 @@ class OtooleTrade(BaseModel):
                 df.index.str.split(".").to_list(), index=df.index
             )
             dfs["CapitalCostTrade"] = df
+
+        if self.cost_of_capital is not None:
+            df = pd.json_normalize(self.cost_of_capital.data).T.rename(columns={0: "VALUE"})
+            df[["REGION", "_REGION", "FUEL"]] = pd.DataFrame(
+                df.index.str.split(".").to_list(), index=df.index
+            )
+            dfs["DiscountRateTrade"] = df
 
         return dfs
 
