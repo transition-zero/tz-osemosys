@@ -1,5 +1,6 @@
+import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Union
+from typing import TYPE_CHECKING, ClassVar, List, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -88,136 +89,255 @@ class OtooleTrade(BaseModel):
         for name, df in dfs.items():
             dfs[name] = df.rename(columns={"_REGION": "LINKED_REGION"})
 
-        return cls(
-            id=Path(root_dir).name,
-            trade_routes=(
-                OSeMOSYSData.RRCY.Bool(
+        trade_instances = []
+        for commodity in dfs["TradeRoute"]["FUEL"].values.tolist():
+
+            id = commodity
+            trade_routes = (
+                OSeMOSYSData.RRY.Bool(
                     group_to_json(
-                        g=dfs["TradeRoute"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["TradeRoute"].loc[dfs["TradeRoute"]["FUEL"] == commodity],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "TradeRoute" not in otoole_cfg.empty_dfs
                 else None
-            ),
-            trade_loss=(
-                OSeMOSYSData.RRCY(
+            )
+            trade_loss = (
+                OSeMOSYSData.RRY(
                     group_to_json(
-                        g=dfs["TradeLossBetweenRegions"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["TradeLossBetweenRegions"].loc[
+                            dfs["TradeLossBetweenRegions"]["FUEL"] == commodity
+                        ],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "TradeLossBetweenRegions" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRCY(defaults.trade_loss)
-            ),
-            residual_capacity=(
-                OSeMOSYSData.RRCY(
+                else OSeMOSYSData.RRY(defaults.trade_loss)
+            )
+            residual_capacity = (
+                OSeMOSYSData.RRY(
                     group_to_json(
-                        g=dfs["ResidualTradeCapacity"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["ResidualTradeCapacity"].loc[
+                            dfs["ResidualTradeCapacity"]["FUEL"] == commodity
+                        ],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "ResidualTradeCapacity" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRCY(defaults.trade_residual_capacity)
-            ),
-            capex=(
-                OSeMOSYSData.RRCY(
+                else OSeMOSYSData.RRY(defaults.trade_residual_capacity)
+            )
+            capex = (
+                OSeMOSYSData.RRY(
                     group_to_json(
-                        g=dfs["CapitalCostTrade"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["CapitalCostTrade"].loc[dfs["CapitalCostTrade"]["FUEL"] == commodity],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "CapitalCostTrade" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRCY(defaults.trade_capex)
-            ),
-            capacity_additional_max=(
-                OSeMOSYSData.RRCY(
+                else OSeMOSYSData.RRY(defaults.trade_capex)
+            )
+            capacity_additional_max = (
+                OSeMOSYSData.RRY(
                     group_to_json(
-                        g=dfs["TotalAnnualMaxTradeInvestment"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["TotalAnnualMaxTradeInvestment"].loc[
+                            dfs["TotalAnnualMaxTradeInvestment"]["FUEL"] == commodity
+                        ],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "TotalAnnualMaxTradeInvestment" not in otoole_cfg.empty_dfs
                 else None
-            ),
-            operational_life=(
-                OSeMOSYSData.RRCY.Int(
+            )
+            operational_life = (
+                OSeMOSYSData.RRY.Int(
                     group_to_json(
-                        g=dfs["OperationalLifeTrade"],
-                        data_columns=["REGION", "LINKED_REGION", "FUEL", "YEAR"],
+                        g=dfs["OperationalLifeTrade"].loc[
+                            dfs["OperationalLifeTrade"]["FUEL"] == commodity
+                        ],
+                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
                         target_column="VALUE",
                     )
                 )
                 if "OperationalLifeTrade" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRCY.Int(defaults.trade_operating_life)
-            ),
-            otoole_cfg=otoole_cfg,
-        )
+                else OSeMOSYSData.RRY.Int(defaults.trade_operating_life)
+            )
+            cost_of_capital = (
+                OSeMOSYSData.RR(
+                    group_to_json(
+                        g=dfs["DiscountRateTrade"].loc[
+                            dfs["DiscountRateTrade"]["FUEL"] == commodity
+                        ],
+                        data_columns=["REGION", "LINKED_REGION"],
+                        target_column="VALUE",
+                    )
+                )
+                if "DiscountRateTrade" not in otoole_cfg.empty_dfs
+                else None
+            )
+            otoole_cfg = otoole_cfg
 
-    def to_dataframes(self):
+            trade_instances.append(
+                cls(
+                    id=id,
+                    otoole_cfg=otoole_cfg,
+                    trade_routes=trade_routes,
+                    trade_loss=trade_loss,
+                    residual_capacity=residual_capacity,
+                    capex=capex,
+                    capacity_additional_max=capacity_additional_max,
+                    operational_life=operational_life,
+                    cost_of_capital=cost_of_capital,
+                )
+            )
+
+        return trade_instances
+
+    @classmethod
+    def to_dataframes(cls, trade: List["Trade"]):
+
         dfs = {}
 
-        if self.trade_routes is not None:
-            df = pd.json_normalize(self.trade_routes.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
-            dfs["TradeRoute"] = df
+        trade_routes_dfs = []
+        trade_loss_dfs = []
+        residual_capacity_dfs = []
+        capex_dfs = []
+        capacity_additional_max_dfs = []
+        operational_life_dfs = []
+        cost_of_capital_dfs = []
 
-        if self.trade_loss is not None:
-            df = pd.json_normalize(self.trade_loss.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["TradeLossBetweenRegions"] = df
+        for trade_commodity in trade:
 
-        if self.capacity_additional_max is not None:
-            df = pd.json_normalize(self.capacity_additional_max.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["TotalAnnualMaxTradeInvestment"] = df
+            if trade_commodity.trade_routes is not None:
+                df = pd.json_normalize(trade_commodity.trade_routes.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
+                trade_routes_dfs.append(df)
 
-        if self.residual_capacity is not None:
-            df = pd.json_normalize(self.residual_capacity.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["ResidualTradeCapacity"] = df
+            if trade_commodity.trade_loss is not None:
+                df = pd.json_normalize(trade_commodity.trade_loss.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                trade_loss_dfs.append(df)
 
-        if self.operational_life is not None:
-            df = pd.json_normalize(self.operational_life.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["OperationalLifeTrade"] = df
+            if trade_commodity.capacity_additional_max is not None:
+                df = pd.json_normalize(trade_commodity.capacity_additional_max.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                capacity_additional_max_dfs.append(df)
 
-        if self.capex is not None:
-            df = pd.json_normalize(self.capex.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL", "YEAR"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["CapitalCostTrade"] = df
+            if trade_commodity.residual_capacity is not None:
+                df = pd.json_normalize(trade_commodity.residual_capacity.data).T.rename(
+                    columns={0: "VALUE"}
+                )
 
-        if self.cost_of_capital is not None:
-            df = pd.json_normalize(self.cost_of_capital.data).T.rename(columns={0: "VALUE"})
-            df[["REGION", "_REGION", "FUEL"]] = pd.DataFrame(
-                df.index.str.split(".").to_list(), index=df.index
-            )
-            dfs["DiscountRateTrade"] = df
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                residual_capacity_dfs.append(df)
+
+            if trade_commodity.operational_life is not None:
+                df = pd.json_normalize(trade_commodity.operational_life.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                operational_life_dfs.append(df)
+
+            if trade_commodity.capex is not None:
+                df = pd.json_normalize(trade_commodity.capex.data).T.rename(columns={0: "VALUE"})
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                capex_dfs.append(df)
+
+            if trade_commodity.cost_of_capital is not None:
+                df = pd.json_normalize(trade_commodity.cost_of_capital.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.id
+                cost_of_capital_dfs.append(df)
+
+        dfs["TradeRoute"] = (
+            pd.concat(trade_routes_dfs)
+            if trade_routes_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["TradeRoute"]["columns"])
+        )
+        dfs["TradeLossBetweenRegions"] = (
+            pd.concat(trade_loss_dfs)
+            if trade_loss_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["TradeLossBetweenRegions"]["columns"])
+        )
+        dfs["TotalAnnualMaxTradeInvestment"] = (
+            pd.concat(capacity_additional_max_dfs)
+            if capacity_additional_max_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["TotalAnnualMaxTradeInvestment"]["columns"])
+        )
+        dfs["ResidualTradeCapacity"] = (
+            pd.concat(residual_capacity_dfs)
+            if residual_capacity_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["ResidualTradeCapacity"]["columns"])
+        )
+        dfs["OperationalLifeTrade"] = (
+            pd.concat(operational_life_dfs)
+            if operational_life_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["OperationalLifeTrade"]["columns"])
+        )
+        dfs["CapitalCostTrade"] = (
+            pd.concat(capex_dfs)
+            if capex_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["CapitalCostTrade"]["columns"])
+        )
+        dfs["DiscountRateTrade"] = (
+            pd.concat(cost_of_capital_dfs)
+            if cost_of_capital_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["DiscountRateTrade"]["columns"])
+        )
 
         return dfs
 
-    def to_otoole_csv(self, output_directory):
+    @classmethod
+    def to_otoole_csv(cls, trade: List["Trade"], output_directory: str):
+        """Write a number of Trade objects to otoole-organised csvs.
 
-        dfs = self.to_dataframes()
+        Args:
+            trade (List[Trade]): A list of Trade instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
 
-        for stem, _params in self.otoole_stems.items():
-            if stem not in self.otoole_cfg.empty_dfs:
-                dfs[stem].to_csv(Path(output_directory) / f"{stem}.csv", index=False)
+        dfs = cls.to_dataframes(trade=trade)
+
+        # params to csv where appropriate
+        for stem, _params in cls.otoole_stems.items():
+            if any(
+                [(stem not in trade_commodity.otoole_cfg.empty_dfs) for trade_commodity in trade]
+            ):
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
+
+        return True

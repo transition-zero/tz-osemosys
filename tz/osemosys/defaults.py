@@ -20,6 +20,7 @@ class Defaults(BaseSettings):
     depreciation_method: str = "sinking-fund"
     discount_rate: float = Field(0.05)
     reserve_margin: float = Field(1.0)
+    trade_route: bool = Field(False)
     trade_loss: float = Field(0.00001)
     trade_residual_capacity: float = Field(0.0)
     trade_capex: float = Field(0.00001)
@@ -40,6 +41,7 @@ class DefaultsLinopy(BaseSettings):
             "DiscountRate": 0.1,
             "ResidualCapacity": 0,
             "SpecifiedAnnualDemand": 0,
+            "TradeRoute": False,
         }
     )
 

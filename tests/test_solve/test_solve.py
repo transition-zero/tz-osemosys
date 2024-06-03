@@ -141,16 +141,18 @@ def test_simple_trade():
         id="test-trade",
         time_definition=dict(id="years-only", years=range(2020, 2031)),
         regions=[dict(id="R1"), dict(id="R2")],
-        trade=dict(
-            id="trade",
-            trade_routes={"R1": {"R2": {"*": {"*": True}}}},
-            capex={"R1": {"R2": {"*": {"*": 100}}}},
-            operational_life={"R1": {"R2": {"*": {"*": 2}}}},
-            trade_loss={"*": {"*": {"*": {"*": 0.1}}}},
-            residual_capacity={"R1": {"R2": {"*": {"*": 5}}}},
-            capacity_additional_max={"R1": {"R2": {"*": {"*": 5}}}},
-            cost_of_capital={"R1": {"R2": {"*": 0.1}}},
-        ),
+        trade=[
+            dict(
+                id="electricity",
+                trade_routes={"R1": {"R2": {"*": True}}},
+                capex={"R1": {"R2": {"*": 100}}},
+                operational_life={"R1": {"R2": {"*": 2}}},
+                trade_loss={"*": {"*": {"*": 0.1}}},
+                residual_capacity={"R1": {"R2": {"*": 5}}},
+                capacity_additional_max={"R1": {"R2": {"*": 5}}},
+                cost_of_capital={"R1": {"R2": 0.1}},
+            )
+        ],
         commodities=[dict(id="electricity", demand_annual=25)],
         impacts=[],
         technologies=[

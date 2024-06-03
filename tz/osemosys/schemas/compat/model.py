@@ -6,7 +6,7 @@ import pandas as pd
 import xarray as xr
 from pydantic import BaseModel, Field
 
-from tz.osemosys.defaults import defaults
+from tz.osemosys.defaults import defaults, defaults_linopy
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
@@ -140,34 +140,31 @@ class RunSpecOtoole(BaseModel):
 
         ds = xr.Dataset(data_vars=data_arrays, coords=coords)
 
-        # # If runspec not generated using otoole config yaml, use linopy defaults
-        # if self.defaults_otoole is None:
-        #     default_values = defaults.otoole_name_defaults
-        #     # If storage technologies present, use additional relevant default values
-        #     if self.storage_technologies:
-        #         default_values = {**default_values, **defaults.otoole_name_storage_defaults}
-        #     # Extract defaults data from OSeMOSYSData objects
-        #     for name, osemosys_data in default_values.items():
-        #         default_values[name] = osemosys_data.data
-        # # Otherwise take defaults from otoole config yaml file
-        # else:
-        #     default_values = {}
-        #     for name, data in self.defaults_otoole.values.items():
-        #         if data["type"] == "param":
-        #             default_values[name] = data["default"]
+        # If runspec not generated using otoole config yaml, use linopy defaults
+        if self.defaults_otoole is None:
+            default_values = defaults_linopy.otoole_name_defaults
+            # If storage technologies present, use additional relevant default values
+            if self.storage:
+                default_values = {**default_values, **defaults_linopy.otoole_name_storage_defaults}
+        # Otherwise take defaults from otoole config yaml file
+        else:
+            default_values = {}
+            for name, data in self.defaults_otoole.values.items():
+                if data["type"] == "param":
+                    default_values[name] = data["default"]
 
-        # # Replace any nan values in ds with default values (or None) for corresponding param,
-        # # adding default values as attribute of each data array
-        # for name in ds.data_vars.keys():
-        #     # Replace nan values with default values if available
-        #     if name in default_values.keys():
-        #         ds[name].attrs["default"] = default_values[name]
-        #         ds[name] = ds[name].fillna(default_values[name])
-        #     # Replace all other nan values with None
-        #     # TODO: remove this code if nan values wanted in the ds
-        #     # else:
-        #     #    ds[name].attrs["default"] = None
-        #     #    ds[name] = ds[name].fillna(None)
+        # Replace any nan values in ds with default values (or None) for corresponding param,
+        # adding default values as attribute of each data array
+        for name in ds.data_vars.keys():
+            # Replace nan values with default values if available
+            if name in default_values.keys():
+                ds[name].attrs["default"] = default_values[name]
+                ds[name] = ds[name].fillna(default_values[name])
+            # Replace all other nan values with None
+            # TODO: remove this code if nan values wanted in the ds
+            # else:
+            #    ds[name].attrs["default"] = None
+            #    ds[name] = ds[name].fillna(None)
 
         return ds
 
@@ -480,7 +477,7 @@ class RunSpecOtoole(BaseModel):
         if self.storage is not None:
             dfs.update(Storage.to_dataframes(storage=self.storage))
         if self.trade is not None:
-            dfs.update(self.trade.to_dataframes())
+            dfs.update(Trade.to_dataframes(trade=self.trade))
 
         return dfs
 
@@ -496,7 +493,7 @@ class RunSpecOtoole(BaseModel):
         if self.storage is not None:
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
         if self.trade is not None:
-            self.trade.to_otoole_csv(output_directory=output_directory)
+            Trade.to_otoole_csv(trade=self.trade, output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

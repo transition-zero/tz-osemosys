@@ -196,7 +196,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
-    trade: Trade | None = Field(None)
+    trade: List[Trade] | None = Field(None)
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
     storage: List[Storage] | None = Field(None)
 
@@ -312,7 +312,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         if self.storage:
             self.storage = [storage.compose(**sets) for storage in self.storage]
         if self.trade:
-            self.trade = self.trade.compose(**sets)
+            self.trade = [trade.compose(**sets) for trade in self.trade]
 
         # compose own parameters
         if self.depreciation_method:

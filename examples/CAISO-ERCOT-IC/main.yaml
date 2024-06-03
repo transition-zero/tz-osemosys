@@ -43,20 +43,20 @@ regions:
 
 # TRADE ROUTES
 trade:
-  id: "trade routes"
-  long_name: "trade routes"
-  description: "trade routes for whole model"
-  trade_routes: {
-    "US-CA":
-      {
-      "US-TX": {"*": {"*": True}},
-      "PACIFIC-MARKET": {"*": {"*": True}}
-      },
-    "US-TX":
-      {
-      "ATLANTIC-MARKET": {"*": {"*": True}},
-      },
-  }
+  - id: "ELEC"
+    long_name: "ELEC commodity"
+    description: "trade route instance for the ELEC commodity"
+    trade_routes: {
+      "US-CA":
+        {
+        "US-TX": {"*": True},
+        "PACIFIC-MARKET": {"*": True}
+        },
+      "US-TX":
+        {
+        "ATLANTIC-MARKET": {"*": True},
+        },
+    }
 
 # TIME DEFINTIONS
 time_definition:
