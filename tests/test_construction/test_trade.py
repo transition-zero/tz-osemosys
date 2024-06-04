@@ -13,6 +13,7 @@ PASSING_TRADE_DEFINITIONS = dict(
         residual_capacity={"R1": {"R2": {"*": 5}}},
         capacity_additional_max={"R1": {"R2": {"*": 5}}},
         cost_of_capital={"R1": {"R2": 0.1}},
+        construct_region_pairs=True,
     ),
 )
 
@@ -27,6 +28,7 @@ FAILING_TRADE_DEFINITIONS = dict(
         residual_capacity={"R1": {"R2": {"*": 5}}},
         capacity_additional_max={"R1": {"R2": {"*": 5}}},
         cost_of_capital={"R1": {"R2": 0.1}},
+        construct_region_pairs=True,
     ),
 )
 

@@ -89,114 +89,119 @@ class OtooleTrade(BaseModel):
         for name, df in dfs.items():
             dfs[name] = df.rename(columns={"_REGION": "LINKED_REGION"})
 
-        trade_instances = []
-        for commodity in dfs["TradeRoute"]["FUEL"].values.tolist():
+        if "TradeRoute" in otoole_cfg.empty_dfs:
+            trade_instances = None
+        else:
+            trade_instances = []
+            for commodity in dfs["TradeRoute"]["FUEL"].values.tolist():
 
-            id = commodity + " trade"
-            commodity = commodity
-            trade_routes = (
-                OSeMOSYSData.RRY.Bool(
-                    group_to_json(
-                        g=dfs["TradeRoute"].loc[dfs["TradeRoute"]["FUEL"] == commodity],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                id = commodity + " trade"
+                commodity = commodity
+                trade_routes = (
+                    OSeMOSYSData.RRY.Bool(
+                        group_to_json(
+                            g=dfs["TradeRoute"].loc[dfs["TradeRoute"]["FUEL"] == commodity],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "TradeRoute" not in otoole_cfg.empty_dfs
+                    else None
                 )
-                if "TradeRoute" not in otoole_cfg.empty_dfs
-                else None
-            )
-            trade_loss = (
-                OSeMOSYSData.RRY(
-                    group_to_json(
-                        g=dfs["TradeLossBetweenRegions"].loc[
-                            dfs["TradeLossBetweenRegions"]["FUEL"] == commodity
-                        ],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                trade_loss = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TradeLossBetweenRegions"].loc[
+                                dfs["TradeLossBetweenRegions"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "TradeLossBetweenRegions" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RRY(defaults.trade_loss)
                 )
-                if "TradeLossBetweenRegions" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRY(defaults.trade_loss)
-            )
-            residual_capacity = (
-                OSeMOSYSData.RRY(
-                    group_to_json(
-                        g=dfs["ResidualTradeCapacity"].loc[
-                            dfs["ResidualTradeCapacity"]["FUEL"] == commodity
-                        ],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                residual_capacity = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["ResidualTradeCapacity"].loc[
+                                dfs["ResidualTradeCapacity"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "ResidualTradeCapacity" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RRY(defaults.trade_residual_capacity)
                 )
-                if "ResidualTradeCapacity" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRY(defaults.trade_residual_capacity)
-            )
-            capex = (
-                OSeMOSYSData.RRY(
-                    group_to_json(
-                        g=dfs["CapitalCostTrade"].loc[dfs["CapitalCostTrade"]["FUEL"] == commodity],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                capex = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["CapitalCostTrade"].loc[
+                                dfs["CapitalCostTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "CapitalCostTrade" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RRY(defaults.trade_capex)
                 )
-                if "CapitalCostTrade" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRY(defaults.trade_capex)
-            )
-            capacity_additional_max = (
-                OSeMOSYSData.RRY(
-                    group_to_json(
-                        g=dfs["TotalAnnualMaxTradeInvestment"].loc[
-                            dfs["TotalAnnualMaxTradeInvestment"]["FUEL"] == commodity
-                        ],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                capacity_additional_max = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalAnnualMaxTradeInvestment"].loc[
+                                dfs["TotalAnnualMaxTradeInvestment"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "TotalAnnualMaxTradeInvestment" not in otoole_cfg.empty_dfs
+                    else None
                 )
-                if "TotalAnnualMaxTradeInvestment" not in otoole_cfg.empty_dfs
-                else None
-            )
-            operational_life = (
-                OSeMOSYSData.RRY.Int(
-                    group_to_json(
-                        g=dfs["OperationalLifeTrade"].loc[
-                            dfs["OperationalLifeTrade"]["FUEL"] == commodity
-                        ],
-                        data_columns=["REGION", "LINKED_REGION", "YEAR"],
-                        target_column="VALUE",
+                operational_life = (
+                    OSeMOSYSData.RRY.Int(
+                        group_to_json(
+                            g=dfs["OperationalLifeTrade"].loc[
+                                dfs["OperationalLifeTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "OperationalLifeTrade" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RRY.Int(defaults.trade_operating_life)
                 )
-                if "OperationalLifeTrade" not in otoole_cfg.empty_dfs
-                else OSeMOSYSData.RRY.Int(defaults.trade_operating_life)
-            )
-            cost_of_capital = (
-                OSeMOSYSData.RR(
-                    group_to_json(
-                        g=dfs["DiscountRateTrade"].loc[
-                            dfs["DiscountRateTrade"]["FUEL"] == commodity
-                        ],
-                        data_columns=["REGION", "LINKED_REGION"],
-                        target_column="VALUE",
+                cost_of_capital = (
+                    OSeMOSYSData.RR(
+                        group_to_json(
+                            g=dfs["DiscountRateTrade"].loc[
+                                dfs["DiscountRateTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION"],
+                            target_column="VALUE",
+                        )
                     )
+                    if "DiscountRateTrade" not in otoole_cfg.empty_dfs
+                    else None
                 )
-                if "DiscountRateTrade" not in otoole_cfg.empty_dfs
-                else None
-            )
-            otoole_cfg = otoole_cfg
+                otoole_cfg = otoole_cfg
 
-            trade_instances.append(
-                cls(
-                    id=id,
-                    commodity=commodity,
-                    otoole_cfg=otoole_cfg,
-                    trade_routes=trade_routes,
-                    trade_loss=trade_loss,
-                    residual_capacity=residual_capacity,
-                    capex=capex,
-                    capacity_additional_max=capacity_additional_max,
-                    operational_life=operational_life,
-                    cost_of_capital=cost_of_capital,
+                trade_instances.append(
+                    cls(
+                        id=id,
+                        commodity=commodity,
+                        otoole_cfg=otoole_cfg,
+                        trade_routes=trade_routes,
+                        trade_loss=trade_loss,
+                        residual_capacity=residual_capacity,
+                        capex=capex,
+                        capacity_additional_max=capacity_additional_max,
+                        operational_life=operational_life,
+                        cost_of_capital=cost_of_capital,
+                    )
                 )
-            )
 
         return trade_instances
 
