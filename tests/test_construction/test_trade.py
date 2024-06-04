@@ -4,7 +4,8 @@ from tz.osemosys.schemas.trade import Trade
 
 PASSING_TRADE_DEFINITIONS = dict(
     basic=dict(
-        id="electricity",
+        id="electricity trade",
+        commodity="electricity",
         trade_routes={"R1": {"R2": {"*": True}}},
         capex={"R1": {"R2": {"*": 100}}},
         operational_life={"R1": {"R2": {"*": 2}}},
@@ -16,8 +17,9 @@ PASSING_TRADE_DEFINITIONS = dict(
 )
 
 FAILING_TRADE_DEFINITIONS = dict(
-    # The relevant commodity must be provided as the id
-    no_id=dict(
+    # The relevant commodity must be provided
+    no_commodity=dict(
+        id="electricity trade",
         trade_routes={"R1": {"R2": {"*": True}}, "R2": {"R1": {"*": False}}},
         capex={"R1": {"R2": {"*": 100}}},
         operational_life={"R1": {"R2": {"*": 2}}},

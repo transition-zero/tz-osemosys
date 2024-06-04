@@ -92,7 +92,8 @@ class OtooleTrade(BaseModel):
         trade_instances = []
         for commodity in dfs["TradeRoute"]["FUEL"].values.tolist():
 
-            id = commodity
+            id = commodity + " trade"
+            commodity = commodity
             trade_routes = (
                 OSeMOSYSData.RRY.Bool(
                     group_to_json(
@@ -185,6 +186,7 @@ class OtooleTrade(BaseModel):
             trade_instances.append(
                 cls(
                     id=id,
+                    commodity=commodity,
                     otoole_cfg=otoole_cfg,
                     trade_routes=trade_routes,
                     trade_loss=trade_loss,
@@ -220,7 +222,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
                 trade_routes_dfs.append(df)
 
@@ -231,7 +233,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 trade_loss_dfs.append(df)
 
             if trade_commodity.capacity_additional_max is not None:
@@ -241,7 +243,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 capacity_additional_max_dfs.append(df)
 
             if trade_commodity.residual_capacity is not None:
@@ -252,7 +254,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 residual_capacity_dfs.append(df)
 
             if trade_commodity.operational_life is not None:
@@ -263,7 +265,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 operational_life_dfs.append(df)
 
             if trade_commodity.capex is not None:
@@ -271,7 +273,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 capex_dfs.append(df)
 
             if trade_commodity.cost_of_capital is not None:
@@ -281,7 +283,7 @@ class OtooleTrade(BaseModel):
                 df[["REGION", "_REGION"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                df["FUEL"] = trade_commodity.id
+                df["FUEL"] = trade_commodity.commodity
                 cost_of_capital_dfs.append(df)
 
         dfs["TradeRoute"] = (

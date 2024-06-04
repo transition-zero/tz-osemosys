@@ -143,7 +143,8 @@ def test_simple_trade():
         regions=[dict(id="R1"), dict(id="R2")],
         trade=[
             dict(
-                id="electricity",
+                id="electricity transmission",
+                commodity="electricity",
                 trade_routes={"R1": {"R2": {"*": True}}},
                 capex={"R1": {"R2": {"*": 100}}},
                 operational_life={"R1": {"R2": {"*": 2}}},
@@ -151,6 +152,7 @@ def test_simple_trade():
                 residual_capacity={"R1": {"R2": {"*": 5}}},
                 capacity_additional_max={"R1": {"R2": {"*": 5}}},
                 cost_of_capital={"R1": {"R2": 0.1}},
+                construct_region_pairs=True,
             )
         ],
         commodities=[dict(id="electricity", demand_annual=25)],

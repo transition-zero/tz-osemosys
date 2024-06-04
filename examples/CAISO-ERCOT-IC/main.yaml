@@ -43,9 +43,10 @@ regions:
 
 # TRADE ROUTES
 trade:
-  - id: "ELEC"
-    long_name: "ELEC commodity"
+  - id: "ELEC trade"
+    long_name: "Electricity trade"
     description: "trade route instance for the ELEC commodity"
+    commodity: "ELEC"
     trade_routes: {
       "US-CA":
         {

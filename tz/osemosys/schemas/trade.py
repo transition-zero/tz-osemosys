@@ -14,6 +14,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
 
     """
 
+    commodity: str
     trade_routes: OSeMOSYSData.RRY.Bool = Field(OSeMOSYSData.RRY(defaults.trade_route))
     trade_loss: OSeMOSYSData.RRY | None = Field(OSeMOSYSData.RRY(defaults.trade_loss))
     residual_capacity: OSeMOSYSData.RRY = Field(OSeMOSYSData.RRY(defaults.trade_residual_capacity))
@@ -23,6 +24,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
         OSeMOSYSData.RRY.Int(defaults.trade_operating_life)
     )
     cost_of_capital: OSeMOSYSData.RR | None = Field(OSeMOSYSData.RR(defaults.discount_rate))
+    construct_region_pairs: bool | None = Field(False)
 
     @model_validator(mode="before")
     @classmethod
@@ -35,7 +37,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
 
         return values
 
-    def construct_region_pairs(self, param):
+    def construct_pairs(self, param):
         """
         This function constructs region pairs if one direction is defined but not the opposite.
 
@@ -87,27 +89,34 @@ class Trade(OSeMOSYSBase, OtooleTrade):
                         field_val.compose(self.id, field_val.data, **sets),
                     )
 
-        # # Construct region pairs where required
-        # if self.trade_routes is not None:
-        #     self.construct_region_pairs(self.trade_routes)
+        # Check trade commodity matches those in commodity set
+        if self.commodity not in sets["commodities"]:
+            raise ValueError(
+                f"Commodity '{self.commodity}' for trade instance '{self.id}'"
+                f" does not match any commodity instance"
+            )
 
-        # if self.trade_loss is not None:
-        #     self.construct_region_pairs(self.trade_loss)
+        # Construct region pairs if requested where required
+        if self.construct_region_pairs:
+            if self.trade_routes is not None:
+                self.construct_pairs(self.trade_routes)
 
-        # Residual capacity will not be duplicated if defined in one direction but not another
-        # if self.residual_capacity is not None:
-        #     self.construct_region_pairs(self.residual_capacity)
+            if self.trade_loss is not None:
+                self.construct_pairs(self.trade_loss)
 
-        # if self.capex is not None:
-        #     self.construct_region_pairs(self.capex)
+            if self.residual_capacity is not None:
+                self.construct_pairs(self.residual_capacity)
 
-        # if self.capacity_additional_max is not None:
-        #     self.construct_region_pairs(self.capacity_additional_max)
+            if self.capex is not None:
+                self.construct_pairs(self.capex)
 
-        # if self.operational_life is not None:
-        #     self.construct_region_pairs(self.operational_life)
+            if self.capacity_additional_max is not None:
+                self.construct_pairs(self.capacity_additional_max)
 
-        # if self.cost_of_capital is not None:
-        #     self.construct_region_pairs(self.cost_of_capital)
+            if self.operational_life is not None:
+                self.construct_pairs(self.operational_life)
+
+            if self.cost_of_capital is not None:
+                self.construct_pairs(self.cost_of_capital)
 
         return self
