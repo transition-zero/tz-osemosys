@@ -18,7 +18,7 @@ def test_otoole_roundtrip():
 
         if trade:
 
-            trade.to_otoole_csv(trade=trade, output_directory=output_directory)
+            Trade.to_otoole_csv(trade=trade, output_directory=output_directory)
 
             for stem, params in trade[0].otoole_stems.items():
                 if stem not in trade[0].otoole_cfg.empty_dfs:
