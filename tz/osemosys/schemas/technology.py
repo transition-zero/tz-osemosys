@@ -127,9 +127,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     ## Parameters
 
-    `id` `(str)`: Used to represent the technology name.
+    `id` `(str)` - Used to represent the technology name.
 
-    `operating_modes` `(List[OperatingMode])`: A list containing one OperatingMode object for each
+    `operating_modes` `(List[OperatingMode])` - A list containing one OperatingMode object for each
     operating mode relevant to the current technology. Each OperatingMode object contains data
     relevant for the corresponding operating mode, ie.e. input/output/emission activity ratios,
     variable costs, tag linking the technology to storage. See the OperatingMode documentation for
@@ -180,7 +180,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     in a specified year. Optional, defaults to `None`.
 
     `capacity_additional_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacityInvestment.
-    Maximum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+    Maximum capacity investment of a technology, expressed in power units. Optional, defaults to
+    `None`.
 
     `capacity_additional_max_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
     CapacityAdditionalMaxGrowthRate. Maximum allowed percentage growth in the given technology's
@@ -193,7 +194,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Optional, defaults to `None`.
 
     `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
-    Minimum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+    Minimum capacity investment of a technology, expressed in power units. Optional, defaults to
+    `None`.
 
     `capacity_additional_min_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
     CapacityAdditionalMinGrowthRate. Minimum allowed percentage growth in the given technology's
