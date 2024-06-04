@@ -33,7 +33,7 @@ class OtooleCommodity(BaseModel):
             "columns": ["REGION", "FUEL", "YEAR", "VALUE"],
         },
         "RETagFuel": {
-            "attribute": "is_renewable",
+            "attribute": "include_in_joint_renewable_target",
             "columns": ["REGION", "FUEL", "YEAR", "VALUE"],
         },
     }
@@ -130,7 +130,7 @@ class OtooleCommodity(BaseModel):
                 if commodity in dfs["SpecifiedDemandProfile"]["FUEL"].values
                 else None
             )
-            is_renewable = (
+            include_in_joint_renewable_target = (
                 OSeMOSYSData.RY.Bool(
                     group_to_json(
                         g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == commodity],
@@ -159,7 +159,7 @@ class OtooleCommodity(BaseModel):
                     otoole_cfg=otoole_cfg,
                     demand_annual=demand,
                     demand_profile=demand_profile,
-                    is_renewable=is_renewable,
+                    include_in_joint_renewable_target=include_in_joint_renewable_target,
                 )
             )
 
@@ -177,7 +177,7 @@ class OtooleCommodity(BaseModel):
         accumulated_demand_dfs = []
         annual_demand_dfs = []
         demand_profile_dfs = []
-        is_renewable_dfs = []
+        include_in_joint_renewable_target_dfs = []
 
         for commodity in commodities:
             if commodity.demand_annual is not None:
@@ -199,7 +199,8 @@ class OtooleCommodity(BaseModel):
                             )
                             df_profile["FUEL"] = commodity.id
                             df_profile[["REGION", "YEAR", "TIMESLICE"]] = pd.DataFrame(
-                                df_profile.index.str.split(".").to_list(), index=df_profile.index
+                                df_profile.index.str.split(".").to_list(),
+                                index=df_profile.index,
                             )
                             demand_profile_dfs.append(
                                 df_profile.loc[df_profile["REGION"] == region]
@@ -210,14 +211,16 @@ class OtooleCommodity(BaseModel):
                 else:
                     accumulated_demand_dfs.append(df)
 
-            if commodity.is_renewable is not None:
-                df = pd.json_normalize(commodity.is_renewable.data).T.rename(columns={0: "VALUE"})
+            if commodity.include_in_joint_renewable_target is not None:
+                df = pd.json_normalize(commodity.include_in_joint_renewable_target.data).T.rename(
+                    columns={0: "VALUE"}
+                )
                 df["FUEL"] = commodity.id
                 df[["REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
-                is_renewable_dfs.append(df)
+                include_in_joint_renewable_target_dfs.append(df)
 
         dfs["SpecifiedAnnualDemand"] = (
             pd.concat(annual_demand_dfs)
@@ -235,8 +238,8 @@ class OtooleCommodity(BaseModel):
             else pd.DataFrame(columns=cls.otoole_stems["SpecifiedDemandProfile"]["columns"])
         )
         dfs["RETagFuel"] = (
-            pd.concat(is_renewable_dfs)
-            if is_renewable_dfs
+            pd.concat(include_in_joint_renewable_target_dfs)
+            if include_in_joint_renewable_target_dfs
             else pd.DataFrame(columns=cls.otoole_stems["RETagFuel"]["columns"])
         )
 

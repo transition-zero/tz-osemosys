@@ -166,7 +166,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     technology will be installed only in batches of the specified capacity and the problem will
     turn into a Mixed Integer Linear Problem. Optional, defaults to `None`.
 
-    `is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
+    `include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
     Boolean tagging the renewable technologies that must contribute to reaching the indicated
     minimum renewable production target. It has value True for thetechnologies contributing,
     False otherwise. Optional, defaults to `None`.
@@ -182,8 +182,22 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     `capacity_additional_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacityInvestment.
     Maximum capacity of a technology, expressed in power units. Optional, defaults to `None`.
 
+    `capacity_additional_max_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxGrowthRate. Maximum allowed percentage growth in the given technology's
+    capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
+
+    `capacity_additional_max_floor` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxFloor. Maximum allowed growth in the given technology's capacity year on
+    year, expressed in capacity units. If used in conjunction with
+    capacity_additional_max_growth_rate it limits capacity growth to whichever is greater.
+    Optional, defaults to `None`.
+
     `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
     Minimum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+
+    `capacity_additional_min_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMinGrowthRate. Minimum allowed percentage growth in the given technology's
+    capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
     `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
     TotalTechnologyAnnualActivityUpperLimit.
@@ -266,21 +280,24 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # NON-REQUIRED PARAMETERS
 
     capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
-    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS
     # -----
-    # capacity
+    # gross capacity max/min in each year
     capacity_gross_max: OSeMOSYSData.RY | None = Field(None)
     capacity_gross_min: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
 
-    # growth rate # TO BE IMPLEMENTED
-    # capacity_additional_max_growth_rate: OSeMOSYSData | None  = Field(None)
-    # capacity_additional_max_ceil: OSeMOSYSData | None = Field(None)
-    # capacity_additional_max_floor: RegionYearData | None = Field(None)
-    # capacity_additional_min_growth_rate: RegionYearData | None  = Field(None)
+    # additional capacity upper bounds
+    capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_max_growth_rate: OSeMOSYSData.R | None = Field(None)
+    # upper bound floor: if used with growth_rate,
+    # limits capacity growth to the floor or growth-rate, whichever is greater
+    capacity_additional_max_floor: OSeMOSYSData.R | None = Field(None)
+
+    # additional capacity lower bounds (MUST build)
+    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_min_growth_rate: OSeMOSYSData.R | None = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)

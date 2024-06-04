@@ -4,6 +4,7 @@ import xarray as xr
 from linopy import LinearExpression, Model
 
 SOLUTION_KEYS = [
+    "AnnualTechnologyEmission",
     "AnnualFixedOperatingCost",
     "AnnualVariableOperatingCost",
     "CapitalInvestment",
@@ -14,16 +15,17 @@ SOLUTION_KEYS = [
     "DiscountedOperatingCost",
     "DiscountedSalvageValue",
     "GrossStorageCapacity",
+    "GrossCapacity",
     "NetCharge",
     "NewCapacity",
     "NewStorageCapacity",
     "NumberOfNewTechnologyUnits",
     "OperatingCost",
     "Production",
+    "ProductionByTechnology",
     "SalvageValue",
     "StorageLevel",
     "TotalAnnualTechnologyActivityByMode",
-    "GrossCapacity",
     "TotalCapacityInReserveMargin",
     "TotalDiscountedCost",
     "TotalDiscountedCostByTechnology",
@@ -125,7 +127,11 @@ def build_solution(
 
     if solution_vars is None:
         return xr.Dataset(
-            {k: solution_base[k] for k in sorted(list(solution_base.keys())) if k in SOLUTION_KEYS}
+            {
+                k: solution_base[k]
+                for k in sorted(list(solution_base.keys()))
+                if (k in SOLUTION_KEYS) and (k in solution_base.keys())
+            }
         )
     elif solution_vars == "all":
         return xr.Dataset({k: solution_base[k] for k in sorted(list(solution_base.keys()))})

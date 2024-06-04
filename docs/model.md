@@ -53,8 +53,8 @@ for instance, 20% reserve margin is required, the parameter will have value 1.2.
 Optional parameter, defaults to 1.
 
 `renewable_production_target` `({region:{year:float}})` - OSeMOSYS REMinProductionTarget.
-Minimum ratio of all renewable commodities tagged in the is_renewable parameter, to be
-produced by the technologies tagged with the is_renewable parameter.
+Minimum ratio of all renewable commodities tagged in the include_in_joint_renewable_target parameter, to be
+produced by the technologies tagged with the include_in_joint_renewable_target parameter.
 Optional parameter, defaults to `None`.
 
 ## Examples

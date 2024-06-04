@@ -6,6 +6,7 @@ from linopy import LinearExpression, Model
 from .annual_activity import add_annual_activity_constraints
 from .capacity_adequacy_a import add_capacity_adequacy_a_constraints
 from .capacity_adequacy_b import add_capacity_adequacy_b_constraints
+from .capacity_growth_rate import add_capacity_growthrate_constraints
 from .emissions import add_emissions_constraints
 from .energy_balance_a import add_energy_balance_a_constraints
 from .energy_balance_b import add_energy_balance_b_constraints
@@ -46,6 +47,7 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     m = add_storage_constraints(ds, m, lex)
     m = add_total_activity_constraints(ds, m, lex)
     m = add_total_capacity_constraints(ds, m, lex)
+    m = add_capacity_growthrate_constraints(ds, m, lex)
     m = add_trade_constraints(ds, m, lex)
 
     return m

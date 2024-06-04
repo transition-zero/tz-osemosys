@@ -118,7 +118,7 @@ reserve_margin: 1.1
 #     availability_factor: 1.
 #     capacity_factor: 1.
 #     operating_life: 25
-#     is_renewable: true
+#     include_in_joint_renewable_target: true
 #     include_regions: null
 #     exclude_regions:
 #       - ATLANTIC-MARKET
