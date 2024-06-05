@@ -45,7 +45,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     `time_definition` `(TimeDefinition)` - Single TimeDefinition class instance to contain all
     temporal data related to the model. Required parameter.
 
-    `regions` `(List[Region])` - List of Region instances to contain region names and trade routes.
+    `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
 
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
@@ -61,7 +61,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Required parameter.
 
     `storage` `(List[Storage])` - List of Storage instances to contain all data related to storage.
-    Required parameter.
+    Optional parameter, defaults to `None`.
+
+    `trade` `(List[Trade])` - List of Trade instances to contain all data related to trade routes.
+    Optional parameter, defaults to `None`.
 
     `depreciation_method` `({region:str})` - OSeMOSYS DepreciationMethod.
     Parameter defining the type of depreciation to be applied, must take values of 'sinking-fund' or
