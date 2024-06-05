@@ -18,22 +18,11 @@ def test_otoole_roundtrip():
 
         Region.to_otoole_csv(regions=regions, output_directory=output_directory)
 
-        for stem, params in regions[0].otoole_stems.items():
-            if stem not in regions[0].otoole_cfg.empty_dfs:
-                left = (
-                    pd.read_csv(Path(path) / (stem + ".csv"))[params["columns"]]
-                    .sort_values(params["columns"])
-                    .reset_index(drop=True)
-                )
-                right = (
-                    pd.read_csv(Path(output_directory) / Path(stem + ".csv"))[params["columns"]]
-                    .sort_values(params["columns"])
-                    .reset_index(drop=True)
-                )
+        left = pd.read_csv(Path(path) / ("REGION.csv")).sort_values("VALUE").reset_index(drop=True)
+        right = (
+            pd.read_csv(Path(output_directory) / Path("REGION.csv"))
+            .sort_values("VALUE")
+            .reset_index(drop=True)
+        )
 
-                print("LEFT")
-                print(left)
-                print("RIGHT")
-                print(right)
-
-                assert left.equals(right)
+        assert left.equals(right)

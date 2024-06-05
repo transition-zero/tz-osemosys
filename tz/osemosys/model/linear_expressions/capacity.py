@@ -15,10 +15,20 @@ def add_lex_capacity(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression])
 
     GrossCapacity = AccumulatedNewCapacity + ds["ResidualCapacity"].fillna(0)
 
+    NewTradeCapacity = m["NewTradeCapacity"].rename(YEAR="BUILDYEAR")
+    mask = (ds.YEAR - NewTradeCapacity.data.BUILDYEAR >= 0) & (
+        ds.YEAR - NewTradeCapacity.data.BUILDYEAR < ds.OperationalLifeTrade
+    )
+    AccumulatedNewTradeCapacity = NewTradeCapacity.where(mask).sum("BUILDYEAR")
+    GrossTradeCapacity = AccumulatedNewTradeCapacity + ds["ResidualTradeCapacity"].fillna(0)
+
     lex.update(
         {
             "NewCapacity": NewCapacity,
             "AccumulatedNewCapacity": AccumulatedNewCapacity,
             "GrossCapacity": GrossCapacity,
+            "NewTradeCapacity": NewTradeCapacity,
+            "AccumulatedNewTradeCapacity": AccumulatedNewTradeCapacity,
+            "GrossTradeCapacity": GrossTradeCapacity,
         }
     )

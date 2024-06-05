@@ -6,7 +6,7 @@ import pandas as pd
 import xarray as xr
 from pydantic import BaseModel, Field
 
-from tz.osemosys.defaults import defaults
+from tz.osemosys.defaults import defaults, defaults_linopy
 from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
@@ -15,6 +15,7 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.trade import Trade
 from tz.osemosys.schemas.validation.timedefinition_validation import time_adj_to_list
 from tz.osemosys.utils import flatten, group_to_json
 
@@ -108,7 +109,7 @@ class RunSpecOtoole(BaseModel):
             if not df_name.isupper():
                 data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
 
-        for obj in Impact, Region, Technology, Commodity, TimeDefinition, self:
+        for obj in Impact, Technology, Commodity, TimeDefinition, Trade, self:
             for stem, params in obj.otoole_stems.items():
                 if stem not in data_dfs.keys():
                     data_dfs[stem] = pd.DataFrame(columns=params["columns"]).set_index(
@@ -139,34 +140,31 @@ class RunSpecOtoole(BaseModel):
 
         ds = xr.Dataset(data_vars=data_arrays, coords=coords)
 
-        # # If runspec not generated using otoole config yaml, use linopy defaults
-        # if self.defaults_otoole is None:
-        #     default_values = defaults.otoole_name_defaults
-        #     # If storage technologies present, use additional relevant default values
-        #     if self.storage_technologies:
-        #         default_values = {**default_values, **defaults.otoole_name_storage_defaults}
-        #     # Extract defaults data from OSeMOSYSData objects
-        #     for name, osemosys_data in default_values.items():
-        #         default_values[name] = osemosys_data.data
-        # # Otherwise take defaults from otoole config yaml file
-        # else:
-        #     default_values = {}
-        #     for name, data in self.defaults_otoole.values.items():
-        #         if data["type"] == "param":
-        #             default_values[name] = data["default"]
+        # If runspec not generated using otoole config yaml, use linopy defaults
+        if self.defaults_otoole is None:
+            default_values = defaults_linopy.otoole_name_defaults
+            # If storage technologies present, use additional relevant default values
+            if self.storage:
+                default_values = {**default_values, **defaults_linopy.otoole_name_storage_defaults}
+        # Otherwise take defaults from otoole config yaml file
+        else:
+            default_values = {}
+            for name, data in self.defaults_otoole.values.items():
+                if data["type"] == "param":
+                    default_values[name] = data["default"]
 
-        # # Replace any nan values in ds with default values (or None) for corresponding param,
-        # # adding default values as attribute of each data array
-        # for name in ds.data_vars.keys():
-        #     # Replace nan values with default values if available
-        #     if name in default_values.keys():
-        #         ds[name].attrs["default"] = default_values[name]
-        #         ds[name] = ds[name].fillna(default_values[name])
-        #     # Replace all other nan values with None
-        #     # TODO: remove this code if nan values wanted in the ds
-        #     # else:
-        #     #    ds[name].attrs["default"] = None
-        #     #    ds[name] = ds[name].fillna(None)
+        # Replace any nan values in ds with default values (or None) for corresponding param,
+        # adding default values as attribute of each data array
+        for name in ds.data_vars.keys():
+            # Replace nan values with default values if available
+            if name in default_values.keys():
+                ds[name].attrs["default"] = default_values[name]
+                ds[name] = ds[name].fillna(default_values[name])
+            # Replace all other nan values with None
+            # TODO: remove this code if nan values wanted in the ds
+            # else:
+            #    ds[name].attrs["default"] = None
+            #    ds[name] = ds[name].fillna(None)
 
         return ds
 
@@ -189,12 +187,10 @@ class RunSpecOtoole(BaseModel):
         storage = Storage.from_otoole_csv(root_dir=root_dir)
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
         time_definition = TimeDefinition.from_otoole_csv(root_dir=root_dir)
+        trade = Trade.from_otoole_csv(root_dir=root_dir)
 
         otoole_cfg.empty_dfs += list(
             set(flatten([impact.otoole_cfg.empty_dfs for impact in impacts]))
-        )
-        otoole_cfg.empty_dfs += list(
-            set(flatten([region.otoole_cfg.empty_dfs for region in regions]))
         )
         otoole_cfg.empty_dfs += list(
             set(flatten([technology.otoole_cfg.empty_dfs for technology in technologies]))
@@ -336,6 +332,7 @@ class RunSpecOtoole(BaseModel):
             storage=storage,
             commodities=commodities,
             time_definition=time_definition,
+            trade=trade,
             otoole_cfg=otoole_cfg,
         )
 
@@ -479,6 +476,8 @@ class RunSpecOtoole(BaseModel):
         dfs.update(self.time_definition.to_dataframes())
         if self.storage is not None:
             dfs.update(Storage.to_dataframes(storage=self.storage))
+        if self.trade is not None:
+            dfs.update(Trade.to_dataframes(trade=self.trade))
 
         return dfs
 
@@ -493,6 +492,8 @@ class RunSpecOtoole(BaseModel):
         self.time_definition.to_otoole_csv(output_directory=output_directory)
         if self.storage is not None:
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
+        if self.trade is not None:
+            Trade.to_otoole_csv(trade=self.trade, output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

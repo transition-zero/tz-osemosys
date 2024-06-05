@@ -32,7 +32,17 @@ SOLUTION_KEYS = [
     "TotalDiscountedStorageCost",
     "TotalTechnologyAnnualActivity",
     "TotalTechnologyModelPeriodActivity",
-    "Trade",
+    "NetTrade",
+    "NetTradeAnnual",
+    "Import",
+    "Export",
+    "NewTradeCapacity",
+    "GrossTradeCapacity",
+    "SalvageValueTrade",
+    "CapitalInvestmentTrade",
+    "DiscountedCapitalInvestmentTrade",
+    "DiscountedSalvageValueTrade",
+    "TotalDiscountedCostTrade",
     "Use",
     "marginal_cost_of_demand",
     "marginal_cost_of_demand_annual",
@@ -50,7 +60,7 @@ def build_solution(
         {
             key: getattr(m.constraints, key).dual
             for key in [
-                "EBa11_EnergyBalanceEachTS5_alt",
+                "EBa11_EnergyBalanceEachTS5_trn",
                 "EBb4_EnergyBalanceEachYear4",
             ]
         }
@@ -73,7 +83,7 @@ def build_solution(
         dict(
             zip(
                 [
-                    "EBa11_EnergyBalanceEachTS5_alt",
+                    "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
                 ],
                 [

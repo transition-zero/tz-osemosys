@@ -126,3 +126,54 @@ def test_simple_storage():
 
     assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
     assert np.round(model.objective) == 3494.0
+
+
+def test_simple_trade():
+    """
+    2 region model, both regions have electricity demand and are able to trade with each other, but
+    generating capacity can be constructed with 0 capex in the first region (R1), and non-zero cost
+    in the second region (R2).
+
+    Trade capacity additions are limited so that R2 imports as much energy as it can from R1, and
+    then installs its own generating capacity to make up any shortfall.
+    """
+    model = Model(
+        id="test-trade",
+        time_definition=dict(id="years-only", years=range(2020, 2031)),
+        regions=[dict(id="R1"), dict(id="R2")],
+        trade=[
+            dict(
+                id="electricity transmission",
+                commodity="electricity",
+                trade_routes={"R1": {"R2": {"*": True}}},
+                capex={"R1": {"R2": {"*": 100}}},
+                operational_life={"R1": {"R2": {"*": 2}}},
+                trade_loss={"*": {"*": {"*": 0.1}}},
+                residual_capacity={"R1": {"R2": {"*": 5}}},
+                capacity_additional_max={"R1": {"R2": {"*": 5}}},
+                cost_of_capital={"R1": {"R2": 0.1}},
+                construct_region_pairs=True,
+            )
+        ],
+        commodities=[dict(id="electricity", demand_annual=25)],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=2,
+                capex={"R1": {"*": 0}, "R2": {"*": 400}},
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+            )
+        ],
+    )
+
+    model.solve()
+
+    assert model.solution["NetTrade"].values[0][2][0] == 15
+    assert np.round(model._m.objective.value) == 28200.0

@@ -17,6 +17,7 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.trade import Trade
 from tz.osemosys.schemas.validation.model_composition import (
     check_tech_consuming_commodity,
     check_tech_linked_to_storage,
@@ -44,7 +45,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     `time_definition` `(TimeDefinition)` - Single TimeDefinition class instance to contain all
     temporal data related to the model. Required parameter.
 
-    `regions` `(List[Region])` - List of Region instances to contain region names and trade routes.
+    `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
 
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
@@ -60,7 +61,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Required parameter.
 
     `storage` `(List[Storage])` - List of Storage instances to contain all data related to storage.
-    Required parameter.
+    Optional parameter, defaults to `None`.
+
+    `trade` `(List[Trade])` - List of Trade instances to contain all data related to trade routes.
+    Optional parameter, defaults to `None`.
 
     `depreciation_method` `({region:str})` - OSeMOSYS DepreciationMethod.
     Parameter defining the type of depreciation to be applied, must take values of 'sinking-fund' or
@@ -77,6 +81,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     `cost_of_capital_storage` `({region:{storage:float}})` - OSeMOSYS DiscountRateStorage.
     Discount rate specified by region and storage.
+    Optional parameter, defaults to `None`.
+
+    `cost_of_capital_trade` `({region:{region:{commodity:float}}})` - Parameter additional to
+    OSeMOSYS base variables. Discount rate specified for trade (transmission) technologies.
     Optional parameter, defaults to `None`.
 
     `reserve_margin` `({region:{year:float}})` - OSeMOSYS ReserveMargin.
@@ -192,8 +200,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
+    trade: List[Trade] | None = Field(None)
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
-    # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
     storage: List[Storage] | None = Field(None)
 
     # ASSUMPIONS
@@ -307,6 +315,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
         if self.storage:
             self.storage = [storage.compose(**sets) for storage in self.storage]
+        if self.trade:
+            self.trade = [trade.compose(**sets) for trade in self.trade]
 
         # compose own parameters
         if self.depreciation_method:

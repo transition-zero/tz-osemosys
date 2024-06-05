@@ -77,13 +77,13 @@ def check_files_equality(original_files, comparison_files, empty_dfs):
             if not stem.isupper():
                 comparison_df_sorted["VALUE"] = comparison_df_sorted["VALUE"].astype(float)
 
-            if original_df_sorted.empty and comparison_df_sorted.empty and stem != "TradeRoute":
+            if original_df_sorted.empty and comparison_df_sorted.empty:
                 assert list(original_df_sorted.columns) == list(
                     comparison_df_sorted.columns
                 ), f"unequal files: {stem}"
             elif original_df_sorted.empty and not comparison_df_sorted.empty:
                 pass
-            elif stem != "TradeRoute":
+            else:
                 assert original_df_sorted.equals(comparison_df_sorted), f"unequal files: {stem}"
 
         except AssertionError as e:

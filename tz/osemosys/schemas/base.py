@@ -510,13 +510,31 @@ def _compose_RO(self, obj_id, data, regions, storage, **sets):
     return self
 
 
+def _compose_RRY(self, obj_id, data, regions, years, **sets):
+    # Region-Commodity-Year
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(obj_id, data, {"R1": regions, "R2": regions, "years": years})
+    self.is_composed = True
+
+    return self
+
+
+def _compose_RR(self, obj_id, data, regions, **sets):
+    # Region-Commodity-Year
+    _check_nesting_depth(obj_id, data, 2)
+    self.data = _check_set_membership(obj_id, data, {"R1": regions, "R2": regions})
+    self.is_composed = True
+
+    return self
+
+
 def _null(self, values):
     # pass-through only, for testing purposes
     return values
 
 
 for key, func in zip(
-    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "ANY"],
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "RRY", "RR", "ANY"],
     [
         _compose_R,
         _compose_RY,
@@ -526,6 +544,8 @@ for key, func in zip(
         _compose_RCY,
         _compose_RIY,
         _compose_RO,
+        _compose_RRY,
+        _compose_RR,
         _null,
     ],
 ):
