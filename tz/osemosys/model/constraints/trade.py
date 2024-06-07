@@ -58,6 +58,7 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
         m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_trn")
 
         # Capacity
+        # TODO: add TradeCapacityToActivityUnit for first 2 trade capacity constraints
         con = lex["GrossTradeCapacity"] * (1 - ds["TradeLossBetweenRegions"]) >= (
             m["Export"] / (ds["YearSplit"])
         )
