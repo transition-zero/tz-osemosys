@@ -12,16 +12,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         * lex["CapitalRecoveryFactor"]
         * lex["PVAnnuity"]
     )
-    CapitalInvestmentTrade = (
-        ds["CapitalCostTrade"].fillna(0)
-        * m["NewTradeCapacity"]
-        * lex["CapitalRecoveryFactorTrade"]
-        * lex["PVAnnuityTrade"]
-    )
 
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
-
-    DiscountedCapitalInvestmentTrade = CapitalInvestmentTrade / lex["DiscountFactorTrade"]
 
     # costs
     AnnualVariableOperatingCost = (
@@ -52,29 +44,10 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]
 
-    # salvage value factors (trade)
-    SV1CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (lex["SV1NumeratorTrade"] / lex["SV1DenominatorTrade"])
-    )
-
-    SV2CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (lex["SV2NumeratorTrade"] / lex["SV2DenominatorTrade"])
-    )
-
-    # salvage value (trade)
-    SalvageValueTrade = (
-        m["NewTradeCapacity"] * SV1CostTrade.where(lex["sv1_trade_mask"])
-        + m["NewTradeCapacity"] * SV2CostTrade.where(lex["sv2_trade_mask"])
-    ).fillna(0)
-
-    DiscountedSalvageValueTrade = SalvageValueTrade / lex["DiscountFactorSalvageTrade"]
-
     # Total discounted costs
     TotalDiscountedCostByTechnology = (
         DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
     )
-
-    TotalDiscountedCostTrade = DiscountedCapitalInvestmentTrade + DiscountedSalvageValueTrade
 
     if ds["EMISSION"].size > 0:
         DiscountedTechnologyEmissionsPenalty = (
@@ -91,18 +64,15 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             }
         )
 
+    TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY")
     if ds["STORAGE"].size > 0:
-
-        # total costs with storage
-        TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY") + lex[
-            "TotalDiscountedStorageCost"
-        ].sum(["STORAGE", "TECHNOLOGY"])
-
-    else:
-        # total costs without storage
-        TotalDiscountedCost = TotalDiscountedCostByTechnology.sum(
-            "TECHNOLOGY"
-        ) + TotalDiscountedCostTrade.sum(["FUEL", "_REGION"])
+        TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedStorageCost"].sum(
+            ["STORAGE", "TECHNOLOGY"]
+        )
+    if ds["TradeRoute"].notnull().any():
+        TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedCostTrade"].sum(
+            ["FUEL", "_REGION"]
+        )
 
     lex.update(
         {
@@ -118,12 +88,5 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "SV1Cost": SV1Cost,
             "SV2Cost": SV2Cost,
             "SalvageValue": SalvageValue,
-            "SV1CostTrade": SV1CostTrade,
-            "SV2CostTrade": SV2CostTrade,
-            "SalvageValueTrade": SalvageValueTrade,
-            "CapitalInvestmentTrade": CapitalInvestmentTrade,
-            "DiscountedCapitalInvestmentTrade": DiscountedCapitalInvestmentTrade,
-            "DiscountedSalvageValueTrade": DiscountedSalvageValueTrade,
-            "TotalDiscountedCostTrade": TotalDiscountedCostTrade,
         }
     )
