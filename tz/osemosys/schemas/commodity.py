@@ -35,6 +35,11 @@ class Commodity(OSeMOSYSBase, OtooleCommodity):
     Boolean tag to mark commodities which are considered
     as renewable for applying renewable generation targets. Optional, defaults to `None`.
 
+    `include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
+    ReserveMarginTagFuel. Boolean tagging the commodities that can contribute to reaching the
+     indicated reserve margin. It has value True for the commodities contributing, False otherwise.
+     Optional, defaults to `None`.
+
 
 
     ## Examples
