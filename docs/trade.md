@@ -36,7 +36,7 @@ Optional, defaults to 0.00001.
 `capacity_additional_max` `({region:{region:{year:float}}})` - Maximum capacity investment of
 the given trade route. Optional, defaults to `None`.
 
-`operational_life` `({region:{region:{year:int}}})` - Integer value of operating life in years
+`operating_life` `({region:{region:{year:int}}})` - Integer value of operating life in years
 for the given trade route. Optional, defaults to 1.
 
 `cost_of_capital` `({region:region})` - Cost of capital (discount rate) for investments in the
@@ -66,7 +66,7 @@ basic_trade = dict(
     commodity="electricity",
     trade_routes={"R1": {"R2": {"*": True}}},
     capex={"R1": {"R2": {"*": 100}}},
-    operational_life={"R1": {"R2": {"*": 5}}},
+    operating_life={"R1": {"R2": {"*": 5}}},
     trade_loss={"R1": {"R2": {"*": 0.1}}},
     construct_region_pairs=True,
 )

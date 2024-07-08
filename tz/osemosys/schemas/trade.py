@@ -46,7 +46,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     `capacity_additional_max` `({region:{region:{year:float}}})` - Maximum capacity investment of
     the given trade route. Optional, defaults to `None`.
 
-    `operational_life` `({region:{region:{year:int}}})` - Integer value of operating life in years
+    `operating_life` `({region:{region:{year:int}}})` - Integer value of operating life in years
     for the given trade route. Optional, defaults to 1.
 
     `cost_of_capital` `({region:region})` - Cost of capital (discount rate) for investments in the
@@ -76,7 +76,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
         commodity="electricity",
         trade_routes={"R1": {"R2": {"*": True}}},
         capex={"R1": {"R2": {"*": 100}}},
-        operational_life={"R1": {"R2": {"*": 5}}},
+        operating_life={"R1": {"R2": {"*": 5}}},
         trade_loss={"R1": {"R2": {"*": 0.1}}},
         construct_region_pairs=True,
     )
@@ -91,7 +91,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     residual_capacity: OSeMOSYSData.RRY = Field(OSeMOSYSData.RRY(defaults.trade_residual_capacity))
     capex: OSeMOSYSData.RRY = Field(OSeMOSYSData.RRY(defaults.trade_capex))
     capacity_additional_max: OSeMOSYSData.RRY | None = Field(default=None)
-    operational_life: OSeMOSYSData.RRY.Int = Field(
+    operating_life: OSeMOSYSData.RRY.Int = Field(
         OSeMOSYSData.RRY.Int(defaults.trade_operating_life)
     )
     cost_of_capital: OSeMOSYSData.RR | None = Field(OSeMOSYSData.RR(defaults.discount_rate))
@@ -184,8 +184,8 @@ class Trade(OSeMOSYSBase, OtooleTrade):
             if self.capacity_additional_max is not None:
                 self.construct_pairs(self.capacity_additional_max)
 
-            if self.operational_life is not None:
-                self.construct_pairs(self.operational_life)
+            if self.operating_life is not None:
+                self.construct_pairs(self.operating_life)
 
             if self.cost_of_capital is not None:
                 self.construct_pairs(self.cost_of_capital)
