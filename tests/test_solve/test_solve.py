@@ -147,7 +147,7 @@ def test_simple_trade():
                 commodity="electricity",
                 trade_routes={"R1": {"R2": {"*": True}}},
                 capex={"R1": {"R2": {"*": 100}}},
-                operational_life={"R1": {"R2": {"*": 2}}},
+                operating_life={"R1": {"R2": {"*": 2}}},
                 trade_loss={"*": {"*": {"*": 0.1}}},
                 residual_capacity={"R1": {"R2": {"*": 5}}},
                 capacity_additional_max={"R1": {"R2": {"*": 5}}},

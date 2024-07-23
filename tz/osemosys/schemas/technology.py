@@ -168,8 +168,13 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     `include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
     Boolean tagging the renewable technologies that must contribute to reaching the indicated
-    minimum renewable production target. It has value True for thetechnologies contributing,
+    minimum renewable production target. It has value True for the technologies contributing,
     False otherwise. Optional, defaults to `None`.
+
+    `include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
+    ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
+     indicated reserve margin. It has value True for the technologies contributing, False otherwise.
+     Optional, defaults to `None`.
 
     `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
     Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology

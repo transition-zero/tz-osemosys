@@ -38,7 +38,7 @@ class OtooleTrade(BaseModel):
             "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "OperationalLifeTrade": {
-            "attribute": "operational_life",
+            "attribute": "operating_life",
             "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
         "CapitalCostTrade": {
@@ -160,7 +160,7 @@ class OtooleTrade(BaseModel):
                     if "TotalAnnualMaxTradeInvestment" not in otoole_cfg.empty_dfs
                     else None
                 )
-                operational_life = (
+                operating_life = (
                     OSeMOSYSData.RRY.Int(
                         group_to_json(
                             g=dfs["OperationalLifeTrade"].loc[
@@ -198,7 +198,7 @@ class OtooleTrade(BaseModel):
                         residual_capacity=residual_capacity,
                         capex=capex,
                         capacity_additional_max=capacity_additional_max,
-                        operational_life=operational_life,
+                        operating_life=operating_life,
                         cost_of_capital=cost_of_capital,
                     )
                 )
@@ -215,7 +215,7 @@ class OtooleTrade(BaseModel):
         residual_capacity_dfs = []
         capex_dfs = []
         capacity_additional_max_dfs = []
-        operational_life_dfs = []
+        operating_life_dfs = []
         cost_of_capital_dfs = []
 
         for trade_commodity in trade:
@@ -262,8 +262,8 @@ class OtooleTrade(BaseModel):
                 df["FUEL"] = trade_commodity.commodity
                 residual_capacity_dfs.append(df)
 
-            if trade_commodity.operational_life is not None:
-                df = pd.json_normalize(trade_commodity.operational_life.data).T.rename(
+            if trade_commodity.operating_life is not None:
+                df = pd.json_normalize(trade_commodity.operating_life.data).T.rename(
                     columns={0: "VALUE"}
                 )
 
@@ -271,7 +271,7 @@ class OtooleTrade(BaseModel):
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 df["FUEL"] = trade_commodity.commodity
-                operational_life_dfs.append(df)
+                operating_life_dfs.append(df)
 
             if trade_commodity.capex is not None:
                 df = pd.json_normalize(trade_commodity.capex.data).T.rename(columns={0: "VALUE"})
@@ -312,8 +312,8 @@ class OtooleTrade(BaseModel):
             else pd.DataFrame(columns=cls.otoole_stems["ResidualTradeCapacity"]["columns"])
         )
         dfs["OperationalLifeTrade"] = (
-            pd.concat(operational_life_dfs)
-            if operational_life_dfs
+            pd.concat(operating_life_dfs)
+            if operating_life_dfs
             else pd.DataFrame(columns=cls.otoole_stems["OperationalLifeTrade"]["columns"])
         )
         dfs["CapitalCostTrade"] = (
