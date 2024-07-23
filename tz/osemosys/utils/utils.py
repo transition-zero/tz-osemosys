@@ -287,7 +287,7 @@ def json_dict_to_dataframe(data, prefix=""):
         # If data is a dictionary, iterate through its items
         result = pd.DataFrame()
         for key, value in data.items():
-            new_prefix = f"{prefix}-{key}" if prefix else key
+            new_prefix = f"{prefix}:{key}" if prefix else key
             df = json_dict_to_dataframe(value, new_prefix)
             result = pd.concat([result, df], axis=1)
         if (
@@ -296,7 +296,7 @@ def json_dict_to_dataframe(data, prefix=""):
             result = result.T
             result = result.reset_index()
 
-            result = pd.concat([result["index"].str.split("-", expand=True), result[0]], axis=1)
+            result = pd.concat([result["index"].str.split(":", expand=True), result[0]], axis=1)
             return result
         else:
             return result
