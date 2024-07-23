@@ -221,18 +221,6 @@ class OSeMOSYSBase(BaseModel):
             values["description"] = "No description provided."
         return values
 
-    @model_validator(mode="before")
-    @classmethod
-    def id_delimiter(cls, values):
-        """
-        This checks if ids contain ":", which are not allowed due to their incompatibility with
-        URLs and with the tz-osemosys json_dict_to_dataframe() function.
-        """
-        id = values["id"]
-        if ":" in id:
-            raise ValueError(f"':' can not be given in an id, see id: {id}")
-        return values
-
 
 class OSeMOSYSData(BaseModel):
     """
