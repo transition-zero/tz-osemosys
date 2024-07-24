@@ -434,6 +434,7 @@ class OtooleTechnology(BaseModel):
                             df["MODE_OF_OPERATION"] = mode.id
                             columns = [
                                 c
+                                
                                 for c in cls.otoole_stems[stem]["columns"]
                                 if c not in ["TECHNOLOGY", "VALUE", "MODE_OF_OPERATION"]
                             ]
