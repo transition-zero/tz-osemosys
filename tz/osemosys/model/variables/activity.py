@@ -33,7 +33,7 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
         ds.coords["TIMESLICE"],
     ]
 
-    mask = ds["InputActivityRatio"].notnull().any(dim="FUEL") | ds["OutputActivityRatio"].notnull().any(dim="FUEL") | ds["EmissionActivityRatio"].notnull().any(dim="EMISSION")
+    mask = ds["InputActivityRatio"].notnull().any(dim="FUEL") | ds["OutputActivityRatio"].notnull().any(dim="FUEL") | ds["EmissionActivityRatio"].notnull().any(dim="EMISSION") | ds["TechnologyToStorage"].notnull().any(dim="STORAGE") | ds["TechnologyFromStorage"].notnull().any(dim="STORAGE")
     m.add_variables(lower=0, upper=inf, coords=RTeMYTi, name="RateOfActivity", integer=False, mask=mask)
 
     m.add_variables(lower=0, upper=inf, coords=RRTiFY, name="Export", integer=False)
