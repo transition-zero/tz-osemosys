@@ -160,10 +160,11 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Capacity available per each timeslice, expressed as a fraction of the total installed capacity,
     with values ranging from 0 to 1. It gives the possibility to account for forced outages.
     Optional, defaults to 1.
-    
-    `capacity_factor_annual_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityFactor.
-    Must run capacity constraint at annual level expressed as a fraction of the total installed capacity,
-    with values ranging from 0 to 1. Optional, defaults to `None`.   
+
+    `capacity_factor_annual_min` `({region:{year:float}})` - OSeMOSYS style name
+    TotalAnnualMinCapacityFactor. Must run capacity constraint at annual level expressed as a
+    fraction of the total installed capacity, with values ranging from 0 to 1. Optional, defaults
+    to `None`.
 
     `capacity_one_tech_unit` `({region:{year:float}})` - OSeMOSYS CapacityOfOneTechnologyUnit.
     Capacity of one new unit of a technology. In case the user sets this parameter, the related
@@ -300,14 +301,13 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # upper bound floor: if used with growth_rate,
     # limits capacity growth to the floor or growth-rate, whichever is greater
     capacity_additional_max_floor: OSeMOSYSData.R | None = Field(None)
-    
+
     # lower bound on capacity utilisation
     capacity_factor_annual_min: OSeMOSYSData.RY | None = Field(None)
 
     # additional capacity lower bounds (MUST build)
     capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
     capacity_additional_min_growth_rate: OSeMOSYSData.R | None = Field(None)
-    
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
