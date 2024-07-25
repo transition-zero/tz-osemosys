@@ -4,7 +4,7 @@ import xarray as xr
 from linopy import LinearExpression, Model
 
 
-def add_annual_capacity_factor_constraints(
+def add_annual_capacity_factor_min_constraints(
     ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
 ) -> Model:
     """Add annual capacity factor constraints to the model.
