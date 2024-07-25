@@ -53,7 +53,7 @@ class OtooleTechnology(BaseModel):
         "TotalAnnualMinCapacityFactor": {
             "attribute": "capacity_factor_annual_min",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
-        },        
+        },
         "OperationalLife": {
             "attribute": "operating_life",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],
@@ -360,7 +360,7 @@ class OtooleTechnology(BaseModel):
                         OSeMOSYSData.RY(data=data_json_format["TotalAnnualMinCapacityFactor"])
                         if data_json_format["TotalAnnualMinCapacityFactor"] is not None
                         else None
-                    ),                        
+                    ),
                     include_in_joint_renewable_target=(
                         OSeMOSYSData.RY.Bool(data=data_json_format["RETagTechnology"])
                         if data_json_format["RETagTechnology"] is not None
@@ -434,7 +434,6 @@ class OtooleTechnology(BaseModel):
                             df["MODE_OF_OPERATION"] = mode.id
                             columns = [
                                 c
-                                
                                 for c in cls.otoole_stems[stem]["columns"]
                                 if c not in ["TECHNOLOGY", "VALUE", "MODE_OF_OPERATION"]
                             ]
