@@ -3,9 +3,8 @@ from tz.osemosys import Commodity, Model, OperatingMode, Region, Technology, Tim
 
 def test_min_capacity_factors():
     """
-    In this model, we expect generators to be built 10GW per year until 20% of gross capacity >10GW
-    This should occur in 2026, when 20% of 60GW = 12GW.
-    Meanwhile, unmet demand should be unconstrained to build to meet the demand of 100GW.
+    In this model, we force the expensive 'unmet-demand' technology to be built at 10 GW per year,
+     with operating life of 1, and then utilised with a capacity_factor_annual_min of 0.2 (20%).
     """
 
     time_definition = TimeDefinition(id="yrs", years=range(2020, 2030))
@@ -40,7 +39,7 @@ def test_min_capacity_factors():
     ]
 
     model = Model(
-        id="simple-additional-capacity",
+        id="simple-min-capacity-factors",
         time_definition=time_definition,
         regions=regions,
         commodities=commodities,
@@ -49,7 +48,8 @@ def test_min_capacity_factors():
     )
 
     model.solve()
-    breakpoint()
-    # assert model.solution.NewCapacity.sel(YEAR=2026, TECHNOLOGY="generator") == 12.0
-    # assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 90.0
 
+    assert (
+        model.solution["TotalTechnologyAnnualActivity"].sel(YEAR=2025, TECHNOLOGY="unmet-demand")
+        == 2
+    )
