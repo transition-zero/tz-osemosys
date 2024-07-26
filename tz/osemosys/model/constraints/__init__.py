@@ -4,6 +4,7 @@ import xarray as xr
 from linopy import LinearExpression, Model
 
 from .annual_activity import add_annual_activity_constraints
+from .annual_capacity_factor_min import add_annual_capacity_factor_min_constraints
 from .capacity_adequacy_a import add_capacity_adequacy_a_constraints
 from .capacity_adequacy_b import add_capacity_adequacy_b_constraints
 from .capacity_growth_rate import add_capacity_growthrate_constraints
@@ -49,5 +50,6 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     m = add_total_capacity_constraints(ds, m, lex)
     m = add_capacity_growthrate_constraints(ds, m, lex)
     m = add_trade_constraints(ds, m, lex)
+    m = add_annual_capacity_factor_min_constraints(ds, m, lex)
 
     return m

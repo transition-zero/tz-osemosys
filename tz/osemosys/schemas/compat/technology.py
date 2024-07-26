@@ -50,6 +50,10 @@ class OtooleTechnology(BaseModel):
             "attribute": "capacity_factor",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "TIMESLICE", "VALUE"],
         },
+        "TotalAnnualMinCapacityFactor": {
+            "attribute": "capacity_factor_annual_min",
+            "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
+        },
         "OperationalLife": {
             "attribute": "operating_life",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],
@@ -350,6 +354,11 @@ class OtooleTechnology(BaseModel):
                         )
                         if data_json_format["TotalTechnologyModelPeriodActivityLowerLimit"]
                         is not None
+                        else None
+                    ),
+                    capacity_factor_annual_min=(
+                        OSeMOSYSData.RY(data=data_json_format["TotalAnnualMinCapacityFactor"])
+                        if data_json_format["TotalAnnualMinCapacityFactor"] is not None
                         else None
                     ),
                     include_in_joint_renewable_target=(

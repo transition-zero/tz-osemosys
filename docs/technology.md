@@ -43,6 +43,11 @@ Capacity available per each timeslice, expressed as a fraction of the total inst
 with values ranging from 0 to 1. It gives the possibility to account for forced outages.
 Optional, defaults to 1.
 
+`capacity_factor_annual_min` `({region:{year:float}})` - OSeMOSYS style name
+TotalAnnualMinCapacityFactor. Must run capacity constraint at annual level expressed as a
+fraction of the total installed capacity, with values ranging from 0 to 1. Optional, defaults
+to `None`.
+
 `capacity_one_tech_unit` `({region:{year:float}})` - OSeMOSYS CapacityOfOneTechnologyUnit.
 Capacity of one new unit of a technology. In case the user sets this parameter, the related
 technology will be installed only in batches of the specified capacity and the problem will
