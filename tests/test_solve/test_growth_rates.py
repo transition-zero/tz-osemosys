@@ -21,7 +21,20 @@ def test_growth_rate_floor():
             id="generator",
             operating_life=20,  # years
             capex=0.1,
-            capacity_additional_max_growth_rate=0.2,
+            capacity_additional_max_growth_rate={
+                "*": {
+                    2020: 0.01,
+                    2021: 0.02,
+                    2022: 0.03,
+                    2023: 0.04,
+                    2024: 0.05,
+                    2025: 0.06,
+                    2026: 0.07,
+                    2027: 0.08,
+                    2028: 0.09,
+                    2029: 0.1,
+                }                
+            },
             capacity_additional_max_floor={
                 "*": {
                     2020: 1.0,
@@ -66,6 +79,8 @@ def test_growth_rate_floor():
     )
 
     model.solve()
+
+    breakpoint()
 
     assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 0.44
     assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 99.0

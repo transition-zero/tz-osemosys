@@ -193,8 +193,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Maximum capacity investment of a technology, expressed in power units. Optional, defaults to
     `None`.
 
-    `capacity_additional_max_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
-    CapacityAdditionalMaxGrowthRate. Maximum allowed percentage growth in the given technology's
+    `capacity_additional_max_growth_rate` `({region:{year:float}})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxGrowthRate. Maximum allowed annual percentage growth in the given technology's
     capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
     `capacity_additional_max_floor` `({region:{year:float}})` - New parameter, OSeMOSYS style name
@@ -207,8 +207,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Minimum capacity investment of a technology, expressed in power units. Optional, defaults to
     `None`.
 
-    `capacity_additional_min_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name
-    CapacityAdditionalMinGrowthRate. Minimum allowed percentage growth in the given technology's
+    `capacity_additional_min_growth_rate` `({region:{year:float}})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMinGrowthRate. Minimum allowed annual percentage growth in the given technology's
     capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
     `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
@@ -302,7 +302,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     # additional capacity upper bounds
     capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_max_growth_rate: OSeMOSYSData.R | None = Field(None)
+    capacity_additional_max_growth_rate: OSeMOSYSData.RY | None = Field(None)
     # upper bound floor: if used with growth_rate,
     # limits capacity growth to the floor or growth-rate, whichever is greater
     capacity_additional_max_floor: OSeMOSYSData.RY | None = Field(None)
@@ -312,7 +312,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     # additional capacity lower bounds (MUST build)
     capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_min_growth_rate: OSeMOSYSData.R | None = Field(None)
+    capacity_additional_min_growth_rate: OSeMOSYSData.RY | None = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)

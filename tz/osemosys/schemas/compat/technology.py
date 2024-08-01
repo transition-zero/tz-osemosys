@@ -24,11 +24,11 @@ class OtooleTechnology(BaseModel):
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
         "CapacityAdditionalMaxGrowthRate": {
             "attribute": "capacity_additional_max_growth_rate",
-            "columns": ["REGION", "TECHNOLOGY", "VALUE"],
+            "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
         },
         "CapacityAdditionalMinGrowthRate": {
             "attribute": "capacity_additional_min_growth_rate",
-            "columns": ["REGION", "TECHNOLOGY", "VALUE"],
+            "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
         },
         "CapacityAdditionalMaxFloor": {
             "attribute": "capacity_additional_max_floor",
