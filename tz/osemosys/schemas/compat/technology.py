@@ -32,7 +32,7 @@ class OtooleTechnology(BaseModel):
         },
         "CapacityAdditionalMaxFloor": {
             "attribute": "capacity_additional_max_floor",
-            "columns": ["REGION", "TECHNOLOGY", "VALUE"],
+            "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
         },
         "CapacityToActivityUnit": {
             "attribute": "capacity_activity_unit_ratio",

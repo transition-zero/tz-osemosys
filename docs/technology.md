@@ -77,7 +77,11 @@ Maximum capacity investment of a technology, expressed in power units. Optional,
 
 `capacity_additional_max_growth_rate` `({region:float})` - New parameter, OSeMOSYS style name CapacityAdditionalMaxGrowthRate. Maximum allowed percentage growth in the given technology's capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
-`capacity_additional_max_floor` `({region:float})` - New parameter, OSeMOSYS style name CapacityAdditionalMaxFloor. Maximum allowed growth in the given technology's capacity year on year, expressed in capacity units. If used in conjunction with capacity_additional_max_growth_rate it limits capacity growth to whichever is greater. Optional, defaults to `None`.
+`capacity_additional_max_floor` `({region:{year:float}})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxFloor. If used in conjunction with capacity_additional_max_growth_rate,
+     the model may build new capacity at this floor value, in addition to the previous year's
+     capacity * growth rate. This can act as a 'seed' value where no or minimal capacity exists
+     for the technology to which a growth rate is applied. Optional, defaults to `None`.
 
 `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
 Minimum capacity investment of a technology, expressed in power units. Optional, defaults to
