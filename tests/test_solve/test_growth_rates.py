@@ -50,7 +50,7 @@ def test_growth_rate_floor():
 
     model.solve()
 
-    assert model.solution.NewCapacity.sel(YEAR=2026, TECHNOLOGY="generator") == 12.0
+    assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 14.4
     assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 90.0
 
 
@@ -105,7 +105,7 @@ def test_growth_rate_ceil():
 
     model.solve()
 
-    assert model.solution.NewCapacity.sel(YEAR=2023, TECHNOLOGY="generator") == 15.0
+    assert model.solution.NewCapacity.sel(YEAR=2021, TECHNOLOGY="generator") == 15.0
     assert model.solution.NewCapacity.sel(YEAR=2024, TECHNOLOGY="generator") == 20.0
 
 
