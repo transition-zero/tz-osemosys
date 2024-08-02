@@ -49,6 +49,10 @@ class OtooleStorage(BaseModel):
             "attribute": "max_charge_rate",
             "columns": ["REGION", "STORAGE", "VALUE"],
         },
+        "StorageIntraDay": {
+            "attribute": "balance_by_day",
+            "columns": ["REGION", "STORAGE", "VALUE"],
+        },        
     }
 
     @classmethod
@@ -149,9 +153,13 @@ class OtooleStorage(BaseModel):
                         if data_json_format["StorageMaxChargeRate"] is not None
                         else None
                     ),
+                    balance_by_day=(
+                        OSeMOSYSData.R.Bool(data=data_json_format["StorageIntraDay"])
+                        if data_json_format["StorageIntraDay"] is not None
+                        else None                                        
+                    )
                 )
             )
-
         return storage_instances
 
     @classmethod

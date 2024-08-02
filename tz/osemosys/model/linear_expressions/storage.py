@@ -10,15 +10,14 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
     )
 
-    ds["Conversionlh"] * ds["Conversionld"] * ds["Conversionls"]
 
-    RateOfStorageCharge = (
+    RateOfStorageCharge =      (
         (ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
             (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
-    RateOfStorageDischarge = (
+    RateOfStorageDischarge =    (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
             (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
         )

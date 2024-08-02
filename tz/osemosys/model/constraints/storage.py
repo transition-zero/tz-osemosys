@@ -261,6 +261,11 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         ).stack(YRTS=["YEAR", "TIMESLICE"])
         m.add_constraints(con, name="StorageGrossCapacitySufficiency")
 
+        #storage has to balance across the year (i.e. not allowed to pass across multiple years
+        # - look to improve in future as storage could well pass from one year to the next but not across multiple years)
+        con = ((lex["RateOfStorageCharge"] - lex["RateOfStorageDischarge"]) * ds["YearSplit"]).sum(dims="TIMESLICE") >= 0
+        m.add_constraints(con, name="SC8_BalanceIntraYearConstraint")
+
         # storage level may not be less than minimum charge
         if "MinStorageCharge" in ds.data_vars:
             con = lex["StorageLevel"].fillna(0) >= ds["MinStorageCharge"].expand_dims(
@@ -277,5 +282,9 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         if "StorageMaxDischargeRate" in ds.data_vars:
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
+
+        if "StorageIntraDay" in ds.data_vars:
+            con = lex["NetChargeWithinDay"] = 0
+            m.add_constraints(con, name="SC7_BalanceIntraDayConstraint")
 
     return m
