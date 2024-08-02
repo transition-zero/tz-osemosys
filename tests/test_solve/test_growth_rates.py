@@ -3,8 +3,14 @@ from tz.osemosys import Commodity, Model, OperatingMode, Region, Technology, Tim
 
 def test_growth_rate_floor():
     """
-    In this model, we expect generators to be built 10GW per year until 20% of gross capacity >10GW
-    This should occur in 2026, when 20% of 60GW = 12GW.
+    In this model, we expect generators to be built at 1 GW for 2020 (i.e. the floor value) plus the
+    allowed growth rate in the given year.
+    In 2020, as there is no existing capacity, only the floor value can be built (1 GW).
+    In 2021 the model can build the floor value plus the capacity from the previous year * the
+    growth rate (0.2), 1 + 1 * 0.02 which gives 1.02 GW.
+    In 2022 the floor value becomes 0, so only additional capacity can be installed according to the
+     growth rate, gross capacity in 2021 (2.02 GW) * 0.03 = 0.0606 GW.
+
     Meanwhile, unmet demand should be unconstrained to build to meet the demand of 100GW.
     """
 
@@ -17,8 +23,34 @@ def test_growth_rate_floor():
             id="generator",
             operating_life=20,  # years
             capex=0.1,
-            capacity_additional_max_growth_rate=0.2,
-            capacity_additional_max_floor=10,
+            capacity_additional_max_growth_rate={
+                "*": {
+                    2020: 0.01,
+                    2021: 0.02,
+                    2022: 0.03,
+                    2023: 0.04,
+                    2024: 0.05,
+                    2025: 0.06,
+                    2026: 0.07,
+                    2027: 0.08,
+                    2028: 0.09,
+                    2029: 0.1,
+                }
+            },
+            capacity_additional_max_floor={
+                "*": {
+                    2020: 1.0,
+                    2021: 1.0,
+                    2022: 0,
+                    2023: 0,
+                    2024: 0,
+                    2025: 0,
+                    2026: 0,
+                    2027: 0,
+                    2028: 0,
+                    2029: 0,
+                }
+            },
             operating_modes=[
                 OperatingMode(
                     id="generation", opex_variable=0.0, output_activity_ratio={"electricity": 1.0}
@@ -50,15 +82,14 @@ def test_growth_rate_floor():
 
     model.solve()
 
-    assert model.solution.NewCapacity.sel(YEAR=2026, TECHNOLOGY="generator") == 12.0
-    assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 90.0
+    assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 0.0606
+    assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 99.0
 
 
 def test_growth_rate_ceil():
     """
-    In this model, we expect generators to be built 10GW per year until 20% of gross capacity >10GW
-    This should occur in 2023, when 50% of 30GW = 15GW.
-    Howevever, after this, maximum new capacity of genertors should be capped at 20GW.
+    In this model, a constant growth rate and floor value are used.
+    Howevever, maximum new capacity of genertors is capped at 20GW.
     Meanwhile, unmet demand should be unconstrained to build to meet the demand of 100GW.
     """
 
@@ -105,7 +136,7 @@ def test_growth_rate_ceil():
 
     model.solve()
 
-    assert model.solution.NewCapacity.sel(YEAR=2023, TECHNOLOGY="generator") == 15.0
+    assert model.solution.NewCapacity.sel(YEAR=2021, TECHNOLOGY="generator") == 15.0
     assert model.solution.NewCapacity.sel(YEAR=2024, TECHNOLOGY="generator") == 20.0
 
 

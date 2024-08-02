@@ -45,40 +45,16 @@ def add_capacity_growthrate_constraints(
         ds["CapacityAdditionalMaxFloor"].notnull().any()
         and ds["CapacityAdditionalMaxGrowthRate"].notnull().any()
     ):
-
-        # pull m["OR_GrowthRateFloor"] DOWN (==0) if (GrossCapacity * GrowthRate) >= MaxFloor # NOQA E501
-        con = (
-            m["OR_GrowthRateFloor"]
-            <= (lex["GrossCapacity"].shift(YEAR=-1) * ds["CapacityAdditionalMaxGrowthRate"])
-            / ds["CapacityAdditionalMaxFloor"]
-        )
         mask = (
             ds["CapacityAdditionalMaxFloor"].notnull()
             & ds["CapacityAdditionalMaxGrowthRate"].notnull()
         )
-        m.add_constraints(con, name="OR_GrowthRateFloor_pull_down", mask=mask)
-
-        # BIG M notation
-        # https://or.stackexchange.com/questions/135/what-is-the-big-m-method-and-are-there-two-of-them
-        # pick a large value for 'M'
-        M = ds["AccumulatedAnnualDemand"].max().values * 1000
-
-        # as m[0,1] -> 0, NewCapacity <= CapacityAdditionalMaxFloor
-        # m['NewCapacity'] <= M * m['OR_GrowthRateFloor'] + ds["CapacityAdditionalMaxFloor"]
-        con = m["NewCapacity"] <= M * m["OR_GrowthRateFloor"] + ds[
-            "CapacityAdditionalMaxFloor"
-        ].fillna(0)
-        m.add_constraints(con, name="OR_GrowthRateFloor_lte_floor", mask=mask)
-
-        # as m[0,1] -> 1, NewCapacity <= GrossCapacity * CapacityAdditionalMaxGrowthRate
-        # m['NewCapacity'] <= M * (1 - m['OR_GrowthRateFloor'])
-        #    + lex['GrossCapacity'].shift(YEAR=1) * ds['CapacityAdditionalMaxGrowthRate']
         con = (
             m["NewCapacity"]
-            <= M * (-1 * m["OR_GrowthRateFloor"] + 1)
-            + lex["GrossCapacity"].shift(YEAR=1) * ds["CapacityAdditionalMaxGrowthRate"]
+            <= lex["GrossCapacity"].shift(YEAR=1) * ds["CapacityAdditionalMaxGrowthRate"]
+            + ds["CapacityAdditionalMaxFloor"]
         )
-        m.add_constraints(con, name="OR_GrowthRateFloor_lte_growthrate", mask=mask)
+        m.add_constraints(con, name="GrowthRateFloorMax", mask=mask)
 
     elif ds["CapacityAdditionalMaxGrowthRate"].notnull().any():
         # we just have a growth rate constraint by itself

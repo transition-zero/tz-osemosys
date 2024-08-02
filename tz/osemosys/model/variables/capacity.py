@@ -30,16 +30,4 @@ def add_capacity_variables(ds: xr.Dataset, m: Model) -> Model:
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="NewCapacity", integer=False)
     m.add_variables(lower=0, upper=inf, coords=RRFY, name="NewTradeCapacity", integer=False)
 
-    if (
-        ds["CapacityAdditionalMaxFloor"].notnull().any()
-        and ds["CapacityAdditionalMaxGrowthRate"].notnull().any()
-    ):
-        m.add_variables(
-            lower=0,
-            upper=1,
-            coords=RTeY,
-            name="OR_GrowthRateFloor",
-            integer=True,
-        )
-
     return m
