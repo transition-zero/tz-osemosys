@@ -3,11 +3,13 @@ from tz.osemosys import Commodity, Model, OperatingMode, Region, Technology, Tim
 
 def test_growth_rate_floor():
     """
-    In this model, we expect generators to be built at 1 GW for 2020 (i.e. the floor value)
+    In this model, we expect generators to be built at 1 GW for 2020 (i.e. the floor value) plus the
+    allowed growth rate in the given year.
+    In 2020, as there is no existing capacity, only the floor value can be built (1 GW).
     In 2021 the model can build the floor value plus the capacity from the previous year * the
-    growth rate (0.2), 1 + 1 * 0.2 which gives 1.2 GW.
+    growth rate (0.2), 1 + 1 * 0.02 which gives 1.02 GW.
     In 2022 the floor value becomes 0, so only additional capacity can be installed according to the
-     growth rate, gross capacity in 2021 (2.2 GW) * 0.2 = 0.44 GW.
+     growth rate, gross capacity in 2021 (2.02 GW) * 0.03 = 0.0606 GW.
 
     Meanwhile, unmet demand should be unconstrained to build to meet the demand of 100GW.
     """
@@ -33,7 +35,7 @@ def test_growth_rate_floor():
                     2027: 0.08,
                     2028: 0.09,
                     2029: 0.1,
-                }                
+                }
             },
             capacity_additional_max_floor={
                 "*": {
@@ -80,9 +82,7 @@ def test_growth_rate_floor():
 
     model.solve()
 
-    breakpoint()
-
-    assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 0.44
+    assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 0.0606
     assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 99.0
 
 
