@@ -283,8 +283,4 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
 
-        if "StorageIntraDay" in ds.data_vars:
-            con = lex["NetChargeWithinDay"] = 0
-            m.add_constraints(con, name="SC7_BalanceIntraDayConstraint")
-
     return m
