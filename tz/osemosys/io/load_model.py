@@ -1,7 +1,7 @@
-from glob import glob
-from pathlib import Path
+from itertools import chain
 
 import yaml
+from cloudpathlib import AnyPath
 
 from tz.osemosys import utils
 from tz.osemosys.schemas import RunSpec
@@ -93,8 +93,8 @@ def load_cfg(*spec_files):
     """
 
     # load yaml
-    spec_files = utils.maybe_flatten(
-        [(glob(f + "/*.yaml") if Path(f).is_dir() else f) for f in spec_files]
+    spec_files = chain.from_iterable(
+        p.glob("*.yaml") if (p := AnyPath(f)).is_dir() else [p] for f in spec_files
     )
 
     cfg = {}
