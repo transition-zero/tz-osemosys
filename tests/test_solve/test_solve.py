@@ -2,7 +2,7 @@ import numpy as np
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
 
-EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/quickstart/"
+EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/phl_1_node/"
 
 def test_model_construction_from_yaml():
     """

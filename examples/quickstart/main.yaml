@@ -111,4 +111,4 @@ storage:
     capex: 0.
     operating_life: 100
     residual_capacity: 0
-    storage_balance_daily: true
+    storage_balance_day: false
