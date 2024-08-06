@@ -18,8 +18,12 @@ def add_storage_variables(ds: xr.Dataset, m: Model) -> Model:
     linopy.Model
     """
     RSY = [ds.coords["REGION"], ds.coords["STORAGE"], ds.coords["YEAR"]]
-    
+    RSYTS = [ds.coords["REGION"], ds.coords["STORAGE"], ds.coords["YEAR"], ds.coords["TIMESLICE"]]
+
     m.add_variables(lower=0, upper=inf, coords=RSY, name="NewStorageCapacity", integer=False)
+    m.add_variables(lower=0, upper=inf, coords=RSYTS, name="RateOfStorageCharge", integer=False)
+    m.add_variables(lower=0, upper=inf, coords=RSYTS, name="RateOfStorageDischarge", integer=False)
+    m.add_variables(lower=0, upper=inf, coords=RSYTS, name="NetCharge", integer=False)
 
     return m
 

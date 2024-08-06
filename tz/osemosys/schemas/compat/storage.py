@@ -49,10 +49,10 @@ class OtooleStorage(BaseModel):
             "attribute": "max_charge_rate",
             "columns": ["REGION", "STORAGE", "VALUE"],
         },
-        "StorageIntraDay": {
-            "attribute": "balance_by_day",
-            "columns": ["REGION", "STORAGE", "VALUE"],
-        },        
+        "BalanceStorageDay": {
+            "attribute": "storage_balance_day",
+            "columns": ["REGION", "STORAGE", "YEAR", "VALUE"],
+        },                
     }
 
     @classmethod
@@ -152,12 +152,12 @@ class OtooleStorage(BaseModel):
                         OSeMOSYSData.R(data=data_json_format["StorageMaxChargeRate"])
                         if data_json_format["StorageMaxChargeRate"] is not None
                         else None
+                    ),                   
+                    storage_balance_day=(
+                        OSeMOSYSData.RY.Bool(data=data_json_format["StorageBalanceDay"])
+                        if data_json_format["StorageBalanceDay"] is not None
+                        else None                                
                     ),
-                    balance_by_day=(
-                        OSeMOSYSData.R.Bool(data=data_json_format["StorageIntraDay"])
-                        if data_json_format["StorageIntraDay"] is not None
-                        else None                                        
-                    )
                 )
             )
         return storage_instances
@@ -181,7 +181,8 @@ class OtooleStorage(BaseModel):
         residual_capacity_dfs = []
         max_discharge_rate_dfs = []
         max_charge_rate_dfs = []
-
+        storage_balance_day_dfs = []
+        
         for sto in storage:
             if sto.capex is not None:
                 df = pd.json_normalize(sto.capex.data).T.rename(columns={0: "VALUE"})

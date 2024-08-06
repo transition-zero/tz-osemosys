@@ -17,13 +17,26 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
+    RateOfStorageChargeDaily =      (
+        (ds["TechnologyToStorage"] * m["RateOfActivity"] * ds["DaySplit"]).where(
+            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0)
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
+
     RateOfStorageDischarge =    (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
             (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
+    RateOfStorageDischargeDaily =    (
+        (ds["TechnologyFromStorage"] * m["RateOfActivity"] * ds["DaySplit"]).where(
+            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
+
     NetCharge = ds["YearSplit"] * (RateOfStorageCharge - RateOfStorageDischarge)
+    NetChargeWithinDay = (RateOfStorageChargeDaily - RateOfStorageDischargeDaily)
 
     NetChargeReshape = NetCharge.stack(YRTS=["YEAR", "TIMESLICE"])
 
@@ -65,6 +78,9 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "RateOfStorageCharge": RateOfStorageCharge,
             "RateOfStorageDischarge": RateOfStorageDischarge,
             "NetCharge": NetCharge,
+            "NetChargeWithinDay": NetChargeWithinDay,
+            "RateOfStorageChargeDaily": RateOfStorageChargeDaily,
+            "RateOfStorageDischargeDaily": RateOfStorageDischargeDaily,
             "StorageLevel": StorageLevel,
             "NewStorageCapacity": NewStorageCapacity,
             "AccumulatedNewStorageCapacity": AccumulatedNewStorageCapacity,
