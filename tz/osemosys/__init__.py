@@ -1,3 +1,11 @@
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("tz-osemosys")
+except PackageNotFoundError:
+    # package is not installed
+    pass
+
 from tz.osemosys.io.load_model import load_model
 from tz.osemosys.model.model import Model
 from tz.osemosys.schemas.commodity import Commodity
