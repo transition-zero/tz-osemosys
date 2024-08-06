@@ -165,7 +165,8 @@ YAML is a human-readable data serialisation language. We've build a custom YAML 
 - for data keyed by an osemosys `set` (e.g. `YEARS`, `TIMESLICES`, `TECHNOLOGIES`), wildcards `"*"` can be used in place of explicitly listing all set members.
 - data field `set` dimensions and membership are also automatically inferred - a single value can be given which will be broadcast to all set member combinations.
 - single or multiple `.yaml` files can be composed together, allowing you to separate, e.g. `technologies.yaml`, from the rest of your model.
-- with `cloudpathlib` and a cloud storage provider SDK installed (which can be done via `pip install "tz-osemosys[cloudpath]"`) the path to yaml files can be a cloud storage object URI. See <https://cloudpathlib.drivendata.org/stable/> for more details.
+- with `cloudpathlib` and a cloud storage provider SDK installed the path to yaml files can be a cloud storage object URI. See <https://cloudpathlib.drivendata.org/stable/> for more details.
+- `pip install "tz-osemosys[cloudpath]"` will install `cloudpathlib` and python client libraries for cloud storage provider SDKs.
 
 ```python
 from tz.osemosys import Model
