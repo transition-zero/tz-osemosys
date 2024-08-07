@@ -76,7 +76,7 @@ technologies:
         input_activity_ratio:
           ELC: 8760
         to_storage: {"*": {"BAT": True}}
-    activity_annual_min: 5    
+    activity_annual_min: 5
   - id: COAL-GEN
     long_name: Coal-fired power plant
     operating_life: 40  # years
