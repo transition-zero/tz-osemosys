@@ -54,6 +54,10 @@ def add_re_targets_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearEx
     ```
     """
 
-    # TODO
+    con = (
+        lex["ProductionAnnualRE"] >= lex["ProductionAnnual"].assign_coords({"FUEL": ds["RETagFuel"] == 1}) * ds["REMinProductionTarget"]
+    )
+    mask = ds["RETagFuel"] == 1
+    m.add_constraints(con, name="RE1_RenewableProduction_MinConstraint", mask=mask)
 
     return m

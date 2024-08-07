@@ -36,11 +36,14 @@ commodities:
   - id: ELC
     long_name: Electricity
     demand_annual: "{y:(219000*1.1**(y-2020)) for y in ${time_definition.years}}"
+    include_in_joint_renewable_target: true
     demand_profile:
       SD: 0.15
       SN: 0.2
       WD: 0.3
       WN: 0.35
+  - id: COA
+    long_name: coal    
 
 regions:
   - id: UTOPIA
@@ -53,9 +56,20 @@ impacts:
   - id: CO2
     long_name: equivalent carbon dioxide emissions
     description: equivalent carbon dioxide emissions
-    penalty: 60
+    # penalty: 60
+
+renewable_production_target: 0.3
 
 technologies:
+  - id: COA_DMY
+    long_name: Dummy coal production technology
+    operating_life: 100
+    operating_modes:
+      - id: GEN
+        long_name: discharging mode
+        description: discharging mode
+        output_activity_ratio:
+          COA: 1
   - id: STO_BAT
     long_name: Storage technology linked to BAT
     capacity_activity_unit_ratio: 31.536
@@ -75,8 +89,7 @@ technologies:
         description: charging mode
         input_activity_ratio:
           ELC: 8760
-        to_storage: {"*": {"BAT": True}}
-    activity_annual_min: 5    
+        to_storage: {"*": {"BAT": True}}   
   - id: COAL-GEN
     long_name: Coal-fired power plant
     operating_life: 40  # years
@@ -85,7 +98,9 @@ technologies:
     residual_capacity: "{yr: 10 * max((1 - (yr - 2020) / (2040 - 2020), 0)) for yr in range(2020, 2051)}"
     operating_modes:
       - id: GEN
-        opex_variable: 71  # $/GW/yr
+        opex_variable: 71
+        input_activity_ratio:
+          COA: 8760  # $/GW/yr
         output_activity_ratio:
           ELC: 8760  # GWh/yr/GW
         emission_activity_ratio:
@@ -93,6 +108,7 @@ technologies:
   - id: SOLAR-PV
     long_name: Solar PV
     operating_life: 25
+    include_in_joint_renewable_target: true
     capex: 1200
     capacity_factor:
       SD: 1.0

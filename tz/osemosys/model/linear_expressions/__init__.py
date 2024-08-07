@@ -12,6 +12,7 @@ from tz.osemosys.model.linear_expressions.production import add_lex_quantities
 from tz.osemosys.model.linear_expressions.reserve_margin import add_lex_reserve_margin
 from tz.osemosys.model.linear_expressions.storage import add_lex_storage
 from tz.osemosys.model.linear_expressions.trade import add_lex_trade
+from tz.osemosys.model.linear_expressions.re_production import add_lex_re_production
 
 
 def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpression]:
@@ -29,5 +30,6 @@ def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpressi
     add_lex_financials(ds, m, lex)
     add_lex_quantities(ds, m, lex)
     add_lex_reserve_margin(ds, m, lex)
+    add_lex_re_production(ds, m, lex)
 
     return lex
