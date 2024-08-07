@@ -368,6 +368,7 @@ class OtooleTechnology(BaseModel):
                     ),
                 )
             )
+
         return technology_instances
 
     @classmethod
