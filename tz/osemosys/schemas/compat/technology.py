@@ -365,9 +365,9 @@ class OtooleTechnology(BaseModel):
                         OSeMOSYSData.RY.Bool(data=data_json_format["RETagTechnology"])
                         if data_json_format["RETagTechnology"] is not None
                         else None
+                    ),
                 )
             )
-        )
         return technology_instances
 
     @classmethod

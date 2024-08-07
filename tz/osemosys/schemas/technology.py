@@ -179,8 +179,8 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     `include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
     ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
      indicated reserve margin. It has value True for the technologies contributing, False otherwise.
-     Optional, defaults to `None`.   
-     
+     Optional, defaults to `None`.
+
     `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
     Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology
     in a specified year. Optional, defaults to `None`.
