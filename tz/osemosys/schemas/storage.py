@@ -48,10 +48,10 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     Maximum charging rate for the storage, in units of activity per year.
     Optional, defaults to `None`.
 
-    `storage_balance_day` `({region:{year:bool}})` - OSeMOSYS StorageBalanceDay.
+    `storage_balance_day` `({region:bool})` - OSeMOSYS StorageBalanceDay.
     Boolean parameter tagging storage technologies which must balance daily.
     Optional, defaults to `None`.
-    
+
 
     ## Examples
 
@@ -93,7 +93,7 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     max_discharge_rate: OSeMOSYSData.R | None = Field(None)
     max_charge_rate: OSeMOSYSData.R | None = Field(None)
 
-    storage_balance_day: OSeMOSYSData.RY.Bool | None = Field(None)
+    storage_balance_day: OSeMOSYSData.R.Bool | None = Field(None)
 
     @model_validator(mode="before")
     @classmethod

@@ -51,8 +51,8 @@ class OtooleStorage(BaseModel):
         },
         "BalanceStorageDay": {
             "attribute": "storage_balance_day",
-            "columns": ["REGION", "STORAGE", "YEAR", "VALUE"],
-        },                
+            "columns": ["REGION", "STORAGE", "VALUE"],
+        },
     }
 
     @classmethod
@@ -152,11 +152,11 @@ class OtooleStorage(BaseModel):
                         OSeMOSYSData.R(data=data_json_format["StorageMaxChargeRate"])
                         if data_json_format["StorageMaxChargeRate"] is not None
                         else None
-                    ),                   
+                    ),
                     storage_balance_day=(
-                        OSeMOSYSData.RY.Bool(data=data_json_format["StorageBalanceDay"])
+                        OSeMOSYSData.R.Bool(data=data_json_format["StorageBalanceDay"])
                         if data_json_format["StorageBalanceDay"] is not None
-                        else None                                
+                        else None
                     ),
                 )
             )
@@ -228,9 +228,7 @@ class OtooleStorage(BaseModel):
             if sto.storage_balance_day is not None:
                 df = pd.json_normalize(sto.storage_balance_day.data).T.rename(columns={0: "VALUE"})
                 df["STORAGE"] = sto.id
-                df[["REGION", "YEAR"]] = pd.DataFrame(
-                    df.index.str.split(".").to_list(), index=df.index
-                )
+                df["REGION"] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
                 storage_balance_day_dfs.append(df)
 
         # collect concatenaed dfs
