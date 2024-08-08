@@ -177,3 +177,57 @@ def test_model_construction_from_yaml():
 
 #     assert model.solution["NetTrade"].values[0][2][0] == 15
 #     assert np.round(model._m.objective.value) == 28200.0
+
+
+def test_simple_re_target():
+    """
+    This model has 2 generators, solar and coal, with identical parameters except for solar having
+    double the capex and is tagged as renewable using the param include_in_joint_renewable_target.
+
+    A 20% renewable target is set.
+    """
+    model = Model(
+        id="test-feasibility",
+        renewable_production_target=0.2,
+        time_definition=dict(id="years-only", years=range(2020, 2031)),
+        regions=[dict(id="single-region")],
+        commodities=[
+            dict(id="electricity", demand_annual=25, include_in_joint_renewable_target=True)
+        ],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=2,
+                capex=400,
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+            ),
+            dict(
+                id="solar-gen",
+                operating_life=2,
+                capex=800,
+                include_in_joint_renewable_target=True,
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+            ),
+        ],
+    )
+
+    model._build()
+
+    model._m.solve()
+
+    assert model._m.termination_condition == "optimal"
+    assert np.round(model._m.objective.value) == 54671.0
+    assert model._m.solution["NewCapacity"][0][1][0] == 5  # i.e. solar new capacity
