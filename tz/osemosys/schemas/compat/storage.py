@@ -162,6 +162,11 @@ class OtooleStorage(BaseModel):
                         if data_json_format["StorageBalanceDay"] is not None
                         else None
                     ),
+                    storage_balance_year=(
+                        OSeMOSYSData.R.Bool(data=data_json_format["StorageBalanceYear"])
+                        if data_json_format["StorageBalanceYear"] is not None
+                        else None
+                    ),                        
                 )
             )
         return storage_instances

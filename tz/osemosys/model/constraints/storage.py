@@ -279,7 +279,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
 
         if "StorageBalanceDay" in ds.data_vars:
             # Require NetChargeWithinDay to be zero
-            con = (lex["NetCharge"] * ds["DaySplit"]).sum("TIMESLICE") == 0
+            con = (lex["StorageChargeDaily"] - lex["StorageDischargeDaily"]) == 0
             mask = ds["StorageBalanceDay"] == 1
             m.add_constraints(con, name="SC9_BalanceDailyConstraint", mask=mask)
 
