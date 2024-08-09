@@ -254,7 +254,6 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
     ```
     """
     if ds["STORAGE"].size > 0:
-
         # storage level may not exceed gross capacity
         con = lex["StorageLevel"] <= lex["GrossStorageCapacity"].expand_dims(
             {"TIMESLICE": ds["TIMESLICE"]}
@@ -277,5 +276,18 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         if "StorageMaxDischargeRate" in ds.data_vars:
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
+
+        if "StorageBalanceDay" in ds.data_vars:
+            # Require NetChargeWithinDay to be zero
+            con = (lex["StorageChargeDaily"] - lex["StorageDischargeDaily"]) == 0
+            mask = ds["StorageBalanceDay"] == 1
+            m.add_constraints(con, name="SC9_BalanceDailyConstraint", mask=mask)
+
+        if "StorageBalanceYear" in ds.data_vars:
+            con = (
+                (lex["RateOfStorageCharge"] - lex["RateOfStorageDischarge"]) * ds["YearSplit"]
+            ).sum(dims="TIMESLICE") == 0
+            mask = ds["StorageBalanceYear"] == 1
+            m.add_constraints(con, name="SC10_BalanceAnnualConstraint", mask=mask)
 
     return m
