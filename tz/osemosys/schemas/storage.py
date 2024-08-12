@@ -99,8 +99,8 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     max_discharge_rate: OSeMOSYSData.R | None = Field(None)
     max_charge_rate: OSeMOSYSData.R | None = Field(None)
 
-    storage_balance_day: OSeMOSYSData.R.Bool | None = Field(None)
-    storage_balance_year: OSeMOSYSData.R.Bool | None = Field(None)
+    storage_balance_day: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R(False))
+    storage_balance_year: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R(False))
 
     @model_validator(mode="before")
     @classmethod
