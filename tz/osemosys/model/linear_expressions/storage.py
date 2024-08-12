@@ -17,8 +17,10 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
     StorageChargeDaily = (
-        (ds["TechnologyToStorage"] * m["RateOfActivity"] * ds["DaySplit"]).where(
-            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0) & (ds["StorageBalanceDay"] != 0)
+        (ds["DaySplit"] * ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
+            (ds["TechnologyToStorage"].notnull())
+            & (ds["TechnologyToStorage"] != 0)
+            & (ds["StorageBalanceDay"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
@@ -29,8 +31,10 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
     StorageDischargeDaily = (
-        (ds["TechnologyFromStorage"] * m["RateOfActivity"] * ds["DaySplit"]).where(
-            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0) & (ds["StorageBalanceDay"] != 0)
+        (ds["DaySplit"] * ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
+            (ds["TechnologyFromStorage"].notnull())
+            & (ds["TechnologyFromStorage"] != 0)
+            & (ds["StorageBalanceDay"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
@@ -76,7 +80,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "RateOfStorageCharge": RateOfStorageCharge,
             "RateOfStorageDischarge": RateOfStorageDischarge,
             "StorageChargeDaily": StorageChargeDaily,
-            "StorageDischargeDaily": StorageDischargeDaily,            
+            "StorageDischargeDaily": StorageDischargeDaily,
             "NetCharge": NetCharge,
             "StorageLevel": StorageLevel,
             "NewStorageCapacity": NewStorageCapacity,
