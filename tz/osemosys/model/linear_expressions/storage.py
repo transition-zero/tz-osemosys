@@ -76,7 +76,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "RateOfStorageCharge": RateOfStorageCharge,
             "RateOfStorageDischarge": RateOfStorageDischarge,
             "StorageChargeDaily": StorageChargeDaily,
-            "StorageDischargeDaily": StorageDischargeDaily,            
+            "StorageDischargeDaily": StorageDischargeDaily,
             "NetCharge": NetCharge,
             "StorageLevel": StorageLevel,
             "NewStorageCapacity": NewStorageCapacity,

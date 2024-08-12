@@ -2,7 +2,7 @@ import numpy as np
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
 
-EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/phl_1_node/"
+EXAMPLE_YAML = "examples/utopia/main.yaml"
 
 
 def test_model_construction_from_yaml():
@@ -16,9 +16,8 @@ def test_model_construction_from_yaml():
 
     model._m.solve()
 
-    breakpoint()
-    #assert model._m.termination_condition == "optimal"
-    #assert np.round(model._m.objective.value) == 29044.0
+    assert model._m.termination_condition == "optimal"
+    assert np.round(model._m.objective.value) == 29044.0
 
 
 # def test_most_simple():
