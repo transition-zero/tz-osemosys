@@ -49,6 +49,14 @@ class OtooleStorage(BaseModel):
             "attribute": "max_charge_rate",
             "columns": ["REGION", "STORAGE", "VALUE"],
         },
+        "StorageBalanceDay": {
+            "attribute": "storage_balance_day",
+            "columns": ["REGION", "STORAGE", "VALUE"],
+        },
+        "StorageBalanceYear": {
+            "attribute": "storage_balance_year",
+            "columns": ["REGION", "STORAGE", "VALUE"],
+        },
     }
 
     @classmethod
@@ -149,9 +157,18 @@ class OtooleStorage(BaseModel):
                         if data_json_format["StorageMaxChargeRate"] is not None
                         else None
                     ),
+                    storage_balance_day=(
+                        OSeMOSYSData.R.Bool(data=data_json_format["StorageBalanceDay"])
+                        if data_json_format["StorageBalanceDay"] is not None
+                        else None
+                    ),
+                    storage_balance_year=(
+                        OSeMOSYSData.R.Bool(data=data_json_format["StorageBalanceYear"])
+                        if data_json_format["StorageBalanceYear"] is not None
+                        else None
+                    ),
                 )
             )
-
         return storage_instances
 
     @classmethod
@@ -173,6 +190,8 @@ class OtooleStorage(BaseModel):
         residual_capacity_dfs = []
         max_discharge_rate_dfs = []
         max_charge_rate_dfs = []
+        storage_balance_day_dfs = []
+        storage_balance_year_dfs = []
 
         for sto in storage:
             if sto.capex is not None:
@@ -216,6 +235,16 @@ class OtooleStorage(BaseModel):
                 df["STORAGE"] = sto.id
                 df["REGION"] = df.index
                 max_charge_rate_dfs.append(df)
+            if sto.storage_balance_day is not None:
+                df = pd.json_normalize(sto.storage_balance_day.data).T.rename(columns={0: "VALUE"})
+                df["STORAGE"] = sto.id
+                df["REGION"] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+                storage_balance_day_dfs.append(df)
+            if sto.storage_balance_year is not None:
+                df = pd.json_normalize(sto.storage_balance_year.data).T.rename(columns={0: "VALUE"})
+                df["STORAGE"] = sto.id
+                df["REGION"] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+                storage_balance_year_dfs.append(df)
 
         # collect concatenaed dfs
         dfs = {}
@@ -233,6 +262,10 @@ class OtooleStorage(BaseModel):
             dfs["StorageMaxDischargeRate"] = pd.concat(max_discharge_rate_dfs)
         if max_charge_rate_dfs:
             dfs["StorageMaxChargeRate"] = pd.concat(max_charge_rate_dfs)
+        if storage_balance_day_dfs:
+            dfs["StorageBalanceDay"] = pd.concat(storage_balance_day_dfs)
+        if storage_balance_year_dfs:
+            dfs["StorageBalanceYear"] = pd.concat(storage_balance_year_dfs)
 
         # SETS
         dfs["STORAGE"] = pd.DataFrame({"VALUE": [sto.id for sto in storage]})

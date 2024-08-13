@@ -52,7 +52,22 @@ def test_most_simple():
 
 
 def test_simple_storage():
+    """
+    This model tests storage with 2 different behaviours, and has 2 different daily time brackets.
+    The only generation technology is solar, which produces power during the day but not at night,
+    so that storage must be used to meet demand.
 
+    The first storage technology, 'bat-storage-daily', must charge and discharge by the same amount
+    each day. The second storage technology, 'bat-storage', has no restrictions on it's charging and
+    discharging behaviour.
+
+    The cost to produce electricity increases over each year, so that there is an incentive to carry
+    energy forward in years.
+
+    bat-storage-daily is the cheaper technology so is used balance energy in the first few years,
+    whereas as the cost of electricity increases, bat-storage is used to store energy for later
+    years.
+    """
     time_definition = TimeDefinition(
         id="years-only",
         years=range(2020, 2030),
@@ -78,7 +93,22 @@ def test_simple_storage():
             capacity_factor={"D": 1, "N": 0},
             operating_modes=[
                 OperatingMode(
-                    id="generation", opex_variable=0.0, output_activity_ratio={"electricity": 1.0}
+                    id="generation",
+                    opex_variable={
+                        "*": {
+                            2020: 0,
+                            2021: 10,
+                            2022: 20,
+                            2023: 30,
+                            2024: 40,
+                            2025: 50,
+                            2026: 60,
+                            2027: 70,
+                            2028: 80,
+                            2029: 90,
+                        }
+                    },
+                    output_activity_ratio={"electricity": 1.0},
                 )
             ],
         ),
@@ -91,10 +121,22 @@ def test_simple_storage():
                     id="charge",
                     opex_variable=0,
                     input_activity_ratio={"electricity": 1.0},
-                    to_storage={"*": {"bat-storage": True}},
+                    to_storage={"*": {"bat-storage-daily": True}},
                 ),
                 OperatingMode(
                     id="discharge",
+                    opex_variable=0,
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage-daily": True}},
+                ),
+                OperatingMode(
+                    id="charge2",
+                    opex_variable=0,
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge2",
                     opex_variable=0,
                     output_activity_ratio={"electricity": 1.0},
                     from_storage={"*": {"bat-storage": True}},
@@ -102,16 +144,21 @@ def test_simple_storage():
             ],
         ),
     ]
-
     storage = [
         Storage(
-            id="bat-storage",
+            id="bat-storage-daily",
             capex=0.01,
             operating_life=100,
             residual_capacity=0,
-        )
+            storage_balance_day=True,
+        ),
+        Storage(
+            id="bat-storage",
+            capex=0.1,
+            operating_life=100,
+            residual_capacity=0,
+        ),
     ]
-
     model = Model(
         id="simple-carbon-price",
         time_definition=time_definition,
@@ -121,11 +168,12 @@ def test_simple_storage():
         storage=storage,
         technologies=technologies,
     )
-
     model.solve()
 
     assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
-    assert np.round(model.objective) == 3494.0
+    assert model.solution.NetCharge[0][1][0][0] == 75  # bat-storage 2020 Day charge
+    assert model.solution.NetCharge[0][1][0][1] == 0  # bat-storage 2020 Night charge
+    assert np.round(model.objective) == 8905.0
 
 
 def test_simple_trade():
