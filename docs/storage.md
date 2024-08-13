@@ -39,12 +39,12 @@ Optional, defaults to `None`.
 `storage_balance_day` `({region:bool})` - OSeMOSYS style name StorageBalanceDay.
 Boolean parameter tagging storage technologies which must balance daily, i.e. charge must equal
     discharge over each day, using daily time brackets.
-Optional, defaults to `None`.
+Optional, defaults to `False`.
 
 `storage_balance_year` `({region:bool})` - OSeMOSYS style name StorageBalanceYear.
 Boolean parameter tagging storage technologies which must balance anually, i.e. charge must
 equal discharge over each year.
-Optional, defaults to `None`.
+Optional, defaults to `False`.
 
 
 ## Examples
