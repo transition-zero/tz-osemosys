@@ -12,25 +12,47 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     RateOfStorageCharge = (
         (ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0) 
+            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
     StorageChargeDaily = (
-        ds["DaySplit"] * (ds["TechnologyToStorage"] * (ds["Conversionlh"].fillna(0) * ds["Conversionls"].fillna(0) * ds["Conversionld"].fillna(0)).sum(dim="DAILYTIMEBRACKET") * m["RateOfActivity"]).where(
-            (ds["TechnologyToStorage"].notnull()) & (ds["StorageBalanceDay"] != 0) & (ds["Conversionls"] != 0)
+        (
+            ds["DaySplit"]
+            * ds["TechnologyToStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAILYTIMEBRACKET")
+            * m["RateOfActivity"]
+        ).where(
+            (ds["TechnologyToStorage"].notnull())
+            & (ds["StorageBalanceDay"] != 0)
+            & (ds["Conversionls"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-    
+
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0) 
+            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
     StorageDischargeDaily = (
-        ds["DaySplit"] * (ds["TechnologyFromStorage"]  * (ds["Conversionlh"].fillna(0) * ds["Conversionls"].fillna(0) * ds["Conversionld"].fillna(0)).sum(dim="DAILYTIMEBRACKET") * m["RateOfActivity"]).where(
-            (ds["TechnologyFromStorage"].notnull()) & (ds["StorageBalanceDay"] != 0) & (ds["Conversionls"] != 0)
+        (
+            ds["DaySplit"]
+            * ds["TechnologyFromStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAILYTIMEBRACKET")
+            * m["RateOfActivity"]
+        ).where(
+            (ds["TechnologyFromStorage"].notnull())
+            & (ds["StorageBalanceDay"] != 0)
+            & (ds["Conversionls"] != 0)
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 

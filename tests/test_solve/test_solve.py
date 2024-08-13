@@ -2,7 +2,7 @@ import numpy as np
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
 
-EXAMPLE_YAML = "/examples/utopia/main.yaml"
+EXAMPLE_YAML = "examples/utopia/main.yaml"
 
 
 def test_model_construction_from_yaml():
