@@ -27,6 +27,12 @@ class Model(RunSpec):
         cfg = load_cfg(*spec_files)
         return cls(**cfg)
 
+    @classmethod
+    def from_otoole_csv(cls, root_dir, id: str | None = None):
+        runspec = RunSpec.from_otoole_csv(root_dir, id)
+        cfg = {name: data for name, data in runspec}
+        return cls(**cfg)
+
     def _build_dataset(self):
         data = self.to_xr_ds()
         return data
