@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import xarray as xr
 from linopy import LinearExpression
@@ -49,9 +49,8 @@ class Model(RunSpec):
         self,
         solver: str | None = None,
         lp_path: str | None = None,
-        io_api: str = "lp",
-        log_fn: str | None = None,
         solution_vars: list[str] | str | None = None,
+        **linopy_solve_kwargs: Any,
     ):
         self._build()
 
@@ -65,7 +64,7 @@ class Model(RunSpec):
         if lp_path:
             self._m.to_file(lp_path)
 
-        self._m.solve(solver_name=solver, io_api=io_api, log_fn=log_fn)
+        self._m.solve(solver_name=solver, **linopy_solve_kwargs)
 
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
