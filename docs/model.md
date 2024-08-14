@@ -3,6 +3,9 @@
 The Model class contains all data required to run a TZ-OSeMOSYS model, spread across subclasses,
 along with class methods for loading/constructing and solving a model.
 
+The parameters associated with each subclass are listed in the subsequent documentation pages (e.g.
+see [Technologies](https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/)).
+
 ## Parameters
 
 `id` `(str)`: Used to represent the name of the OSeMOSYS model.
