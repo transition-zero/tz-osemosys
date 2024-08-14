@@ -32,7 +32,7 @@
 <!-- badges-end -->
 
 
-**OSeMOSYS** is an open source modelling system for long-run systems analysis and planning.
+[**OSeMOSYS**](https://osemosys.readthedocs.io/en/latest/) is an open source modelling system for long-run systems analysis and planning.
 It has been employed to develop energy systems models from the scale of the globe, continents, countries, regions, and villages.
 OSeMOSYS is extremely flexible - it can be used for high-fidelity representations of power systems, rich with technological detail;
 medium-fidelity representations of all-energy systems including upstream energy supply, final energy demand, and climate policities;
@@ -49,16 +49,6 @@ We have added the following features:
 * [Pydantic](https://docs.pydantic.dev/latest/)-based model construction and validation
 * [Linopy](https://linopy.readthedocs.io/en/latest/)-based numerical optimsation and solving
 * Reverse-compatability with [OSeMOSYS-otoole](https://github.com/OSeMOSYS/otoole)
-
-## Documentation
-
-[TZ-OSeMOSYS](https://docs.feo.transitionzero.org/)
-
-[Examples](examples)
-
-[TransitionZero Platform Docs](https://docs.feo.transitionzero.org/)
-
-[OSeMOSYS Docs](https://osemosys.readthedocs.io/en/latest/)
 
 ## Installation
 
