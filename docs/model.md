@@ -183,9 +183,9 @@ the argument `solver` (e.g. `model.solve(solver="highs")`).
 ### Viewing the model solution
 
 Once the model has been solved, the solution can be accessed via the `solution` attribute of the
-model object, which returns an xarray DataSet.
+model object, which returns an xarray [Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html).
 
-To display all available solution DataArrays within the solution DataSet, run:
+To display all available solution [DataArrays](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html) within the solution Dataset, run:
 ```python
 model.solution.data_vars
 ```
