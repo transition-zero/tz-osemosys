@@ -23,6 +23,8 @@ from tz.osemosys.schemas.validation.model_composition import (
     check_tech_linked_to_storage,
     check_tech_producing_commodity,
     check_tech_producing_impact,
+    discount_rate_as_decimals,
+    reserve_margin_fully_defined,
 )
 from tz.osemosys.utils import merge, recursive_keys
 
@@ -354,11 +356,16 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     def composition_validation(self):
         """
         Do composition checks ensuring all commodities, impacts, and storage are linked to a
-        technology
+        technology.
+
+        Additionally, check that reserve_margin is fully defined and that discount rates are in
+        decimals.
         """
         self = check_tech_producing_commodity(self)
         self = check_tech_producing_impact(self)
         self = check_tech_consuming_commodity(self)
+        self = reserve_margin_fully_defined(self)
+        self = discount_rate_as_decimals(self)
         if self.storage:
             self = check_tech_linked_to_storage(self)
         return self
