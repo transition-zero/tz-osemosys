@@ -183,7 +183,7 @@ the argument `solver` (e.g. `model.solve(solver="highs")`).
 ### Viewing the model solution
 
 Once the model has been solved, the solution can be accessed via the `solution` attribute of the
-model object, which returns an xarray [Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html).
+model object, which returns an [Xarray](https://xarray.dev/) [Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html).
 
 To display all available solution [DataArrays](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html) within the solution Dataset, run:
 ```python
@@ -195,10 +195,16 @@ To view the values of a specific DataArray, such as NewCapacity, run:
 model.solution["NewCapacity"]
 ```
 
-This can be converted to a more easily readible format by converting to a pandas DataFrame:
+This can be converted to a more easily readible format by converting to a [pandas](https://pandas.pydata.org/) [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html), which mimicks the structure of an excel file (the pandas package may need to be installed with the command 'pip install pandas'):
 ```python
 model.solution["NewCapacity"].to_dataframe().reset_index()
 ```
+
+Each DataArray has its own set of [coordinates](https://docs.xarray.dev/en/latest/generated/xarray.Coordinates.html).
+These coordinates show the relevant dimensions over which the selected solution DataArray applies.
+For example, NewCapacity has dimensions of "REGION", "TECHNOLOGY", and "YEAR".
+The coordinates for each of these dimensions then correspond to the possible values, given how the model is set up.
+A model with 1 region, 5 technologies, and 10 years, would give a DataArray for NewCapacity of size 1 by 5 by 10; with the named technologies etc. forming the cooordinates.
 
 ### Writing the model solution to excel
 
