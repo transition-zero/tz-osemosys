@@ -20,6 +20,20 @@ def test_model_construction_from_yaml():
     assert np.round(model._m.objective.value) == 29044.0
 
 
+def test_model_solve_from_otoole_csv():
+    """
+    Check that a model can be constructed and solved from a otoole style set of CSVs
+    """
+
+    path = "examples/otoole_compat/input_csv/otoole-simple-hydro"
+
+    model = Model.from_otoole_csv(path)
+    model.solve()
+
+    assert model._m.termination_condition == "optimal"
+    assert np.round(model._m.objective.value) == 5591653.0
+
+
 def test_most_simple():
     model = Model(
         id="test-feasibility",

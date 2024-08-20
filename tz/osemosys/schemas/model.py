@@ -34,8 +34,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     """
     # RunSpec
 
-    The Runspec class contains all data required to run an OSeMOSYS model, spread across subclasses,
-    with some parameters inherent to the RunSpec object itself.
+    The Runspec class contains all data required to run a TZ-OSeMOSYS model, spread across
+    subclasses, with some parameters inherent to the RunSpec object itself.
 
     ## Parameters
 

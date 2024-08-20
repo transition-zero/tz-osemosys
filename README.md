@@ -42,7 +42,7 @@ OSeMOSYS is entirely open-source and can be used with a variety of programming l
 
 ## OSeMOSYS with the Future Energy Outlook
 
-TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package.
+TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package (tz-osemosys).
 This implementation of OSeMOSYS underlies our Future Energy Outlook capacity expansion model builder.
 We have added the following features:
 
