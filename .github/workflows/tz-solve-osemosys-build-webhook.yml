@@ -1,4 +1,4 @@
-name: Trigger Webhook on Push to Main
+name: tz-solve build webhook
 
 on:
   push:
@@ -13,6 +13,6 @@ jobs:
   trigger-webhook:
     runs-on: ubuntu-latest
     steps:
-    - name: Trigger Webhook
+    - name: Trigger webhook
       run: |
-        curl -v -X POST -H "Content-Type: application/json" -d "{}" "${{ secrets.TZ_SOLVE_OSEMOSYS_BUILD_WEBHOOK }}"
+        curl --json "{}" "${{ secrets.TZ_SOLVE_OSEMOSYS_BUILD_WEBHOOK }}"
