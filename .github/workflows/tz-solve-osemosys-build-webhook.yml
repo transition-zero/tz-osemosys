@@ -15,4 +15,4 @@ jobs:
     steps:
     - name: Trigger webhook
       run: |
-        curl --json "{}" "${{ secrets.TZ_SOLVE_OSEMOSYS_BUILD_WEBHOOK }}"
+        curl -X POST -H "Content-Type: application/json" -d "{}" "${{ secrets.TZ_SOLVE_OSEMOSYS_BUILD_WEBHOOK }}"
