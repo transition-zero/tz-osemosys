@@ -2,12 +2,7 @@ import os
 from typing import TYPE_CHECKING, List
 
 import pandas as pd
-from pydantic import BaseModel, model_validator
-
-from tz.osemosys.schemas.validation.region_validation import (
-    discount_rate_as_decimals,
-    reserve_margin_fully_defined,
-)
+from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from tz.osemosys.schemas.region import Region
@@ -21,12 +16,6 @@ class OtooleRegion(BaseModel):
     """
     Class to contain methods for converting Region data to and from otoole style CSVs
     """
-
-    @model_validator(mode="before")
-    def validation(cls, values):
-        values = reserve_margin_fully_defined(values)
-        values = discount_rate_as_decimals(values)
-        return values
 
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["Region"]:

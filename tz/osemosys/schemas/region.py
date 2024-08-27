@@ -1,13 +1,9 @@
 from typing import List
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field
 
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
 from tz.osemosys.schemas.compat.region import OtooleRegion
-from tz.osemosys.schemas.validation.region_validation import (
-    discount_rate_as_decimals,
-    reserve_margin_fully_defined,
-)
 
 ##########
 # REGION #
@@ -44,12 +40,6 @@ class Region(OSeMOSYSBase, OtooleRegion):
     model_config = ConfigDict(extra="forbid")
 
     exclude_technologies: List[str] | None = Field(default=None)
-
-    @model_validator(mode="before")
-    def validation(cls, values):
-        values = reserve_margin_fully_defined(values)
-        values = discount_rate_as_decimals(values)
-        return values
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
