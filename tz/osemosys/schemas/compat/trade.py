@@ -49,6 +49,10 @@ class OtooleTrade(BaseModel):
             "attribute": "cost_of_capital",
             "columns": ["REGION", "_REGION", "FUEL", "VALUE"],
         },
+        "TradeCapacityToActivityUnit": {
+            "attribute": "capacity_activity_unit_ratio",
+            "columns": ["REGION", "_REGION", "VALUE"],
+        },
     }
 
     @classmethod
