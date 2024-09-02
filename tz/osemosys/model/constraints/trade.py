@@ -49,7 +49,7 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     ```
     """
 
-    if ds["TradeRoute"].notnull().any():
+    if (ds["TradeRoute"] == 1).any():
 
         # Energy Balance
         con = (

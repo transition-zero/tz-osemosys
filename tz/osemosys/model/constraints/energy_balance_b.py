@@ -55,8 +55,14 @@ def add_energy_balance_b_constraints(
     ```
     """
 
-    con = lex["ProductionAnnual"] - lex["UseAnnual"] - lex["NetTradeAnnual"] >= ds[
-        "AccumulatedAnnualDemand"
-    ].fillna(0)
+    # With trade
+    if (ds["TradeRoute"] == 1).any():
+        con = lex["ProductionAnnual"] - lex["UseAnnual"] - lex["NetTradeAnnual"] >= ds[
+            "AccumulatedAnnualDemand"
+        ].fillna(0)
+    # Without trade
+    else:
+        con = lex["ProductionAnnual"] - lex["UseAnnual"] >= ds["AccumulatedAnnualDemand"].fillna(0)
+
     m.add_constraints(con, name="EBb4_EnergyBalanceEachYear4")
     return m

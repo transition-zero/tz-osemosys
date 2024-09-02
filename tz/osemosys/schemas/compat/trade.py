@@ -51,7 +51,7 @@ class OtooleTrade(BaseModel):
         },
         "TradeCapacityToActivityUnit": {
             "attribute": "capacity_activity_unit_ratio",
-            "columns": ["REGION", "_REGION", "VALUE"],
+            "columns": ["REGION", "_REGION", "FUEL", "VALUE"],
         },
     }
 
@@ -221,6 +221,7 @@ class OtooleTrade(BaseModel):
         capacity_additional_max_dfs = []
         operating_life_dfs = []
         cost_of_capital_dfs = []
+        capacity_activity_unit_ratio_dfs = []
 
         for trade_commodity in trade:
 
@@ -295,6 +296,22 @@ class OtooleTrade(BaseModel):
                 df["FUEL"] = trade_commodity.commodity
                 cost_of_capital_dfs.append(df)
 
+            if trade_commodity.capacity_activity_unit_ratio is not None:
+                # Only create df if values are not default (incl. if values have been composed)
+                # test_otoole_trade only builds the Trade class, only a whole Model can be composed
+                if (
+                    trade_commodity.capacity_activity_unit_ratio.data
+                    != defaults.trade_capacity_activity_unit_ratio
+                ):
+                    df = pd.json_normalize(
+                        trade_commodity.capacity_activity_unit_ratio.data
+                    ).T.rename(columns={0: "VALUE"})
+                    df[["REGION", "_REGION"]] = pd.DataFrame(
+                        df.index.str.split(".").to_list(), index=df.index
+                    )
+                    df["FUEL"] = trade_commodity.commodity
+                    capacity_activity_unit_ratio_dfs.append(df)
+
         dfs["TradeRoute"] = (
             pd.concat(trade_routes_dfs)
             if trade_routes_dfs
@@ -329,6 +346,11 @@ class OtooleTrade(BaseModel):
             pd.concat(cost_of_capital_dfs)
             if cost_of_capital_dfs
             else pd.DataFrame(columns=cls.otoole_stems["DiscountRateTrade"]["columns"])
+        )
+        dfs["TradeCapacityToActivityUnit"] = (
+            pd.concat(capacity_activity_unit_ratio_dfs)
+            if capacity_activity_unit_ratio_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["TradeCapacityToActivityUnit"]["columns"])
         )
 
         return dfs

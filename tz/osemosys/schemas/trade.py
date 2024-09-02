@@ -197,4 +197,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
             if self.cost_of_capital is not None:
                 self.construct_pairs(self.cost_of_capital)
 
+            if self.capacity_activity_unit_ratio is not None:
+                self.construct_pairs(self.capacity_activity_unit_ratio)
+
         return self
