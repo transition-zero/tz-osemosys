@@ -25,7 +25,7 @@ def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpressi
         add_lex_emissions(ds, m, lex)
     if ds["STORAGE"].size > 0:
         add_lex_storage(ds, m, lex)
-    if (ds["TradeRoute"] == 1).any():
+    if ds["TradeRoute"].notnull().any():
         add_lex_trade(ds, m, lex)
     add_lex_financials(ds, m, lex)
     add_lex_quantities(ds, m, lex)
