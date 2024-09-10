@@ -42,6 +42,10 @@ for the given trade route. Optional, defaults to 1.
 `cost_of_capital` `({region:region})` - Cost of capital (discount rate) for investments in the
 given trade route. Optional, defaults to 0.1.
 
+`capacity_activity_unit_ratio` `({region:float})` - OSeMOSYS style TradeCapacityToActivityUnit.
+Conversion factor relating the energy that would be traded when one unit of capacity is
+fully used in one year. Optional, defaults to 1.
+
 `construct_region_pairs` `(bool)` - Boolean parameter which, is set as True, will take the given
     input data and duplicate it for the opposite region:region direction if not already provided.
     E.g. providing trade_routes = {"R1": {"R2": {"COMMODITY": {"2020": True}}}} and setting the
