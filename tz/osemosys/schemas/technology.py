@@ -5,7 +5,6 @@ from pydantic import ConfigDict, Field, conlist, field_serializer, model_validat
 from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.technology import OtooleTechnology
-from tz.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
 
 class OperatingMode(OSeMOSYSBase):
@@ -356,61 +355,3 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
                 values[field] = cast_osemosysdata_value(field_val, info)
 
         return values
-
-    @model_validator(mode="after")
-    def validate_min_lt_max(self):
-        # # Broken for now
-        # if self.capacity_gross_min is not None and self.capacity_gross_max is not None:
-        #     if not check_min_vals_lower_max(
-        #         self.capacity_gross_min,
-        #         self.capacity_gross_max,
-        #         ["REGION", "YEAR", "VALUE"],
-        #     ):
-        #         raise ValueError(
-        #           "Minimum gross capacity is not less than maximum gross capacity.")
-
-        if self.capacity_additional_min is not None and self.capacity_additional_max is not None:
-            if not check_min_vals_lower_max(
-                self.capacity_additional_min,
-                self.capacity_additional_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError(
-                    f"Minimum gross capacity is not less than maximum gross capacity "
-                    f"for technology '{self.id}'."
-                )
-
-        if self.activity_annual_min is not None and self.activity_annual_max is not None:
-            if not check_min_vals_lower_max(
-                self.activity_annual_min,
-                self.activity_annual_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError(
-                    f"Minimum annual activity is not less than maximum annual activity for "
-                    f"technology '{self.id}'."
-                )
-
-        if self.activity_total_min is not None and self.activity_total_max is not None:
-            if not check_min_vals_lower_max(
-                self.activity_total_min,
-                self.activity_total_max,
-                ["REGION", "VALUE"],
-            ):
-                raise ValueError(
-                    f"Minimum total activity is not less than maximum total activity "
-                    f"for technology '{self.id}'."
-                )
-
-        if self.residual_capacity is not None and self.capacity_gross_max is not None:
-            if not check_min_vals_lower_max(
-                self.residual_capacity,
-                self.capacity_gross_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError(
-                    f"Residual capacity is greater than the allowed total installed capacity "
-                    f"defined in capacity_gross_max for technology '{self.id}'."
-                )
-
-        return self
