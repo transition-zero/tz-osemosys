@@ -113,21 +113,12 @@ def add_energy_balance_a_constraints(
     ```
     """
 
-    # With trade
-    if (ds["TradeRoute"] == 1).any():
-        con = (
-            lex["Production"]
-            - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
-            - lex["Use"]
-            - lex["NetTrade"]
-        ) >= 0
-    # Without trade
-    else:
-        con = (
-            lex["Production"]
-            - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
-            - lex["Use"]
-        ) >= 0
-
+    # Constraint
+    con = (
+        lex["Production"]
+        - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
+        - lex["Use"]
+        - lex["NetTrade"]
+    ) >= 0
     m.add_constraints(con, name="EBa11_EnergyBalanceEachTS5_trn")
     return m

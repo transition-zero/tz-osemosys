@@ -69,7 +69,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedStorageCost"].sum(
             ["STORAGE", "TECHNOLOGY"]
         )
-    if (ds["TradeRoute"] == 1).any():
+    if ds["TradeRoute"].notnull().any():
         TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedCostTrade"].sum(
             ["FUEL", "_REGION"]
         )
