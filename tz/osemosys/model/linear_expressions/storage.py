@@ -12,7 +12,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     RateOfStorageCharge = (
         (ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0)
+            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0), drop=True
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
@@ -35,7 +35,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
+            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0), drop=True
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
