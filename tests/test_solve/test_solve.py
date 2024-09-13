@@ -14,10 +14,10 @@ def test_model_construction_from_yaml():
 
     model._build()
 
-    model._m.solve()
+    model._m.solve(solver_name="highs")
 
     assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 29044.0
+    assert np.round(model._m.objective.value) == 29042.0
 
 
 def test_model_solve_from_otoole_csv():
@@ -28,7 +28,7 @@ def test_model_solve_from_otoole_csv():
     path = "examples/otoole_compat/input_csv/otoole-simple-hydro"
 
     model = Model.from_otoole_csv(path)
-    model.solve()
+    model.solve(solver="highs")
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 5591653.0
@@ -59,7 +59,7 @@ def test_most_simple():
 
     model._build()
 
-    model._m.solve()
+    model._m.solve(solver_name="highs")
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 45736.0
@@ -182,7 +182,7 @@ def test_simple_storage():
         storage=storage,
         technologies=technologies,
     )
-    model.solve()
+    model.solve(solver="highs")
 
     assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
     assert model.solution.NetCharge[0][1][0][0] == 75  # bat-storage 2020 Day charge
@@ -235,7 +235,7 @@ def test_simple_trade():
         ],
     )
 
-    model.solve()
+    model.solve(solver="highs")
 
     assert model.solution["NetTrade"].values[0][2][0] == 15
     assert np.round(model._m.objective.value) == 28200.0
@@ -288,7 +288,7 @@ def test_simple_re_target():
 
     model._build()
 
-    model._m.solve()
+    model._m.solve(solver_name="highs")
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 54671.0

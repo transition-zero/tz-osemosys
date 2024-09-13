@@ -5,19 +5,18 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-
     # Capacity #
     NewTradeCapacity = m["NewTradeCapacity"].rename(YEAR="BUILDYEAR")
     mask = (ds.YEAR - NewTradeCapacity.data.BUILDYEAR >= 0) & (
         ds.YEAR - NewTradeCapacity.data.BUILDYEAR < ds.OperationalLifeTrade
     )
-    AccumulatedNewTradeCapacity = NewTradeCapacity.where(mask).sum("BUILDYEAR")
+    AccumulatedNewTradeCapacity = NewTradeCapacity.where(mask, drop=False).sum("BUILDYEAR")
     GrossTradeCapacity = AccumulatedNewTradeCapacity + ds["ResidualTradeCapacity"].fillna(0)
 
     # Activity #
     NetTrade = (
         ((m["Export"] / (1 - ds["TradeLossBetweenRegions"])) - m["Import"])
-        .where(ds["TradeRoute"].notnull())
+        .where(ds["TradeRoute"].notnull(), drop=True)
         .sum("_REGION")
         .fillna(0)
     )
@@ -87,8 +86,8 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     # salvage value (trade)
     SalvageValueTrade = (
-        m["NewTradeCapacity"] * SV1CostTrade.where(sv1_trade_mask)
-        + m["NewTradeCapacity"] * SV2CostTrade.where(sv2_trade_mask)
+        m["NewTradeCapacity"] * SV1CostTrade.where(sv1_trade_mask, drop=True)
+        + m["NewTradeCapacity"] * SV2CostTrade.where(sv2_trade_mask, drop=True)
     ).fillna(0)
 
     DiscountedSalvageValueTrade = SalvageValueTrade / DiscountFactorSalvageTrade

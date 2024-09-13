@@ -5,7 +5,6 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-
     DiscountFactorStorage = (1 + ds["DiscountRateStorage"]) ** (
         1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
     )
@@ -29,7 +28,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ).where(
             (ds["TechnologyToStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
-            & (ds["Conversionls"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
@@ -52,7 +52,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ).where(
             (ds["TechnologyFromStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
-            & (ds["Conversionls"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
@@ -69,7 +70,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ds.YEAR - NewStorageCapacity.data.BUILDYEAR < ds.OperationalLifeStorage
     )
 
-    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask).sum("BUILDYEAR")
+    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask, drop=False).sum("BUILDYEAR")
 
     GrossStorageCapacity = AccumulatedNewStorageCapacity + ds["ResidualStorageCapacity"]
 
@@ -85,8 +86,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     )
 
     SalvageValueStorage = (
-        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"])
-        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"])
+        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"], drop=True)
+        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"], drop=True)
     ).fillna(0)
 
     DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage

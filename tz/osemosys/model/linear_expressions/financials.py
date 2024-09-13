@@ -5,7 +5,6 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-
     CapitalInvestment = (
         ds["CapitalCost"].fillna(0)
         * m["NewCapacity"]
@@ -21,7 +20,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         .sum(dims="MODE_OF_OPERATION")
         .where(
             (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
-            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
+            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
+            drop=True,
         )
     )
     AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
@@ -38,8 +38,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     SalvageValue = (
-        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"])
-        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"])
+        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"], drop=True)
+        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"], drop=True)
     ).fillna(0)
 
     DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]

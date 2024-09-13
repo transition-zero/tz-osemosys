@@ -80,7 +80,7 @@ def test_growth_rate_floor():
         technologies=technologies,
     )
 
-    model.solve()
+    model.solve(solver="highs")
 
     assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="generator") == 0.0606
     assert model.solution.NewCapacity.sel(YEAR=2020, TECHNOLOGY="unmet-demand") == 99.0
@@ -134,7 +134,7 @@ def test_growth_rate_ceil():
         technologies=technologies,
     )
 
-    model.solve()
+    model.solve(solver="highs")
 
     assert model.solution.NewCapacity.sel(YEAR=2021, TECHNOLOGY="generator") == 15.0
     assert model.solution.NewCapacity.sel(YEAR=2024, TECHNOLOGY="generator") == 20.0
@@ -201,7 +201,7 @@ def test_growth_rate_min():
         technologies=technologies,
     )
 
-    model.solve()
+    model.solve(solver="highs")
 
     assert model.solution.NewCapacity.sel(YEAR=2021, TECHNOLOGY="bad-generator") == 1.0
     assert model.solution.NewCapacity.sel(YEAR=2022, TECHNOLOGY="bad-generator") == 1.1
