@@ -5,14 +5,13 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-
     DiscountFactorStorage = (1 + ds["DiscountRateStorage"]) ** (
         1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
     )
 
     RateOfStorageCharge = (
         (ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0)
+            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0), drop=True
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
@@ -29,13 +28,14 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ).where(
             (ds["TechnologyToStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
-            & (ds["Conversionls"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
-            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0)
+            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0), drop=True
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
 
@@ -52,7 +52,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ).where(
             (ds["TechnologyFromStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
-            & (ds["Conversionls"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
@@ -85,8 +86,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     )
 
     SalvageValueStorage = (
-        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"])
-        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"])
+        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"], drop=False)
+        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"], drop=False)
     ).fillna(0)
 
     DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage
