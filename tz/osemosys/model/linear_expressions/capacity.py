@@ -11,7 +11,7 @@ def add_lex_capacity(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression])
         ds.YEAR - NewCapacity.data.BUILDYEAR < ds.OperationalLife
     )
 
-    AccumulatedNewCapacity = NewCapacity.where(mask, drop=False).sum("BUILDYEAR")
+    AccumulatedNewCapacity = NewCapacity.where(mask).sum("BUILDYEAR")
 
     GrossCapacity = AccumulatedNewCapacity + ds["ResidualCapacity"].fillna(0)
 

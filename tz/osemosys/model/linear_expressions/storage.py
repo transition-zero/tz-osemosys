@@ -70,7 +70,7 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ds.YEAR - NewStorageCapacity.data.BUILDYEAR < ds.OperationalLifeStorage
     )
 
-    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask, drop=False).sum("BUILDYEAR")
+    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask).sum("BUILDYEAR")
 
     GrossStorageCapacity = AccumulatedNewStorageCapacity + ds["ResidualStorageCapacity"]
 
@@ -86,8 +86,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     )
 
     SalvageValueStorage = (
-        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"], drop=True)
-        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"], drop=True)
+        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"], drop=False)
+        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"], drop=False)
     ).fillna(0)
 
     DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage

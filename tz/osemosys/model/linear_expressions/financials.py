@@ -21,7 +21,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         .where(
             (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
             & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
-            drop=True,
+            drop=False,
         )
     )
     AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
@@ -38,8 +38,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     SalvageValue = (
-        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"], drop=True)
-        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"], drop=True)
+        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"], drop=False)
+        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"], drop=False)
     ).fillna(0)
 
     DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]
