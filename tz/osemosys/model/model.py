@@ -294,10 +294,10 @@ class Model(RunSpec):
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
 
-        # rather hacky - constants not currently supported in objective functions:
-        # https://github.com/PyPSA/linopy/issues/236
-        # TODO: find out why and add constant back on: + self._objective_constant
-        self._objective = self._solution.TotalDiscountedCost.sum().values
+            # rather hacky - constants not currently supported in objective functions:
+            # https://github.com/PyPSA/linopy/issues/236
+            # TODO: find out why and add constant back on: + self._objective_constant
+            self._objective = self._solution.TotalDiscountedCost.sum().values
 
         return True
 
