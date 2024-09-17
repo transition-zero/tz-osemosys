@@ -299,7 +299,7 @@ class Model(RunSpec):
             # TODO: find out why and add constant back on: + self._objective_constant
             self._objective = self._solution.TotalDiscountedCost.sum().values
 
-        return True
+        return self._m.status
 
     @property
     def solution(self):
