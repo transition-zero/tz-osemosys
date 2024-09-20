@@ -24,7 +24,7 @@ def test_linopy_model():
 
             model = Model.from_otoole_csv(sample_path)
 
-            model.solve()
+            model.solve(solver="highs")
 
             ref_results_df = pd.read_csv(Path(results_path) / "TotalDiscountedCost.csv")
 
