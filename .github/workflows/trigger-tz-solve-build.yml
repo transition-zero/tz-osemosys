@@ -33,7 +33,6 @@ jobs:
     - name: Trigger tz-solve build
       run: |
         gcloud builds triggers run tz-solve-build \
-        --project="tz-analysis-compute" \
-        --region="europe-west2" \
-        --branch="main" \
+        --region=europe-west2 \
+        --branch=main \
         --substitutions=_REF=${{ github.ref_name }}
