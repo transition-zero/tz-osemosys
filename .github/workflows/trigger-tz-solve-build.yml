@@ -1,0 +1,39 @@
+name: tz-solve build trigger
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - tz/osemosys/**
+      - pyproject.toml
+      - .github/workflows/trigger-tz-solve-build.yml
+  release:
+    types: [published]
+
+jobs:
+  trigger-tz-solve-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.TZ_SOLVE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        version: latest
+
+    - name: Trigger tz-solve build
+      run: |
+        gcloud builds triggers run tz-solve-build \
+        --project="tz-analysis-compute" \
+        --region="europe-west2" \
+        --branch="main" \
+        --substitutions=_REF=${{ github.ref_name }}
