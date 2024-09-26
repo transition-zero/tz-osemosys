@@ -1,0 +1,186 @@
+# -------------------------------------------------------------------------
+#
+#   COSTS
+#
+#     Define all cost parameters for the model. Specifically:
+#       - Depreciation method
+#       - Discount rate
+#       - Cost of capital
+#       - Capital costs
+#       - Fixed O&M costs
+#       - Fuel prices
+#
+#     Link to docs:
+#       https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+# -------
+# Financial methods
+# -------
+
+depreciation_method: "straight-line"
+
+# ---
+# social discount rate by region
+discount_rate:
+  Region1: 0.05
+  Region2: 0.05
+
+# ---
+# cost of capital by technology
+cost_of_capital:
+  # all regions
+  "*" :
+    coal-supercritical: 0.1
+    gas-ccgt: 0.1
+    hydro-reservoir: 0.1
+    nuclear: 0.1
+    solar-pv: 0.1
+    wind-onshore: 0.1
+
+# ---
+# cost of capital for storage technologies
+# cost_of_capital_storage:
+#   # all regions
+#   "*" :
+#     battery: 0.1
+#     hydrogen: 0.1
+
+# -------
+# Capital costs
+# -------
+
+capex:
+
+  coal-supercritical:
+    # all regions
+    "*" :
+      # all years
+      "*" : 900
+
+  gas-ccgt:
+    # all regions
+    "*" :
+      # all years
+      "*" : 900
+
+  hydro-reservoir:
+    # all regions
+    "*" :
+      # all years
+      "*" : 750
+
+  nuclear:
+    # all regions
+    "*" :
+      # all years
+      "*" : 2000
+
+  solar-pv:
+    # all regions
+    "*" :
+      # all years
+      "*" : 500
+
+  wind-onshore:
+    # all regions
+    "*" :
+      # all years
+      "*" : 550
+
+  transmission:
+    # all regions
+      "*" :
+        # all years
+        "*" : 250
+
+# -------
+# Fixed O&M costs
+# -------
+
+opex_fixed:
+
+  coal-supercritical:
+    # all regions
+    "*":
+      # all year
+      "*" : 100
+
+  gas-ccgt:
+    # all regions
+    "*":
+      # all year
+      "*" : 100
+
+  hydro-reservoir:
+    # all regions
+    "*":
+      # all year
+      "*" : 20
+
+  nuclear:
+    # all regions
+    "*":
+      # all year
+      "*" : 100
+
+  solar-pv:
+    # all regions
+    "*":
+      # all year
+      "*" : 0
+
+  wind-onshore:
+    # all regions
+    "*":
+      # all year
+      "*" : 0
+
+  transmission:
+    # all regions
+    "*":
+      # all year
+      "*" : 0
+
+# ---------------------------
+# Fuel prices (M$/PJ or $/GJ)
+# ---------------------------
+
+fuel_price:
+
+  coal-domestic:
+    # all regions
+    "*" :
+      # all years
+      "*" : 3 # M$/PJ or $/GJ
+  coal-imports:
+    # all regions
+    "*" :
+      # all years
+      "*" : 5 # M$/PJ or $/GJ
+  gas-domestic-low:
+    # all regions
+    "*" :
+      # all years
+      "*" : 1 # M$/PJ or $/GJ
+  gas-domestic-high:
+    # all regions
+    "*" :
+      # all years
+      "*" : 2 # M$/PJ or $/GJ
+  gas-imports:
+    # all regions
+    "*" :
+      # all years
+      "*" : 5 # M$/PJ or $/GJ
+  nuclear:
+    # all regions
+    "*" :
+      # all years
+      "*" : 1.5

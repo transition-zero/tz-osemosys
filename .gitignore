@@ -166,4 +166,4 @@ cython_debug/
 **/._.DS_Store
 
 # Results folder for tests
-results/
+notebooks/*.ipynb

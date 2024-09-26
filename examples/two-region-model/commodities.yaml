@@ -1,0 +1,82 @@
+# -------------------------------------------------------------------------
+#
+#   COMMODITIES (DEMAND)
+#
+#     Define the commodities that are used in the model, as well as
+#       the demand for each commodity in each region.
+#
+#     Link to docs:
+#       https://docs.feo.transitionzero.org/docs/tz-osemosys/commodity/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+commodities:
+
+  - id: coal
+    long_name: Coal resource
+    is_renewable: false
+
+  - id: gas
+    long_name: Natural gas resource
+    is_renewable: false
+
+  - id: solar
+    long_name: Solar resource
+    is_renewable: true
+
+  - id: wind
+    long_name: Wind resource
+    is_renewable: true
+
+  - id: uranium
+    long_name: Uranium resource
+    is_renewable: false
+
+  - id: river
+    long_name: River resource
+    is_renewable: true
+
+  - id: primary-electricity
+    long_name: Primary electricity
+    is_renewable: false
+
+  - id: secondary-electricity
+    long_name: Secondary electricity
+    is_renewable: false
+    # specify annual demands
+    demand_annual:
+      # define demand for each region
+      Region1:
+        2024 : 100
+        2025 : 150
+        2026 : 200
+        2027 : 250
+        2028 : 300
+        2029 : 350
+        2030 : 400
+      Region2:
+        2024 : 50
+        2025 : 100
+        2026 : 150
+        2027 : 200
+        2028 : 250
+        2029 : 300
+        2030 : 350
+    # specify demand profile for each region
+    demand_profile:
+      # all regions
+      "*" :
+        # all years
+        "*" :
+          # demand by timeslice
+          ID : 0.15
+          IN : 0.05
+          SD : 0.15
+          SN : 0.05
+          WD : 0.5
+          WN : 0.1

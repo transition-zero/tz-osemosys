@@ -1,0 +1,32 @@
+# -------------------------------------------------------------------------
+#
+#   REGIONS (NODES)
+#
+#     Define each spatial domain in the model.
+#
+#     Our Pakistan model has 7 regions based on national administrative divisions:
+#       - Azad Kashmir
+#       - Balochistan
+#       - Gilgit Baltistan
+#       - Islamabad
+#       - Khyber Pakhtunkhwa
+#       - Punjab
+#       - Sindh
+#
+#     Link to docs:
+#       - https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+regions:
+
+  - id: Region1
+    long_name: Region 1
+
+  - id: Region2
+    long_name: Region 2

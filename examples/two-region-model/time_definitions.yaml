@@ -1,0 +1,44 @@
+# -------------------------------------------------------------------------
+#
+#   TIME DEFINITIONS
+#
+#     Define the temporal resolution of the model.
+#
+#     Link to docs:
+#       https://docs.feo.transitionzero.org/docs/tz-osemosys/time_definition/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+time_definition:
+  id: trm_default
+  years: "range(2024,2031)"
+  seasons: [1,2,3]
+  day_types: [1]
+  daily_time_brackets: [1,2]
+  timeslices: ["ID", "IN", "SD", "SN", "WD", "WN"]
+  timeslice_in_season:
+    ID: 1
+    IN: 1
+    SD: 2
+    SN: 2
+    WD: 3
+    WN: 3
+  timeslice_in_daytype:
+    ID: 1
+    IN: 1
+    SD: 1
+    SN: 1
+    WD: 1
+    WN: 1
+  timeslice_in_timebracket:
+    ID: 1
+    IN: 2
+    SD: 1
+    SN: 2
+    WD: 1
+    WN: 2
