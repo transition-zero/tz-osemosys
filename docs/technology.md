@@ -9,9 +9,9 @@ documentation for a more detailed description.
 
 ## Parameters
 
-`id` `(str)`: Used to represent the technology name.
+`id` `(str)` - Used to represent the technology name.
 
-`operating_modes` `(List[OperatingMode])`: A list containing one OperatingMode object for each
+`operating_modes` `(List[OperatingMode])` - A list containing one OperatingMode object for each
 operating mode relevant to the current technology. Each OperatingMode object contains data
 relevant for the corresponding operating mode, ie.e. input/output/emission activity ratios,
 variable costs, tag linking the technology to storage. See the "Operating modes" documentation for
@@ -43,15 +43,25 @@ Capacity available per each timeslice, expressed as a fraction of the total inst
 with values ranging from 0 to 1. It gives the possibility to account for forced outages.
 Optional, defaults to 1.
 
+`capacity_factor_annual_min` `({region:{year:float}})` - OSeMOSYS style name
+TotalAnnualMinCapacityFactor. Must run capacity constraint at annual level expressed as a
+fraction of the total installed capacity, with values ranging from 0 to 1. Optional, defaults
+to `None`.
+
 `capacity_one_tech_unit` `({region:{year:float}})` - OSeMOSYS CapacityOfOneTechnologyUnit.
 Capacity of one new unit of a technology. In case the user sets this parameter, the related
 technology will be installed only in batches of the specified capacity and the problem will
 turn into a Mixed Integer Linear Problem. Optional, defaults to `None`.
 
-`is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
+`include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
 Boolean tagging the renewable technologies that must contribute to reaching the indicated
-minimum renewable production target. It has value True for thetechnologies contributing,
+minimum renewable production target. It has value True for the technologies contributing,
 False otherwise. Optional, defaults to `None`.
+
+`include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
+ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
+    indicated reserve margin. It has value True for the technologies contributing, False otherwise.
+    Optional, defaults to `None`.
 
 `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
 Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology
@@ -62,10 +72,22 @@ Total minimum existing (residual plus cumulatively installed) capacity allowed f
 in a specified year. Optional, defaults to `None`.
 
 `capacity_additional_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacityInvestment.
-Maximum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+Maximum capacity investment of a technology, expressed in power units. Optional, defaults to
+`None`.
+
+`capacity_additional_max_growth_rate` `({region:{year:float}})` - New parameter, OSeMOSYS style name CapacityAdditionalMaxGrowthRate. Maximum allowed annual percentage growth in the given technology's capacity, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
+
+`capacity_additional_max_floor` `({region:{year:float}})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxFloor. If used in conjunction with capacity_additional_max_growth_rate,
+     the model may build new capacity at this floor value, in addition to the previous year's
+     capacity * growth rate. This can act as a 'seed' value where no or minimal capacity exists
+     for the technology to which a growth rate is applied. Optional, defaults to `None`.
 
 `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
-Minimum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+Minimum capacity investment of a technology, expressed in power units. Optional, defaults to
+`None`.
+
+`capacity_additional_min_growth_rate` `(({region:{year:float}}))` - New parameter, OSeMOSYS style name CapacityAdditionalMinGrowthRate. Minimum allowed annual percentage growth in the given technology's capacity, expressed as a decimal (e.g. 0.2 for 20%). Optional, defaults to `None`.
 
 `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
 TotalTechnologyAnnualActivityUpperLimit.

@@ -5,96 +5,108 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-    ConversionFactor = ds["Conversionlh"] * ds["Conversionld"] * ds["Conversionls"]
+    DiscountFactorStorage = (1 + ds["DiscountRateStorage"]) ** (
+        1 + ds.coords["YEAR"][-1] - ds.coords["YEAR"][0]
+    )
 
     RateOfStorageCharge = (
-        (ConversionFactor * ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
+        (ds["TechnologyToStorage"] * m["RateOfActivity"]).where(
+            (ds["TechnologyToStorage"].notnull()) & (ds["TechnologyToStorage"] != 0), drop=True
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
+
+    StorageChargeDaily = (
+        (
+            ds["DaySplit"]
+            * ds["TechnologyToStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAILYTIMEBRACKET")
+            * m["RateOfActivity"]
+        ).where(
             (ds["TechnologyToStorage"].notnull())
-            & (ds["TechnologyToStorage"] != 0)
-            & (ConversionFactor).notnull()
+            & (ds["StorageBalanceDay"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     RateOfStorageDischarge = (
-        (ConversionFactor * ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
+        (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
+            (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0), drop=True
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION"])
+
+    StorageDischargeDaily = (
+        (
+            ds["DaySplit"]
+            * ds["TechnologyFromStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAILYTIMEBRACKET")
+            * m["RateOfActivity"]
+        ).where(
             (ds["TechnologyFromStorage"].notnull())
-            & (ds["TechnologyFromStorage"] != 0)
-            & (ConversionFactor).notnull()
+            & (ds["StorageBalanceDay"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
-    NetChargeWithinYear = (
-        (RateOfStorageCharge - RateOfStorageDischarge).where(ConversionFactor.notnull())
-        * ConversionFactor
-        * ds["YearSplit"]
-    ).sum("TIMESLICE")
+    NetCharge = ds["YearSplit"] * (RateOfStorageCharge - RateOfStorageDischarge)
 
-    NetChargeWithinDay = (RateOfStorageCharge - RateOfStorageDischarge) * ds["DaySplit"]
+    NetChargeReshape = NetCharge.stack(YRTS=["YEAR", "TIMESLICE"])
 
-    # YEAR
-    firstyear_mask = ds["YEAR"] == ds["YEAR"][0]
-    # TODO add StorageLevelStart rather than 0 for the first year
-    # ds["StorageLevelStart"].expand_dims(YEAR=ds["YEAR"].values).where(firstyear_mask)
-    StorageLevelYearStart = 0 + (
-        m["StorageLevelYearStart"].shift(YEAR=1)
-        + NetChargeWithinYear.shift(YEAR=1).sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
-    ).where(~firstyear_mask)
+    StorageLevel = NetChargeReshape.cumsum("YRTS") + ds.get("StorageLevelStart", 0.0)
 
-    notlastyear_mask = ds["YEAR"] < ds["YEAR"][-1]
-    StorageLevelYearFinish = StorageLevelYearStart.shift(YEAR=-1).where(notlastyear_mask) + (
-        StorageLevelYearStart + NetChargeWithinYear.sum(["SEASON", "DAYTYPE", "DAILYTIMEBRACKET"])
-    ).where(~notlastyear_mask)
+    NewStorageCapacity = m["NewStorageCapacity"].rename(YEAR="BUILDYEAR")
 
-    # SEASON
-    firstseason_mask = ds["SEASON"] == ds["SEASON"][0]
-    StorageLevelSeasonStart = StorageLevelYearStart.where(firstseason_mask) + (
-        m["StorageLevelSeasonStart"].shift(SEASON=1)
-        + NetChargeWithinYear.shift(SEASON=1).sum(["DAYTYPE", "DAILYTIMEBRACKET"])
-    ).where(~firstseason_mask)
-
-    # DAYTYPE
-    firstdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][0]
-    StorageLevelDayTypeStart = StorageLevelSeasonStart.where(firstdaytype_mask) + (
-        m["StorageLevelDayTypeStart"].shift(DAYTYPE=1)
-        + (
-            (NetChargeWithinDay.shift(DAYTYPE=1) * ds["DaysInDayType"].shift(DAYTYPE=1)).sum(
-                ["DAILYTIMEBRACKET"]
-            )
-        )
-    ).where(~firstdaytype_mask)
-
-    lastseason_mask = ds["SEASON"] == ds["SEASON"][-1]
-    lastdaytype_mask = ds["DAYTYPE"] == ds["DAYTYPE"][-1]
-
-    StorageLevelDayTypeFinish = (
-        (StorageLevelYearFinish.where((lastseason_mask) & (lastdaytype_mask)))
-        + (StorageLevelSeasonStart.shift(SEASON=-1).where((lastdaytype_mask) & (~lastseason_mask)))
-        + (
-            m["StorageLevelDayTypeFinish"].shift(DAYTYPE=-1)
-            - (NetChargeWithinDay.shift(DAYTYPE=-1) * ds["DaysInDayType"].shift(DAYTYPE=-1)).sum(
-                ["DAILYTIMEBRACKET"]
-            )
-        ).where(
-            ~((lastseason_mask) & (lastdaytype_mask)) & ~((lastdaytype_mask) & (~lastseason_mask))
-        )
+    # mask to handle operating life of storage
+    mask = (ds.YEAR - NewStorageCapacity.data.BUILDYEAR >= 0) & (
+        ds.YEAR - NewStorageCapacity.data.BUILDYEAR < ds.OperationalLifeStorage
     )
 
-    StorageUpperLimit = m["AccumulatedNewStorageCapacity"] + ds["ResidualStorageCapacity"]
+    AccumulatedNewStorageCapacity = NewStorageCapacity.where(mask).sum("BUILDYEAR")
 
-    StorageLowerLimit = ds["MinStorageCharge"] * StorageUpperLimit
+    GrossStorageCapacity = AccumulatedNewStorageCapacity + ds["ResidualStorageCapacity"]
+
+    CapitalInvestmentStorage = ds["CapitalCostStorage"] * m["NewStorageCapacity"]
+    DiscountedCapitalInvestmentStorage = CapitalInvestmentStorage / lex["DiscountFactor"]
+
+    SV1CostStorage = ds["CapitalCostStorage"].fillna(0) * (
+        1 - (lex["SV1Numerator"] / lex["SV1Denominator"])
+    )
+
+    SV2CostStorage = ds["CapitalCostStorage"].fillna(0) * (
+        1 - (lex["SV2Numerator"] / lex["SV2Denominator"])
+    )
+
+    SalvageValueStorage = (
+        m["NewStorageCapacity"] * SV1CostStorage.where(lex["sv1_mask"], drop=False)
+        + m["NewStorageCapacity"] * SV2CostStorage.where(lex["sv2_mask"], drop=False)
+    ).fillna(0)
+
+    DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage
+
+    TotalDiscountedStorageCost = DiscountedCapitalInvestmentStorage - DiscountedSalvageValueStorage
 
     lex.update(
         {
             "RateOfStorageCharge": RateOfStorageCharge,
             "RateOfStorageDischarge": RateOfStorageDischarge,
-            "NetChargeWithinYear": NetChargeWithinYear,
-            "NetChargeWithinDay": NetChargeWithinDay,
-            "StorageLevelYearStart": StorageLevelYearStart,
-            "StorageLevelYearFinish": StorageLevelYearFinish,
-            "StorageLevelSeasonStart": StorageLevelSeasonStart,
-            "StorageLevelDayTypeStart": StorageLevelDayTypeStart,
-            "StorageLevelDayTypeFinish": StorageLevelDayTypeFinish,
-            "StorageUpperLimit": StorageUpperLimit,
-            "StorageLowerLimit": StorageLowerLimit,
+            "StorageChargeDaily": StorageChargeDaily,
+            "StorageDischargeDaily": StorageDischargeDaily,
+            "NetCharge": NetCharge,
+            "StorageLevel": StorageLevel,
+            "NewStorageCapacity": NewStorageCapacity,
+            "AccumulatedNewStorageCapacity": AccumulatedNewStorageCapacity,
+            "GrossStorageCapacity": GrossStorageCapacity,
+            "CapitalInvestmentStorage": CapitalInvestmentStorage,
+            "DiscountedCapitalInvestmentStorage": DiscountedCapitalInvestmentStorage,
+            "TotalDiscountedStorageCost": TotalDiscountedStorageCost,
         }
     )

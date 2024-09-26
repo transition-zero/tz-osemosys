@@ -3,24 +3,21 @@ from typing import Dict
 import xarray as xr
 from linopy import LinearExpression, Model
 
-from .accounting_technology import add_accounting_technology_constraints
 from .annual_activity import add_annual_activity_constraints
+from .annual_capacity_factor_min import add_annual_capacity_factor_min_constraints
 from .capacity_adequacy_a import add_capacity_adequacy_a_constraints
 from .capacity_adequacy_b import add_capacity_adequacy_b_constraints
-from .capital_costs import add_capital_costs_constraints
-from .demand import add_demand_constraints
+from .capacity_growth_rate import add_capacity_growthrate_constraints
 from .emissions import add_emissions_constraints
 from .energy_balance_a import add_energy_balance_a_constraints
 from .energy_balance_b import add_energy_balance_b_constraints
 from .new_capacity import add_new_capacity_constraints
-from .operating_costs import add_operating_costs_constraints
 from .re_targets import add_re_targets_constraints
 from .reserve_margin import add_reserve_margin_constraints
-from .salvage_value import add_salvage_value_constraints
 from .storage import add_storage_constraints
 from .total_activity import add_total_activity_constraints
 from .total_capacity import add_total_capacity_constraints
-from .total_discounted_costs import add_total_discounted_costs_constraints
+from .trade import add_trade_constraints
 
 
 def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
@@ -39,23 +36,21 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     """
 
     # restore one at a time
-    m = add_demand_constraints(ds, m, lex)
     m = add_capacity_adequacy_a_constraints(ds, m, lex)
     m = add_capacity_adequacy_b_constraints(ds, m, lex)
     m = add_energy_balance_a_constraints(ds, m, lex)
     m = add_energy_balance_b_constraints(ds, m, lex)
-    m = add_capital_costs_constraints(ds, m, lex)
     m = add_emissions_constraints(ds, m, lex)
     m = add_annual_activity_constraints(ds, m, lex)
-    m = add_accounting_technology_constraints(ds, m, lex)
     m = add_new_capacity_constraints(ds, m, lex)
-    m = add_operating_costs_constraints(ds, m, lex)
-    m = add_re_targets_constraints(ds, m, lex)
+    if ds["REMinProductionTarget"].notnull().any():
+        m = add_re_targets_constraints(ds, m, lex)
     m = add_reserve_margin_constraints(ds, m, lex)
-    m = add_salvage_value_constraints(ds, m, lex)
     m = add_storage_constraints(ds, m, lex)
     m = add_total_activity_constraints(ds, m, lex)
     m = add_total_capacity_constraints(ds, m, lex)
-    m = add_total_discounted_costs_constraints(ds, m, lex)
+    m = add_capacity_growthrate_constraints(ds, m, lex)
+    m = add_trade_constraints(ds, m, lex)
+    m = add_annual_capacity_factor_min_constraints(ds, m, lex)
 
     return m

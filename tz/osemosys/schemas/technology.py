@@ -1,11 +1,10 @@
 from typing import Any
 
-from pydantic import ConfigDict, Field, conlist, model_validator
+from pydantic import ConfigDict, Field, conlist, field_serializer, model_validator
 
 from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.technology import OtooleTechnology
-from tz.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
 
 
 class OperatingMode(OSeMOSYSBase):
@@ -68,12 +67,21 @@ class OperatingMode(OSeMOSYSBase):
     ```
     """
 
+    @field_serializer
+    def osemosysdata_serializer(cls, value: Any, serializer_field):
+        if isinstance(value, serializer_field.type_):
+            return value.data
+        else:
+            return value
+
     model_config = ConfigDict(extra="forbid")
 
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
     )
-    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
+    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(
+        None, serializer=osemosysdata_serializer
+    )
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     to_storage: OSeMOSYSData.RO.Bool | None = Field(None)
@@ -118,9 +126,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
 
     ## Parameters
 
-    `id` `(str)`: Used to represent the technology name.
+    `id` `(str)` - Used to represent the technology name.
 
-    `operating_modes` `(List[OperatingMode])`: A list containing one OperatingMode object for each
+    `operating_modes` `(List[OperatingMode])` - A list containing one OperatingMode object for each
     operating mode relevant to the current technology. Each OperatingMode object contains data
     relevant for the corresponding operating mode, ie.e. input/output/emission activity ratios,
     variable costs, tag linking the technology to storage. See the OperatingMode documentation for
@@ -152,15 +160,25 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     with values ranging from 0 to 1. It gives the possibility to account for forced outages.
     Optional, defaults to 1.
 
+    `capacity_factor_annual_min` `({region:{year:float}})` - OSeMOSYS style name
+    TotalAnnualMinCapacityFactor. Must run capacity constraint at annual level expressed as a
+    fraction of the total installed capacity, with values ranging from 0 to 1. Optional, defaults
+    to `None`.
+
     `capacity_one_tech_unit` `({region:{year:float}})` - OSeMOSYS CapacityOfOneTechnologyUnit.
     Capacity of one new unit of a technology. In case the user sets this parameter, the related
     technology will be installed only in batches of the specified capacity and the problem will
     turn into a Mixed Integer Linear Problem. Optional, defaults to `None`.
 
-    `is_renewable` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
+    `include_in_joint_renewable_target` `({region:{year:bool}})` - OSeMOSYS RETagTechnology.
     Boolean tagging the renewable technologies that must contribute to reaching the indicated
-    minimum renewable production target. It has value True for thetechnologies contributing,
+    minimum renewable production target. It has value True for the technologies contributing,
     False otherwise. Optional, defaults to `None`.
+
+    `include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
+    ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
+     indicated reserve margin. It has value True for the technologies contributing, False otherwise.
+     Optional, defaults to `None`.
 
     `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
     Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology
@@ -171,10 +189,28 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     in a specified year. Optional, defaults to `None`.
 
     `capacity_additional_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacityInvestment.
-    Maximum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+    Maximum capacity investment of a technology, expressed in power units. Optional, defaults to
+    `None`.
+
+    `capacity_additional_max_growth_rate` `({region:{year:float}})` - New parameter, OSeMOSYS style
+    name CapacityAdditionalMaxGrowthRate. Maximum allowed annual percentage growth in the given
+    technology's capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional,
+    defaults to `None`.
+
+    `capacity_additional_max_floor` `({region:{year:float}})` - New parameter, OSeMOSYS style name
+    CapacityAdditionalMaxFloor. If used in conjunction with capacity_additional_max_growth_rate,
+     the model may build new capacity at this floor value, in addition to the previous year's
+     capacity * growth rate. This can act as a 'seed' value where no or minimal capacity exists
+     for the technology to which a growth rate is applied. Optional, defaults to `None`.
 
     `capacity_additional_min` `({region:{year:float}})` - OSeMOSYS TotalAnnualMinCapacityInvestment.
-    Minimum capacity of a technology, expressed in power units. Optional, defaults to `None`.
+    Minimum capacity investment of a technology, expressed in power units. Optional, defaults to
+    `None`.
+
+    `capacity_additional_min_growth_rate` `({region:{year:float}})` - New parameter, OSeMOSYS style
+    name CapacityAdditionalMinGrowthRate. Minimum allowed annual percentage growth in the given
+    technology's capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional,
+    defaults to `None`.
 
     `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
     TotalTechnologyAnnualActivityUpperLimit.
@@ -257,21 +293,27 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # NON-REQUIRED PARAMETERS
 
     capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
-    is_renewable: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS
     # -----
-    # capacity
+    # gross capacity max/min in each year
     capacity_gross_max: OSeMOSYSData.RY | None = Field(None)
     capacity_gross_min: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
-    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
 
-    # growth rate # TO BE IMPLEMENTED
-    # capacity_additional_max_growth_rate: OSeMOSYSData | None  = Field(None)
-    # capacity_additional_max_ceil: OSeMOSYSData | None = Field(None)
-    # capacity_additional_max_floor: RegionYearData | None = Field(None)
-    # capacity_additional_min_growth_rate: RegionYearData | None  = Field(None)
+    # additional capacity upper bounds
+    capacity_additional_max: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_max_growth_rate: OSeMOSYSData.RY | None = Field(None)
+    # upper bound floor: if used with growth_rate,
+    # limits capacity growth to the floor or growth-rate, whichever is greater
+    capacity_additional_max_floor: OSeMOSYSData.RY | None = Field(None)
+
+    # lower bound on capacity utilisation
+    capacity_factor_annual_min: OSeMOSYSData.RY | None = Field(None)
+
+    # additional capacity lower bounds (MUST build)
+    capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_min_growth_rate: OSeMOSYSData.RY | None = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
@@ -313,43 +355,3 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
                 values[field] = cast_osemosysdata_value(field_val, info)
 
         return values
-
-    @model_validator(mode="after")
-    def validate_min_lt_max(self):
-        # # Broken for now
-        # if self.capacity_gross_min is not None and self.capacity_gross_max is not None:
-        #     if not check_min_vals_lower_max(
-        #         self.capacity_gross_min,
-        #         self.capacity_gross_max,
-        #         ["REGION", "YEAR", "VALUE"],
-        #     ):
-        #         raise ValueError(
-        #           "Minimum gross capacity is not less than maximum gross capacity.")
-
-        if self.capacity_additional_min is not None and self.capacity_additional_max is not None:
-            if not check_min_vals_lower_max(
-                self.capacity_additional_min,
-                self.capacity_additional_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError("Minimum gross capacity is not less than maximum gross capacity.")
-
-        if self.activity_annual_min is not None and self.activity_annual_max is not None:
-            if not check_min_vals_lower_max(
-                self.activity_annual_min,
-                self.activity_annual_max,
-                ["REGION", "YEAR", "VALUE"],
-            ):
-                raise ValueError(
-                    "Minimum annual activity is not less than maximum annual activity."
-                )
-
-        if self.activity_total_min is not None and self.activity_total_max is not None:
-            if not check_min_vals_lower_max(
-                self.activity_total_min,
-                self.activity_total_max,
-                ["REGION", "VALUE"],
-            ):
-                raise ValueError("Minimum total activity is not less than maximum total activity.")
-
-        return self

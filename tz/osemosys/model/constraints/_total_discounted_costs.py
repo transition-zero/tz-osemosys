@@ -41,26 +41,8 @@ def add_total_discounted_costs_constraints(
         = TotalDiscountedCost[r,y];
     ```
     """
-    con = (
-        m["DiscountedOperatingCost"]
-        + m["DiscountedCapitalInvestment"]
-        + m["DiscountedTechnologyEmissionsPenalty"]
-        - m["DiscountedSalvageValue"]
-        - m["TotalDiscountedCostByTechnology"]
-        == 0
-    )
-    m.add_constraints(con, name="TDC1_TotalDiscountedCostByTechnology")
 
-    try:
-        con = (
-            m["TotalDiscountedCostByTechnology"].sum("TECHNOLOGY")
-            + m["TotalDiscountedStorageCost"].sum("STORAGE")
-            - m["TotalDiscountedCost"]
-            == 0
-        )
-    except KeyError:
-        con = m["TotalDiscountedCostByTechnology"].sum("TECHNOLOGY") - m["TotalDiscountedCost"] == 0
-    finally:
-        m.add_constraints(con, name="TDC2_TotalDiscountedCost")
+    # NOTE: These constraints have all been replaced by linear expressions in other constraints
+    #       This file remains just for reference
 
     return m

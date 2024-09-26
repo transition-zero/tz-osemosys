@@ -282,11 +282,12 @@ def json_dict_to_dataframe(data, prefix=""):
         DataFrame: data in pandas DataFrame format
     """
 
-    if isinstance(data, dict):
+    # Check if data is not empty
+    if isinstance(data, dict) and len(data) > 0:
         # If data is a dictionary, iterate through its items
         result = pd.DataFrame()
         for key, value in data.items():
-            new_prefix = f"{prefix}-{key}" if prefix else key
+            new_prefix = f"{prefix}:{key}" if prefix else key
             df = json_dict_to_dataframe(value, new_prefix)
             result = pd.concat([result, df], axis=1)
         if (
@@ -294,14 +295,15 @@ def json_dict_to_dataframe(data, prefix=""):
         ):  # Execute this step if all iterations complete and final result ready to be returned
             result = result.T
             result = result.reset_index()
-            result = pd.concat([result["index"].str.split("-", expand=True), result[0]], axis=1)
+
+            result = pd.concat([result["index"].str.split(":", expand=True), result[0]], axis=1)
             return result
         else:
             return result
     else:
         # If data is not a dictionary, create a single-column DataFrame
         # with empty column name, used in iteration
-        return pd.DataFrame({prefix: [data]})
+        return pd.json_normalize({prefix: [data]})
 
 
 def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_column=None):
@@ -329,7 +331,7 @@ def add_instance_data_to_output_dfs(instance, output_dfs, otoole_stems, root_col
             if isinstance(getattr(instance, f"{sub_attribute}"), list):
                 data = pd.DataFrame({"VALUE": getattr(instance, f"{sub_attribute}")})
             else:
-                data = json_dict_to_dataframe(getattr(instance, f"{sub_attribute}").data)
+                data = pd.json_normalize(getattr(instance, f"{sub_attribute}").data)
 
             columns = otoole_stems[output_file]["columns"][:]
             if root_column is not None:
@@ -358,10 +360,22 @@ def to_df_helper(self):
     """
     # Attribute and root column names
     attributes = {
-        "time_definition": {"otoole_stems": self.time_definition.otoole_stems, "root_column": None},
-        "regions": {"otoole_stems": self.regions[0].otoole_stems, "root_column": "REGION"},
-        "commodities": {"otoole_stems": self.commodities[0].otoole_stems, "root_column": "FUEL"},
-        "impacts": {"otoole_stems": self.impacts[0].otoole_stems, "root_column": "EMISSION"},
+        "time_definition": {
+            "otoole_stems": self.time_definition.otoole_stems,
+            "root_column": None,
+        },
+        "regions": {
+            "otoole_stems": self.regions[0].otoole_stems,
+            "root_column": "REGION",
+        },
+        "commodities": {
+            "otoole_stems": self.commodities[0].otoole_stems,
+            "root_column": "FUEL",
+        },
+        "impacts": {
+            "otoole_stems": self.impacts[0].otoole_stems,
+            "root_column": "EMISSION",
+        },
         "technologies": {
             "otoole_stems": self.technologies[0].otoole_stems,
             "root_column": "TECHNOLOGY",

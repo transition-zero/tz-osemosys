@@ -1,3 +1,7 @@
+import json
+from tempfile import NamedTemporaryFile
+
+from tz.osemosys import Model
 from tz.osemosys.schemas.model import RunSpec
 from tz.osemosys.utils import recursive_keys
 
@@ -105,3 +109,13 @@ def test_compose_runspec():
             assert commodity.id in [k[1] for k in input_activity_ratio]
         for year in spec.time_definition.years:
             assert str(year) in [k[2] for k in input_activity_ratio]
+
+
+def test_model_roundtrip():
+    tmp = NamedTemporaryFile()
+    for name, params in PASSING_RUNSPEC_DEFINITIONS.items():
+        model = Model(id=name, **params)
+        json.dump(model.model_dump(), open(tmp.name, "w"))
+        model_recovered = Model(**json.load(open(tmp.name)))
+
+        assert model == model_recovered

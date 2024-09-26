@@ -295,6 +295,62 @@ FAILING_RUNSPEC_DEFINITIONS = dict(
             ),
         ],
     ),
+    residual_capacity_higher_than_capacity_gross_max=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="coal_powerplant",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                residual_capacity=10,
+                capacity_gross_max=5,
+                operating_modes=[
+                    dict(
+                        id="mode_1",
+                        input_activity_ratio={"COAL": 1},
+                        emission_activity_ratio={"CO2e": 1},
+                    )
+                ],
+            ),
+            dict(
+                id="min_coal",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"COAL": 1})],
+            ),
+        ],
+    ),
+    activity_total_min_higher_than_activity_total_max=dict(
+        time_definition=dict(id="years-only", years=range(2020, 2051)),
+        regions=[dict(id="GB")],
+        commodities=[dict(id="COAL")],
+        impacts=[dict(id="CO2e")],
+        technologies=[
+            dict(
+                id="coal_powerplant",
+                operating_life=10,
+                capex=15,
+                opex_fixed=1.5,
+                activity_total_min=10,
+                activity_total_max=5,
+                operating_modes=[
+                    dict(
+                        id="mode_1",
+                        input_activity_ratio={"COAL": 1},
+                        emission_activity_ratio={"CO2e": 1},
+                    )
+                ],
+            ),
+            dict(
+                id="min_coal",
+                operating_life=10,
+                operating_modes=[dict(id="mode_1", output_activity_ratio={"COAL": 1})],
+            ),
+        ],
+    ),
 )
 
 

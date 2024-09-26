@@ -57,23 +57,22 @@ def add_capacity_adequacy_a_constraints(
     ```
     """
 
-    mask = (ds.YEAR - lex["NewCapacity"].data.BUILDYEAR >= 0) & (
-        ds.YEAR - lex["NewCapacity"].data.BUILDYEAR < ds.OperationalLife
-    )
-    con = m["AccumulatedNewCapacity"] - lex["NewCapacity"].where(mask).sum("BUILDYEAR") == 0
-    m.add_constraints(con, name="CAa1_TotalNewCapacity")
-
-    con = m["TotalCapacityAnnual"] - m["AccumulatedNewCapacity"] == ds["ResidualCapacity"].fillna(0)
-    m.add_constraints(con, name="CAa2_TotalAnnualCapacity")
-
+    # gross capacity sufficiency
     con = (
         lex["RateOfTotalActivity"]
-        - (m["TotalCapacityAnnual"] * ds["CapacityFactor"] * ds["CapacityToActivityUnit"])
+        - (
+            lex["GrossCapacity"].assign_coords(
+                {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
+            )
+            * ds["CapacityFactor"]
+            * ds["CapacityToActivityUnit"]
+        )
         <= 0
     )
     mask = ~ds["CapacityFactor"].isnull()
     m.add_constraints(con, name="CAa4_Constraint_Capacity", mask=mask)
 
+    # unit-of-one-technology
     con = (
         ds["CapacityOfOneTechnologyUnit"] * m["NumberOfNewTechnologyUnits"] - m["NewCapacity"] == 0
     )

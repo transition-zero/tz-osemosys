@@ -1,3 +1,6 @@
+import json
+from tempfile import NamedTemporaryFile
+
 import pytest
 
 from tz.osemosys.schemas.technology import Technology
@@ -73,3 +76,12 @@ def test_tech_construction_failcases():
     for _name, params in FAILING_TECH_DEFINITIONS.items():
         with pytest.raises(ValueError) as e:  # noqa: F841
             Technology(**params)
+
+
+def test_technology_roundtrip():
+    tmp = NamedTemporaryFile()
+    for _name, params in PASSING_TECH_DEFINITIONS.items():
+        tech = Technology(**params)
+        json.dump(tech.model_dump(), open(tmp.name, "w"))
+        tech_recovered = Technology(**json.load(open(tmp.name)))
+        assert tech == tech_recovered

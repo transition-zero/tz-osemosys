@@ -7,27 +7,25 @@ from linopy import LinearExpression, Model
 def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     # Production
     RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
-        ds["OutputActivityRatio"].notnull()
+        ds["OutputActivityRatio"].notnull(), drop=False
     )
     RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
-        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0
+        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
     ).sum(dims="MODE_OF_OPERATION")
     RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
+    ProductionByTechnology = RateOfProductionByTechnology * ds["YearSplit"]
     Production = RateOfProduction * ds["YearSplit"]
     ProductionAnnual = Production.sum(dims="TIMESLICE")
 
     RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
-        ds["InputActivityRatio"].notnull()
+        ds["InputActivityRatio"].notnull(), drop=False
     )
     RateOfUseByTechnology = RateOfUseByTechnologyByMode.where(
-        ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0
+        ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
     ).sum(dims="MODE_OF_OPERATION")
     RateOfUse = RateOfUseByTechnology.sum(dims="TECHNOLOGY")
     Use = RateOfUse * ds["YearSplit"]
     UseAnnual = Use.sum(dims="TIMESLICE")
-
-    # Demand
-    Demand = (m["RateOfDemand"] * ds["YearSplit"]).where(ds["SpecifiedAnnualDemand"].notnull())
 
     lex.update(
         {
@@ -35,12 +33,12 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "RateOfProductionByTechnology": RateOfProductionByTechnology,
             "RateOfProduction": RateOfProduction,
             "Production": Production,
+            "ProductionByTechnology": ProductionByTechnology,
             "ProductionAnnual": ProductionAnnual,
             "RateOfUseByTechnologyByMode": RateOfUseByTechnologyByMode,
             "RateOfUseByTechnology": RateOfUseByTechnology,
             "RateOfUse": RateOfUse,
             "Use": Use,
             "UseAnnual": UseAnnual,
-            "Demand": Demand,
         }
     )

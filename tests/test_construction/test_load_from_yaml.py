@@ -32,7 +32,7 @@ def test_var_parse():
     sub_functions = substitute_factory(data)
 
     for f in sub_functions:
-        data = walk_dict(data, f)
+        walk_dict(data, f)
 
     assert data["myxref"] == 42
     assert data["xref2"][2]["a"] == 10.0
@@ -49,7 +49,7 @@ def test_expression_parse():
     """
     data = yaml.load(blob, Loader=yaml.SafeLoader)
 
-    data = walk_dict(data, maybe_eval_string)
+    walk_dict(data, maybe_eval_string)
     assert isinstance(data["a"], list)
     assert data["b"] == 3
     assert data["c"] == 6

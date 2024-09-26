@@ -16,6 +16,7 @@ nav:
   - Commodities: commodity.md
   - Regions: region.md
   - Time definition: time_definition.md
+  - Trade: trade.md
 repo_url: https://github.com/transition-zero/tz-osemosys
 
 theme:

@@ -17,12 +17,16 @@ from tz.osemosys.schemas.region import Region
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
+from tz.osemosys.schemas.trade import Trade
 from tz.osemosys.schemas.validation.model_composition import (
     check_tech_consuming_commodity,
     check_tech_linked_to_storage,
     check_tech_producing_commodity,
     check_tech_producing_impact,
+    discount_rate_as_decimals,
+    reserve_margin_fully_defined,
 )
+from tz.osemosys.schemas.validation.technology_validation import validate_min_lt_max
 from tz.osemosys.utils import merge, recursive_keys
 
 # filter this pandas-3 dep warning for now
@@ -33,8 +37,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     """
     # RunSpec
 
-    The Runspec class contains all data required to run an OSeMOSYS model, spread across subclasses,
-    with some parameters inherent to the RunSpec object itself.
+    The Runspec class contains all data required to run a TZ-OSeMOSYS model, spread across
+    subclasses, with some parameters inherent to the RunSpec object itself.
 
     ## Parameters
 
@@ -44,7 +48,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     `time_definition` `(TimeDefinition)` - Single TimeDefinition class instance to contain all
     temporal data related to the model. Required parameter.
 
-    `regions` `(List[Region])` - List of Region instances to contain region names and trade routes.
+    `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
 
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
@@ -60,7 +64,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Required parameter.
 
     `storage` `(List[Storage])` - List of Storage instances to contain all data related to storage.
-    Required parameter.
+    Optional parameter, defaults to `None`.
+
+    `trade` `(List[Trade])` - List of Trade instances to contain all data related to trade routes.
+    Optional parameter, defaults to `None`.
 
     `depreciation_method` `({region:str})` - OSeMOSYS DepreciationMethod.
     Parameter defining the type of depreciation to be applied, must take values of 'sinking-fund' or
@@ -79,6 +86,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Discount rate specified by region and storage.
     Optional parameter, defaults to `None`.
 
+    `cost_of_capital_trade` `({region:{region:{commodity:float}}})` - Parameter additional to
+    OSeMOSYS base variables. Discount rate specified for trade (transmission) technologies.
+    Optional parameter, defaults to `None`.
+
     `reserve_margin` `({region:{year:float}})` - OSeMOSYS ReserveMargin.
     Minimum level of the reserve margin required to be provided for all the tagged commodities, by
     the tagged technologies. If no reserve margin is required, the parameter will have value 1; if,
@@ -86,8 +97,9 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Optional parameter, defaults to 1.
 
     `renewable_production_target` `({region:{year:float}})` - OSeMOSYS REMinProductionTarget.
-    Minimum ratio of all renewable commodities tagged in the is_renewable parameter, to be
-    produced by the technologies tagged with the is_renewable parameter.
+    Minimum ratio of all renewable commodities tagged in the
+    include_in_joint_renewable_target parameter, to be
+    produced by the technologies tagged with the include_in_joint_renewable_target parameter.
     Optional parameter, defaults to `None`.
 
     ## Examples
@@ -191,8 +203,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
+    trade: List[Trade] | None = Field(None)
     # production_technologies: List[ProductionTechnology] | None = Field(default=None)
-    # transmission_technologies: List[TechnologyTransmission] | None = Field(default=None)
     storage: List[Storage] | None = Field(None)
 
     # ASSUMPIONS
@@ -306,6 +318,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         self.impacts = [impact.compose(**sets) for impact in self.impacts]
         if self.storage:
             self.storage = [storage.compose(**sets) for storage in self.storage]
+        if self.trade:
+            self.trade = [trade.compose(**sets) for trade in self.trade]
 
         # compose own parameters
         if self.depreciation_method:
@@ -343,13 +357,22 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     def composition_validation(self):
         """
         Do composition checks ensuring all commodities, impacts, and storage are linked to a
-        technology
+        technology.
+
+        Additionally, check that reserve_margin is fully defined and that discount rates are in
+        decimals.
         """
         self = check_tech_producing_commodity(self)
         self = check_tech_producing_impact(self)
         self = check_tech_consuming_commodity(self)
+        self = reserve_margin_fully_defined(self)
+        self = discount_rate_as_decimals(self)
         if self.storage:
             self = check_tech_linked_to_storage(self)
+
+        # Technology validation post composition (broadcasting)
+        validate_min_lt_max(self.technologies)
+
         return self
 
     @model_validator(mode="before")

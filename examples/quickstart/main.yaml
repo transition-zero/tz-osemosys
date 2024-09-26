@@ -35,7 +35,7 @@ time_definition:
 commodities:
   - id: ELC
     long_name: Electricity
-    demand_annual: 219000
+    demand_annual: "{y:(219000*1.1**(y-2020)) for y in ${time_definition.years}}"
     demand_profile:
       SD: 0.15
       SN: 0.2
@@ -59,6 +59,7 @@ technologies:
   - id: STO_BAT
     long_name: Storage technology linked to BAT
     capacity_activity_unit_ratio: 31.536
+    residual_capacity: "{yr: 10 * max((1 - (yr - 2020) / (2040 - 2020), 0)) for yr in range(2020, 2051)}"
     opex_fixed: 0
     capex: 5
     operating_life: 15
@@ -75,6 +76,7 @@ technologies:
         input_activity_ratio:
           ELC: 8760
         to_storage: {"*": {"BAT": True}}
+    activity_annual_min: 5
   - id: COAL-GEN
     long_name: Coal-fired power plant
     operating_life: 40  # years
@@ -106,6 +108,7 @@ technologies:
 
 storage:
   - id: BAT
-    capex: 0.01
+    capex: 0.
     operating_life: 100
     residual_capacity: 0
+    storage_balance_day: false

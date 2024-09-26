@@ -221,6 +221,19 @@ class OSeMOSYSBase(BaseModel):
             values["description"] = "No description provided."
         return values
 
+    @model_validator(mode="before")
+    @classmethod
+    def id_delimiter_check(cls, values):
+        """
+        This checks if ids contain ":", which are not allowed due to their incompatibility with
+        URLs and with the tz-osemosys json_dict_to_dataframe() function.
+        """
+        if "id" in values:
+            id = values["id"]
+            if ":" in id:
+                raise ValueError(f"':' can not be included in an id, see id '{id}'")
+        return values
+
 
 class OSeMOSYSData(BaseModel):
     """
@@ -289,7 +302,13 @@ class OSeMOSYSData(BaseModel):
                     "If initialising via a dict keyed by 'data', 'data' must be the only key."
                 )
             elif "data" in data.keys():
-                super().__init__(data=data["data"])
+                if isinstance(data["data"], dict):
+                    if "data" in data["data"].keys():
+                        super().__init__(**data["data"])
+                    else:
+                        super().__init__(**data)
+                else:
+                    super().__init__(**data)
             else:
                 super().__init__(data=data)
 
@@ -302,6 +321,12 @@ class OSeMOSYSData(BaseModel):
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]],
         Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, Dict[IdxVar, DataVar]]]]],
     ]
+
+    def __getitem__(self, key: Any):
+        return self.data[key]
+
+    def __setitem__(self, key: Any, value: Any):
+        self.data[key] = value
 
 
 class DepreciationMethod(str, Enum):
@@ -498,13 +523,31 @@ def _compose_RO(self, obj_id, data, regions, storage, **sets):
     return self
 
 
+def _compose_RRY(self, obj_id, data, regions, years, **sets):
+    # Region-Commodity-Year
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(obj_id, data, {"R1": regions, "R2": regions, "years": years})
+    self.is_composed = True
+
+    return self
+
+
+def _compose_RR(self, obj_id, data, regions, **sets):
+    # Region-Commodity-Year
+    _check_nesting_depth(obj_id, data, 2)
+    self.data = _check_set_membership(obj_id, data, {"R1": regions, "R2": regions})
+    self.is_composed = True
+
+    return self
+
+
 def _null(self, values):
     # pass-through only, for testing purposes
     return values
 
 
 for key, func in zip(
-    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "ANY"],
+    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "RRY", "RR", "ANY"],
     [
         _compose_R,
         _compose_RY,
@@ -514,18 +557,25 @@ for key, func in zip(
         _compose_RCY,
         _compose_RIY,
         _compose_RO,
+        _compose_RRY,
+        _compose_RR,
         _null,
     ],
 ):
     # add a new OSEMOSYSData class for each data cooridinate key
-    setattr(OSeMOSYSData, key, create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData))
+    setattr(
+        OSeMOSYSData,
+        key,
+        create_model("OSeMOSYSData" + f"_{key}", __base__=OSeMOSYSData),
+    )
 
     # add the compose method to each new class
     getattr(OSeMOSYSData, key).compose = func
 
     # add the datatype constructors
     for _type, validator in zip(
-        ["Int", "Bool", "SumOne"], [check_or_cast_int, check_or_cast_bool, nested_sum_one]
+        ["Int", "Bool", "SumOne"],
+        [check_or_cast_int, check_or_cast_bool, nested_sum_one],
     ):
         setattr(
             getattr(OSeMOSYSData, key),

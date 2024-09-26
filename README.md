@@ -42,7 +42,7 @@ OSeMOSYS is entirely open-source and can be used with a variety of programming l
 
 ## OSeMOSYS with the Future Energy Outlook
 
-TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package.
+TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package (tz-osemosys).
 This implementation of OSeMOSYS underlies our Future Energy Outlook capacity expansion model builder.
 We have added the following features:
 
@@ -165,11 +165,13 @@ YAML is a human-readable data serialisation language. We've build a custom YAML 
 - for data keyed by an osemosys `set` (e.g. `YEARS`, `TIMESLICES`, `TECHNOLOGIES`), wildcards `"*"` can be used in place of explicitly listing all set members.
 - data field `set` dimensions and membership are also automatically inferred - a single value can be given which will be broadcast to all set member combinations.
 - single or multiple `.yaml` files can be composed together, allowing you to separate, e.g. `technologies.yaml`, from the rest of your model.
+- with `cloudpathlib` and a cloud storage provider SDK installed the path to yaml files can be a cloud storage object URI. See <https://cloudpathlib.drivendata.org/stable/> for more details.
+- `pip install "tz-osemosys[cloudpath]"` will install `cloudpathlib` and python client libraries for cloud storage provider SDKs.
 
 ```python
-from tz.osemosys import load_model
+from tz.osemosys import Model
 
-my_model = load_model("path/to/yaml/directory")
+my_model = Model.from_yaml("path/to/yaml/directory")
 ```
 
 ### From Otoole outputs (legacy)

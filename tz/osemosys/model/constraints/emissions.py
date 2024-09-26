@@ -88,13 +88,6 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExp
 
     if ds["EMISSION"].size > 0:
 
-        con = (
-            lex["AnnualTechnologyEmissionsPenalty"] / lex["DiscountFactorMid"]
-            - m["DiscountedTechnologyEmissionsPenalty"]
-            == 0
-        )
-        m.add_constraints(con, name="E5_DiscountedEmissionsPenaltyByTechnology")
-
         con = lex["AnnualEmissions"].fillna(0) <= ds["AnnualEmissionLimit"] - ds[
             "AnnualExogenousEmission"
         ].fillna(0)

@@ -5,31 +5,14 @@ from linopy import LinearExpression, Model
 
 
 def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
-
-    # discounting
-    DiscountFactor = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
-
-    DiscountFactorMid = (1 + ds["DiscountRate"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
-    )
-
-    DiscountFactorSalvage = (1 + ds["DiscountRateIdv"]) ** (
-        1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
-    )
-
-    PVAnnuity = (
-        (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
-        * (1 + ds["DiscountRateIdv"])
-        / ds["DiscountRateIdv"]
-    )
-
-    CapitalRecoveryFactor = (1 - (1 + ds["DiscountRateIdv"]) ** (-1)) / (
-        1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"]))
-    )
-
     CapitalInvestment = (
-        ds["CapitalCost"].fillna(0) * m["NewCapacity"] * CapitalRecoveryFactor * PVAnnuity
+        ds["CapitalCost"].fillna(0)
+        * m["NewCapacity"]
+        * lex["CapitalRecoveryFactor"]
+        * lex["PVAnnuity"]
     )
+
+    DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     # costs
     AnnualVariableOperatingCost = (
@@ -37,39 +20,73 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         .sum(dims="MODE_OF_OPERATION")
         .where(
             (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
-            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull())
+            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
+            drop=False,
         )
     )
-    AnnualFixedOperatingCost = m["TotalCapacityAnnual"] * ds["FixedCost"].fillna(0)
+    AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
     OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
     # salvage value
-    SV1Numerator = (1 + ds["DiscountRateIdv"]) ** (
-        max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
-    ) - 1
+    SV1Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV1Numerator"] / lex["SV1Denominator"]))
 
-    SV1Denominator = (1 + ds["DiscountRateIdv"]) ** ds["OperationalLife"] - 1
+    SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV2Numerator"] / lex["SV2Denominator"]))
 
-    SV1Cost = ds["CapitalCost"].fillna(0) * (1 - (SV1Numerator / SV1Denominator))
+    # costs
+    DiscountedOperatingCost = OperatingCost / lex["DiscountFactorMid"]
 
-    SV2Numerator = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
+    DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
-    SV2Denominator = ds["OperationalLife"]
+    SalvageValue = (
+        m["NewCapacity"] * SV1Cost.where(lex["sv1_mask"], drop=False)
+        + m["NewCapacity"] * SV2Cost.where(lex["sv2_mask"], drop=False)
+    ).fillna(0)
 
-    SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (SV2Numerator / SV2Denominator))
+    DiscountedSalvageValue = SalvageValue / lex["DiscountFactorSalvage"]
+
+    # Total discounted costs
+    TotalDiscountedCostByTechnology = (
+        DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
+    )
+
+    if ds["EMISSION"].size > 0:
+        DiscountedTechnologyEmissionsPenalty = (
+            lex["AnnualTechnologyEmissionsPenalty"] / lex["DiscountFactorMid"]
+        )
+
+        TotalDiscountedCostByTechnology = (
+            TotalDiscountedCostByTechnology + DiscountedTechnologyEmissionsPenalty
+        )
+
+        lex.update(
+            {
+                "DiscountedTechnologyEmissionsPenalty": DiscountedTechnologyEmissionsPenalty,
+            }
+        )
+
+    TotalDiscountedCost = TotalDiscountedCostByTechnology.sum("TECHNOLOGY")
+    if ds["STORAGE"].size > 0:
+        TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedStorageCost"].sum(
+            ["STORAGE", "TECHNOLOGY"]
+        )
+    if ds["TradeRoute"].notnull().any():
+        TotalDiscountedCost = TotalDiscountedCost + lex["TotalDiscountedCostTrade"].sum(
+            ["FUEL", "_REGION"]
+        )
 
     lex.update(
         {
-            "DiscountFactor": DiscountFactor,
-            "DiscountFactorMid": DiscountFactorMid,
-            "DiscountFactorSalvage": DiscountFactorSalvage,
-            "PVAnnuity": PVAnnuity,
-            "CapitalRecoveryFactor": CapitalRecoveryFactor,
             "CapitalInvestment": CapitalInvestment,
             "AnnualVariableOperatingCost": AnnualVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
+            "DiscountedOperatingCost": DiscountedOperatingCost,
+            "DiscountedCapitalInvestment": DiscountedCapitalInvestment,
+            "DiscountedSalvageValue": DiscountedSalvageValue,
+            "TotalDiscountedCostByTechnology": TotalDiscountedCostByTechnology,
+            "TotalDiscountedCost": TotalDiscountedCost,
             "SV1Cost": SV1Cost,
             "SV2Cost": SV2Cost,
+            "SalvageValue": SalvageValue,
         }
     )

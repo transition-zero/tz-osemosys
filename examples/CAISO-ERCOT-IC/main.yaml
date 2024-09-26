@@ -28,22 +28,36 @@ regions:
   - id: US-CA
     long_name: California
     description: "The US state of California"
-    trade_routes: {US-TX: {"*": {"*": True}}, PACIFIC-MARKET: {"*": {"*": True}}}
 
   - id: US-TX
     long_name: Texas
     description: "The US state of Texas"
-    trade_routes: {US-CA: {"*": {"*": True}}, ATLANTIC-MARKET: {"*": {"*": True}}}
 
   - id: ATLANTIC-MARKET
     long_name: atlantic market
     description: a node representing atlantic import markets
-    trade_routes: {US-TX: {"*": {"*": True}}}
 
   - id: PACIFIC-MARKET
     long_name: pacific market
     description: a node representing pacific import markets
-    trade_routes: {US-CA: {"*": {"*": True}}}
+
+# TRADE ROUTES
+trade:
+  - id: "ELEC trade"
+    long_name: "Electricity trade"
+    description: "trade route instance for the ELEC commodity"
+    commodity: "ELEC"
+    trade_routes: {
+      "US-CA":
+        {
+        "US-TX": {"*": True},
+        "PACIFIC-MARKET": {"*": True}
+        },
+      "US-TX":
+        {
+        "ATLANTIC-MARKET": {"*": True},
+        },
+    }
 
 # TIME DEFINTIONS
 time_definition:
@@ -69,6 +83,8 @@ commodities:
   - id: ELEC
     long_name: Electricity
     description: Electricity
+    include_in_joint_reserve_margin: true
+    include_in_joint_renewable_target: true
     demand_annual: # EJ/yr
       US-CA: "{y:(0.7*1.1**(y-2022)) for y in ${time_definition.years}}"
       US-TX: "{y:(1.73*1.1**(y-2022)) for y in ${time_definition.years}}"
@@ -103,7 +119,7 @@ reserve_margin: 1.1
 #     availability_factor: 1.
 #     capacity_factor: 1.
 #     operating_life: 25
-#     is_renewable: true
+#     include_in_joint_renewable_target: true
 #     include_regions: null
 #     exclude_regions:
 #       - ATLANTIC-MARKET
