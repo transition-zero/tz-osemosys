@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------
 #
 #   TECHNOLOGIES
-#   
+#
 #     Define the technologies that are used in the model, as well as their
 #       operational parameters and costs.
 #
@@ -13,7 +13,7 @@
 #         - Storage technologies
 #         - Storage units
 #
-#     Link to docs: 
+#     Link to docs:
 #       - https://docs.feo.transitionzero.org/docs/tz-osemosys/commodity/
 #       - https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
 #
@@ -47,7 +47,7 @@ technologies:
           NOx: 0
           SOx: 0
         opex_variable: "${fuel_price.coal-domestic}" # from costs.yaml
-  
+
   - id: coal-imports
     long_name: Domestic supply of coal
     operating_life: 100 # years
@@ -62,7 +62,7 @@ technologies:
           NOx: 0   # MtCO2/PJ
           SOx: 0   # MtCO2/PJ
         opex_variable: "${fuel_price.coal-imports}" # from costs.yaml
-    
+
   - id: gas-domestic-low
     long_name: Domestic supplies of gas
     operating_life: 100 # years
@@ -92,7 +92,7 @@ technologies:
           NOx: 0.01 # NOx/PJ
           SOx: 0.03 # SOx/PJ
         opex_variable: "${fuel_price.gas-domestic-high}" # from costs.yaml
-    
+
   - id: gas-imports
     long_name: Domestic supply of coal
     operating_life: 100 # years
@@ -121,7 +121,7 @@ technologies:
           CO2: 0.   # MtCO2/PJ
           NOx: 0.   # MtCO2/PJ
           SOx: 0.   # MtCO2/PJ
-        opex_variable: 0. 
+        opex_variable: 0.
 
   - id: wind-onshore-resource
     long_name: Wind resources
@@ -137,7 +137,7 @@ technologies:
           NOx: 0.   # MtCO2/PJ
           SOx: 0.   # MtCO2/PJ
         opex_variable: 0.
-    
+
   - id: uranium-resource
     long_name: Uranium resources
     operating_life: 100 # years
@@ -186,7 +186,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           coal: 2.5
@@ -227,7 +227,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           solar: 1.0
@@ -249,7 +249,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           wind: 1.0
@@ -271,7 +271,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           uranium: 3.0
@@ -293,7 +293,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           river: 1.0
@@ -324,7 +324,7 @@ technologies:
         long_name: generation mode
         description: default generation mode
         # Note:
-        #   Below we define the input-output ratios. In the example below, 
+        #   Below we define the input-output ratios. In the example below,
         #   the technology consumes 3 PJ of coal to produce 1 PJ of electricity.
         input_activity_ratio:
           primary-electricity: 1.0
@@ -358,7 +358,7 @@ technologies:
           primary-electricity: 1.
         from_storage: {
           # all regions
-          "*": 
+          "*":
             # storage unit
             {"battery-storage": True}
         }

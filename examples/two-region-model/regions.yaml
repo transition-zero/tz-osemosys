@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------
 #
 #   REGIONS (NODES)
-#   
+#
 #     Define each spatial domain in the model.
 #
 #     Our Pakistan model has 7 regions based on national administrative divisions:
@@ -13,7 +13,7 @@
 #       - Punjab
 #       - Sindh
 #
-#     Link to docs: 
+#     Link to docs:
 #       - https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
 #
 #     Authors:

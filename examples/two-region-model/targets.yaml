@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------
 #
 #   TARGETS
-#   
+#
 #     Defining the emissions intensities and targets for the model.
 #
 #     We look at three main pollutants:
@@ -9,7 +9,7 @@
 #       - NOx
 #       - SOx
 #
-#     Link to docs: 
+#     Link to docs:
 #       https://docs.feo.transitionzero.org/docs/tz-osemosys/impact/
 #
 #     Authors:

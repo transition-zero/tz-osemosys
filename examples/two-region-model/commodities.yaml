@@ -1,11 +1,11 @@
 # -------------------------------------------------------------------------
 #
 #   COMMODITIES (DEMAND)
-#   
-#     Define the commodities that are used in the model, as well as 
+#
+#     Define the commodities that are used in the model, as well as
 #       the demand for each commodity in each region.
 #
-#     Link to docs: 
+#     Link to docs:
 #       https://docs.feo.transitionzero.org/docs/tz-osemosys/commodity/
 #
 #     Authors:
@@ -20,7 +20,7 @@ commodities:
   - id: coal
     long_name: Coal resource
     is_renewable: false
-    
+
   - id: gas
     long_name: Natural gas resource
     is_renewable: false
@@ -49,7 +49,7 @@ commodities:
     long_name: Secondary electricity
     is_renewable: false
     # specify annual demands
-    demand_annual: 
+    demand_annual:
       # define demand for each region
       Region1:
         2024 : 100

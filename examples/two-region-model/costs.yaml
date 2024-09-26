@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------
 #
 #   COSTS
-#   
+#
 #     Define all cost parameters for the model. Specifically:
 #       - Depreciation method
 #       - Discount rate
@@ -10,7 +10,7 @@
 #       - Fixed O&M costs
 #       - Fuel prices
 #
-#     Link to docs: 
+#     Link to docs:
 #       https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
 #
 #     Authors:
@@ -28,7 +28,7 @@ depreciation_method: "straight-line"
 
 # ---
 # social discount rate by region
-discount_rate: 
+discount_rate:
   Region1: 0.05
   Region2: 0.05
 
@@ -63,7 +63,7 @@ capex:
     "*" :
       # all years
       "*" : 900
-  
+
   gas-ccgt:
     # all regions
     "*" :
@@ -111,13 +111,13 @@ opex_fixed:
     "*":
       # all year
       "*" : 100
-  
+
   gas-ccgt:
     # all regions
     "*":
       # all year
       "*" : 100
-  
+
   hydro-reservoir:
     # all regions
     "*":
@@ -141,7 +141,7 @@ opex_fixed:
     "*":
       # all year
       "*" : 0
-  
+
   transmission:
     # all regions
     "*":
