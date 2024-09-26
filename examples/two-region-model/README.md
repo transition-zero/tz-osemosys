@@ -7,7 +7,7 @@ The two-region model (TRM) was developed to serve as a starter kit for multi-reg
 ## Overview
 TRM is an illustrative model for two separate regions that have an interconnected power system and shared primary fuel resources. The model schematic is illustrated below:
 
-<img src="https://github.com/transition-zero/tz-osemosys/blob/add-tutorials/examples/two-region-model/two-region-model-schematic.png" alt="" width="800" align="center">
+<img src="https://github.com/transition-zero/tz-osemosys/blob/main/examples/two-region-model/two-region-model-schematic.png" alt="" width="800" align="center">
 
 The model captures three sources of energy: primary energy, secondary energy and final energy. As shown in the figure above, the primary energy inputs consist of:
 
@@ -37,10 +37,10 @@ Secondary electricity | Final energy
 Commodities are referenced throughout the model setup, where prices and demands of each commodities can be configured, as well as the conversion rates between commodities.
 
 ### Temporal resolution
-TRM runs between 2024 and 2030 by default. Within each annual time step, there are six seasonal timeslices referred to as: ID, IN, SD, SN, WD and WN. The time definitions are defined in [`time_definitions.yaml`](https://github.com/transition-zero/tz-osemosys/blob/add-tutorials/examples/two-region-model/time_definitions.yaml).
+TRM runs between 2024 and 2030 by default. Within each annual time step, there are six seasonal timeslices referred to as: ID, IN, SD, SN, WD and WN. The time definitions are defined in [`time_definitions.yaml`](https://github.com/transition-zero/tz-osemosys/blob/main/examples/two-region-model/time_definitions.yaml).
 
 ### Emissions targets
-TRM does not have any emissions targets by default. However, it is setup such that emissions targets (e.g., CO2, NOx etc) can be easily implemented. Emissions targets are defined in [`targets.yaml`](https://github.com/transition-zero/tz-osemosys/blob/add-tutorials/examples/two-region-model/targets.yaml).
+TRM does not have any emissions targets by default. However, it is setup such that emissions targets (e.g., CO2, NOx etc) can be easily implemented. Emissions targets are defined in [`targets.yaml`](https://github.com/transition-zero/tz-osemosys/blob/main/examples/two-region-model/targets.yaml).
 
 ## Running the model
 Provided you have successfully setup `tz-osemosys` on your local machine as instructed, you can run the TRM model as shown below:
