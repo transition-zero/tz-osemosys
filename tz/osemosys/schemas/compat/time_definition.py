@@ -249,7 +249,7 @@ class OtooleTimeDefinition(BaseModel):
                             "YEAR": year,
                             "VALUE": self.day_split[dtb],
                         }
-                        for dtb, year in product(self.daily_time_brackets, self.years)
+                        for dtb, year in product(list(self.day_split.keys()), self.years)
                     ]
                 )
                 if self.daily_time_brackets is not None
