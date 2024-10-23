@@ -181,7 +181,8 @@ def validate_adjacency_keys(
                     )
             else:
                 raise ValueError(
-                    f"Adjacency provided for day_types, but only one day_type {day_types} is defined."  # NOQA E501
+                    f"Adjacency provided for day_types, but only one day_type {day_types} "
+                    f"is defined."
                 )
     elif day_types is not None or adj.get("day_types"):
         raise ValueError("day_types provided without adjacency")
@@ -192,11 +193,13 @@ def validate_adjacency_keys(
                     list(adj["time_brackets"].keys()) + list(adj["time_brackets"].values())
                 ) != set(time_brackets):
                     raise ValueError(
-                        "provided 'time_brackets' do not match keys or values of 'adj.time_brackets'"  # NOQA E501
+                        "provided 'time_brackets' do not match keys or values of "
+                        "'adj.time_brackets'"
                     )
             else:
                 raise ValueError(
-                    f"Adjacency provided for time_brackets, but only one time_bracket {time_brackets} is defined."  # NOQA E501
+                    f"Adjacency provided for time_brackets, but only one time_bracket "
+                    f"{time_brackets} is defined."
                 )
     elif time_brackets is not None or adj.get("time_brackets"):
         raise ValueError("time_brackets provided without adjacency")
