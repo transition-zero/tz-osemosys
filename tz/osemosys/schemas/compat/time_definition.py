@@ -226,7 +226,7 @@ class OtooleTimeDefinition(BaseModel):
                             "VALUE": self.days_in_day_type[daytype],
                         }
                         for season, daytype, year in product(
-                            self.seasons, list(self.days_in_day_type.keys()), self.years
+                            self.seasons, self.days_in_day_type, self.years
                         )
                     ]
                 )
@@ -237,7 +237,7 @@ class OtooleTimeDefinition(BaseModel):
             return pd.DataFrame.from_records(
                 [
                     {"TIMESLICE": ts, "YEAR": year, "VALUE": self.year_split[ts]}
-                    for ts, year in product(list(self.year_split.keys()), self.years)
+                    for ts, year in product(self.year_split, self.years)
                 ]
             )
         elif stem == "DaySplit":
@@ -249,7 +249,7 @@ class OtooleTimeDefinition(BaseModel):
                             "YEAR": year,
                             "VALUE": self.day_split[dtb],
                         }
-                        for dtb, year in product(self.daily_time_brackets, self.years)
+                        for dtb, year in product(self.day_split, self.years)
                     ]
                 )
                 if self.daily_time_brackets is not None
