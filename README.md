@@ -186,6 +186,9 @@ my_model = Model.from_otoole_csv("path/to/otoole/csv/directory")
 
 Read more in the [documentation](https://docs.feo.transitionzero.org/)
 
+### Example models
+There are several [example models](https://github.com/transition-zero/tz-osemosys/tree/main/examples) in TZ-OSeMOSYS that serve as learning tools and starting points for users. We recommend exploring the [two-region example model](https://github.com/transition-zero/tz-osemosys/tree/main/examples/two-region-model), which illustrates a simple system with two regions and includes primary, secondary, and final energy vectors. The model is built using yaml files and is fully documented within this repository.
+
 ### Development and Contributing
 
 We welcome contributions! To get started as a contributor or as a developer, please read our [contributor guidelines](./CONTRIBUTING.md).

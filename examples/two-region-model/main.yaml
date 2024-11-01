@@ -1,0 +1,5 @@
+# Model Nameplate
+id: two-region-model
+long_name: "Two-region Model (TRM): A simple starter kit for a multi-region OSeMOSYS model."
+description: >
+ TRM is an illustrative model for two separate regions that have an interconnected power system and shared primary fuel resources. The two-region model (TRM) was developed to serve as a starter kit for multi-regional modelling.

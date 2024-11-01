@@ -1,0 +1,66 @@
+# -------------------------------------------------------------------------
+#
+#   CAPACITIES
+#
+#     Define capacity attributes for each technology in each region.
+#
+#     There are two capacity components here:
+#       - Residual capacities
+#       - Residual capacity of storages
+#
+#     Link to docs:
+#       - https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+
+# -------
+# Residual capacities
+# -------
+
+residual_capacity:
+
+  coal-supercritical:
+    Region1:
+      2024: 1320
+    Region2:
+      2024: 1440
+
+  gas-ccgt:
+    Region1:
+      2024: 1215
+    Region2:
+      2024: 10073
+
+  hydro-reservoir:
+    Region1:
+      2024: 3000
+    Region2:
+      2024: 0
+
+  nuclear:
+    Region1:
+      2024: 1330
+    Region2:
+      2024: 2200
+
+  solar-pv:
+    Region1:
+      2024: 21
+    Region2:
+      2024: 0
+
+  wind-onshore:
+    Region1:
+      2024: 1841
+
+  transmission:
+    # all regions
+    "*" :
+      # all years
+      "*" : 9999

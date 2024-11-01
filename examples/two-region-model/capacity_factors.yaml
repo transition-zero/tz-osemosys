@@ -1,0 +1,96 @@
+# -------------------------------------------------------------------------
+# CAPACITY FACTORS
+#
+#   Defining technological capacity and availability factors. Here, capacity
+#     factors are only applied for renewables. For thermal power plants, we
+#     apply an "availability_factor", which accounts for maintenance shutdowns
+#     but we allow the model to choose when to do this.
+#
+#     Link to docs:
+#       https://docs.feo.transitionzero.org/docs/tz-osemosys/technology/
+#
+#     Authors:
+#       - @amanmajid
+#       - @abhishek0208
+#       - @Handriyanti
+#
+# -------------------------------------------------------------------------
+
+
+# --------------------------------------------
+#
+#   AVAILABILITY FACTOR
+#     - Applied only to thermal power plants.
+#     - Defined as a normalised quantity between 0 and 1.
+#
+# --------------------------------------------
+
+availability_factor:
+
+  coal-supercritical:
+    # all regions
+    "*" :
+      # all years
+      "*" : 0.9
+
+  gas-ccgt:
+    # all regions
+    "*" :
+      # all years
+      "*" : 0.9
+
+  nuclear:
+    # all regions
+    "*" :
+      # all years
+      "*" : 0.9
+
+# --------------------------------------------
+#
+#   CAPACITY FACTOR
+#     - Applied only to renewable power plants.
+#     - Defined as a normalised quantity between 0 and 1.
+#
+# --------------------------------------------
+
+capacity_factors:
+
+  hydro-reservoir:
+    "*" :
+      "*" :
+        ID : 0.5
+        IN : 0.5
+        SD : 0.25
+        SN : 0.25
+        WD : 0.75
+        WN : 0.75
+
+  solar-pv:
+    # Define capacity factor in each region
+    Region1:
+      "*" : # all years
+        ID : 0.6
+        IN : 0
+        SD : 0.8
+        SN : 0
+        WD : 0.4
+        WN : 0
+    Region2:
+      "*" : # all years
+        ID : 0.6
+        IN : 0
+        SD : 0.8
+        SN : 0
+        WD : 0.4
+        WN : 0
+
+  wind-onshore:
+    # all regions
+    "*":
+      "*" : # all years
+        ID : 0.27
+        IN : 0.27
+        SD : 0.40
+        SN : 0.40
+        WD : 0.27
+        WN : 0.27
