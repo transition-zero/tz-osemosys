@@ -38,6 +38,7 @@ class DefaultsLinopy(BaseSettings):
             "AvailabilityFactor": 1,
             "CapacityFactor": 1,
             "CapacityToActivityUnit": 1,
+            "TradeCapacityToActivityUnit": 1,
             "DepreciationMethod": "straight-line",
             "DiscountRate": 0.1,
             "ResidualCapacity": 0,
