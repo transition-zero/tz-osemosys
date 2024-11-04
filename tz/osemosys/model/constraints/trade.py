@@ -60,17 +60,14 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
 
         # Capacity
         con = lex["GrossTradeCapacity"] * ds["TradeRoute"] * (
-            1
-            - ds["TradeLossBetweenRegions"]
-            # ) >= m["Export"] / (ds["TradeCapacityToActivityUnit"] * ds["YearSplit"])
-        ) >= m["Export"] / (ds["YearSplit"])
+            1 - ds["TradeLossBetweenRegions"]
+        ) >= m["Export"] / (ds["TradeCapacityToActivityUnit"] * ds["YearSplit"])
         m.add_constraints(con, name="TC1a_TradeConstraint_Export")
 
         con = lex["GrossTradeCapacity"] * ds["TradeRoute"] * (
             1 - ds["TradeLossBetweenRegions"]
         ) >= m["Import"].rename({"REGION": "_REGION", "_REGION": "REGION"}) / (
-            # ds["TradeCapacityToActivityUnit"] * ds["YearSplit"]
-            ds["YearSplit"]
+            ds["TradeCapacityToActivityUnit"] * ds["YearSplit"]
         )
         m.add_constraints(con, name="TC1b_TradeConstraint_Import")
 
