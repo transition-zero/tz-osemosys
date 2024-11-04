@@ -253,6 +253,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         = TotalDiscountedStorageCost[r,s,y];
     ```
     """
+
     if ds["STORAGE"].size > 0:
         # storage level may not exceed gross capacity
         con = lex["StorageLevel"] <= lex["GrossStorageCapacity"].expand_dims(
