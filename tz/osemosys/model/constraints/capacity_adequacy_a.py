@@ -57,26 +57,26 @@ def add_capacity_adequacy_a_constraints(
     ```
     """
 
-    # gross capacity sufficiency
-    con = (
-        lex["RateOfTotalActivity"]
-        - (
-            lex["GrossCapacity"].assign_coords(
-                {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
-            )
-            * ds["CapacityFactor"]
-            * ds["CapacityToActivityUnit"]
-        )
-        <= 0
-    )
-    mask = ~ds["CapacityFactor"].isnull()
-    m.add_constraints(con, name="CAa4_Constraint_Capacity", mask=mask)
+    # # gross capacity sufficiency
+    # con = (
+    #     lex["RateOfTotalActivity"]
+    #     - (
+    #         lex["GrossCapacity"].assign_coords(
+    #             {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
+    #         )
+    #         * ds["CapacityFactor"]
+    #         * ds["CapacityToActivityUnit"]
+    #     )
+    #     <= 0
+    # )
+    # mask = ~ds["CapacityFactor"].isnull()
+    # m.add_constraints(con, name="CAa4_Constraint_Capacity", mask=mask)
 
-    # unit-of-one-technology
-    con = (
-        ds["CapacityOfOneTechnologyUnit"] * m["NumberOfNewTechnologyUnits"] - m["NewCapacity"] == 0
-    )
-    mask = ds["CapacityOfOneTechnologyUnit"].notnull()
-    m.add_constraints(con, name="CAa5_TotalNewCapacity", mask=mask)
+    # # unit-of-one-technology
+    # con = (
+    #    ds["CapacityOfOneTechnologyUnit"] * m["NumberOfNewTechnologyUnits"] - m["NewCapacity"] == 0
+    # )
+    # mask = ds["CapacityOfOneTechnologyUnit"].notnull()
+    # m.add_constraints(con, name="CAa5_TotalNewCapacity", mask=mask)
 
     return m
