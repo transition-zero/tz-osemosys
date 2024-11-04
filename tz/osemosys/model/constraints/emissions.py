@@ -86,17 +86,17 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExp
         ```
     """
 
-    if ds["EMISSION"].size > 0:
+    # if ds["EMISSION"].size > 0:
 
-        con = lex["AnnualEmissions"].fillna(0) <= ds["AnnualEmissionLimit"] - ds[
-            "AnnualExogenousEmission"
-        ].fillna(0)
-        mask = (ds["AnnualEmissionLimit"] != -1) & (ds["AnnualEmissionLimit"].notnull())
+    #     con = lex["AnnualEmissions"].fillna(0) <= ds["AnnualEmissionLimit"] - ds[
+    #         "AnnualExogenousEmission"
+    #     ].fillna(0)
+    #     mask = (ds["AnnualEmissionLimit"] != -1) & (ds["AnnualEmissionLimit"].notnull())
 
-        m.add_constraints(con, name="E8_AnnualEmissionsLimit", mask=mask)
+    #     m.add_constraints(con, name="E8_AnnualEmissionsLimit", mask=mask)
 
-        con = lex["ModelPeriodEmissions"].fillna(0) <= ds["ModelPeriodEmissionLimit"]
-        mask = (ds["ModelPeriodEmissionLimit"] != -1) & (ds["ModelPeriodEmissionLimit"].notnull())
-        m.add_constraints(con, name="E9_ModelPeriodEmissionsLimit", mask=mask)
+    #     con = lex["ModelPeriodEmissions"].fillna(0) <= ds["ModelPeriodEmissionLimit"]
+    #     mask = (ds["ModelPeriodEmissionLimit"] != -1) & (ds["ModelPeriodEmissionLimit"].notnull())
+    #     m.add_constraints(con, name="E9_ModelPeriodEmissionsLimit", mask=mask)
 
     return m
