@@ -25,6 +25,7 @@ class Defaults(BaseSettings):
     trade_residual_capacity: float = Field(0.0)
     trade_capex: float = Field(0.00001)
     trade_operating_life: int = Field(1)
+    trade_capacity_activity_unit_ratio: float = Field(1.0)
 
 
 class DefaultsLinopy(BaseSettings):
@@ -37,6 +38,7 @@ class DefaultsLinopy(BaseSettings):
             "AvailabilityFactor": 1,
             "CapacityFactor": 1,
             "CapacityToActivityUnit": 1,
+            "TradeCapacityToActivityUnit": 1,
             "DepreciationMethod": "straight-line",
             "DiscountRate": 0.1,
             "ResidualCapacity": 0,

@@ -198,6 +198,8 @@ def test_simple_trade():
 
     Trade capacity additions are limited so that R2 imports as much energy as it can from R1, and
     then installs its own generating capacity to make up any shortfall.
+
+    Pseudo units and a capacity_activity_unit_ratio of 2 is used.
     """
     model = Model(
         id="test-trade",
@@ -215,9 +217,10 @@ def test_simple_trade():
                 capacity_additional_max={"R1": {"R2": {"*": 5}}},
                 cost_of_capital={"R1": {"R2": 0.1}},
                 construct_region_pairs=True,
+                capacity_activity_unit_ratio=2,
             )
         ],
-        commodities=[dict(id="electricity", demand_annual=25)],
+        commodities=[dict(id="electricity", demand_annual=50)],
         impacts=[],
         technologies=[
             dict(
@@ -231,14 +234,15 @@ def test_simple_trade():
                         output_activity_ratio={"electricity": 1},
                     )
                 ],
+                capacity_activity_unit_ratio=2,
             )
         ],
     )
 
     model.solve(solver="highs")
 
-    assert model.solution["NetTrade"].values[0][2][0] == 15
-    assert np.round(model._m.objective.value) == 28200.0
+    assert model.solution["NetTrade"].values[0][2][0] == 30
+    assert np.round(model._m.objective.value) == 30387.0
 
 
 def test_simple_re_target():

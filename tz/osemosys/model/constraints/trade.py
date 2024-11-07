@@ -49,8 +49,7 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     ```
     """
 
-    if ds["TradeRoute"].notnull().any():
-
+    if (ds["TradeRoute"] == 1).any():
         # Energy Balance
         con = (
             m["Export"]
@@ -60,15 +59,16 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
         m.add_constraints(con, name="EBa10_EnergyBalanceEachTS4_trn")
 
         # Capacity
-        # TODO: add TradeCapacityToActivityUnit for first 2 trade capacity constraints
         con = lex["GrossTradeCapacity"] * ds["TradeRoute"] * (
             1 - ds["TradeLossBetweenRegions"]
-        ) >= m["Export"] / (ds["YearSplit"])
+        ) >= m["Export"] / (ds["TradeCapacityToActivityUnit"] * ds["YearSplit"])
         m.add_constraints(con, name="TC1a_TradeConstraint_Export")
 
         con = lex["GrossTradeCapacity"] * ds["TradeRoute"] * (
             1 - ds["TradeLossBetweenRegions"]
-        ) >= m["Import"].rename({"REGION": "_REGION", "_REGION": "REGION"}) / (ds["YearSplit"])
+        ) >= m["Import"].rename({"REGION": "_REGION", "_REGION": "REGION"}) / (
+            ds["TradeCapacityToActivityUnit"] * ds["YearSplit"]
+        )
         m.add_constraints(con, name="TC1b_TradeConstraint_Import")
 
         con = lex["NewTradeCapacity"] <= ds["TotalAnnualMaxTradeInvestment"] * ds["TradeRoute"]
