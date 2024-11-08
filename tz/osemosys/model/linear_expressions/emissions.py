@@ -29,6 +29,8 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
 
     AnnualEmissions = AnnualTechnologyEmission.sum(dims="TECHNOLOGY")
 
+    AnnualEmissionsGlobal = AnnualEmissions.sum(dims="REGION")
+
     ModelPeriodEmissions = AnnualEmissions.sum(dims="YEAR") + ds[
         "ModelPeriodExogenousEmission"
     ].fillna(0)
@@ -40,6 +42,7 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
             "AnnualTechnologyEmissionPenaltyByEmission": AnnualTechnologyEmissionPenaltyByEmission,
             "AnnualTechnologyEmissionsPenalty": AnnualTechnologyEmissionsPenalty,
             "AnnualEmissions": AnnualEmissions,
+            "AnnualEmissionsGlobal": AnnualEmissionsGlobal,
             "ModelPeriodEmissions": ModelPeriodEmissions,
         }
     )

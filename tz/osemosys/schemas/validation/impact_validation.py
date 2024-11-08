@@ -19,6 +19,23 @@ def exogenous_annual_within_constraint(id, constraint_annual, exogenous_annual):
 
     return True
 
+def exogenous_annual_global_within_constraint(id, constraint_annual_global, exogenous_annual_global):
+    """
+    Check exogenous_annual <= constraint_annual for each region, impact and year
+    """
+
+    if exogenous_annual_global is not None and constraint_annual_global is not None:
+        if not check_min_vals_lower_max(
+            exogenous_annual_global,
+            constraint_annual_global,
+            ["REGION", "YEAR", "VALUE"],
+        ):
+            raise ValueError(
+                f"Impact '{id}' values in exogenous_annual_global should be lower than"
+                " or equal to the corresponding values in constraint_annual_global"
+            )
+
+    return True
 
 def exogenous_total_within_constraint(id, constraint_total, exogenous_total):
     """

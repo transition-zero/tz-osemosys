@@ -24,6 +24,10 @@ class OtooleImpact(BaseModel):
             "attribute": "constraint_annual",
             "columns": ["REGION", "EMISSION", "YEAR", "VALUE"],
         },
+        "AnnualGlobalEmissionLimit": {
+            "attribute": "constraint_annual_global",
+            "columns": ["EMISSION", "YEAR", "VALUE"],
+        },        
         "ModelPeriodEmissionLimit": {
             "attribute": "constraint_total",
             "columns": ["REGION", "EMISSION", "VALUE"],
@@ -32,6 +36,10 @@ class OtooleImpact(BaseModel):
             "attribute": "exogenous_annual",
             "columns": ["REGION", "EMISSION", "YEAR", "VALUE"],
         },
+        "AnnualGlobalExogenousEmission": {
+            "attribute": "exogenous_annual_global",
+            "columns": ["EMISSION", "YEAR", "VALUE"],
+        },        
         "ModelPeriodExogenousEmission": {
             "attribute": "exogenous_total",
             "columns": ["REGION", "EMISSION", "VALUE"],
@@ -113,6 +121,20 @@ class OtooleImpact(BaseModel):
                         if impact in dfs["AnnualEmissionLimit"]["EMISSION"].values
                         else None
                     ),
+                    constraint_annual_global=(
+                        OSeMOSYSData.Y(
+                            data=group_to_json(
+                                g=dfs["AnnualGlobalEmissionLimit"].loc[
+                                    dfs["AnnualGlobalEmissionLimit"]["EMISSION"] == impact
+                                ],
+                                root_column="EMISSION",
+                                data_columns=["YEAR"],
+                                target_column="VALUE",
+                            )
+                        )
+                        if impact in dfs["AnnualGlobalEmissionLimit"]["EMISSION"].values
+                        else None
+                    ),                    
                     constraint_total=(
                         OSeMOSYSData.R(
                             data=group_to_json(
@@ -141,6 +163,20 @@ class OtooleImpact(BaseModel):
                         if impact in dfs["AnnualExogenousEmission"]["EMISSION"].values
                         else None
                     ),
+                    exogenous_annual_global=(
+                        OSeMOSYSData.Y(
+                            data=group_to_json(
+                                g=dfs["AnnualGlobalExogenousEmission"].loc[
+                                    dfs["AnnualGlobalExogenousEmission"]["EMISSION"] == impact
+                                ],
+                                root_column="EMISSION",
+                                data_columns=["YEAR"],
+                                target_column="VALUE",
+                            )
+                        )
+                        if impact in dfs["AnnualGlobalExogenousEmission"]["EMISSION"].values
+                        else None
+                    ),                    
                     exogenous_total=(
                         OSeMOSYSData.R(
                             data=group_to_json(
@@ -188,8 +224,10 @@ class OtooleImpact(BaseModel):
         # collect constraint, exogenous, and penalty dataframes
         penalty_dfs = []
         annual_constraint_dfs = []
+        annual_constraint_global_dfs = []
         total_constraint_dfs = []
         annual_exogenous_dfs = []
+        annual_exogenous_global_dfs = []
         total_exogenous_dfs = []
 
         for impact in impacts:
@@ -207,6 +245,13 @@ class OtooleImpact(BaseModel):
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 annual_constraint_dfs.append(df)
+            if impact.constraint_annual_global is not None:
+                df = pd.json_normalize(impact.constraint_annual_global.data).T.rename(columns={0: "VALUE"})
+                df["EMISSION"] = impact.id
+                df[["REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                annual_constraint_global_dfs.append(df)                
             if impact.constraint_total is not None:
                 df = pd.json_normalize(impact.constraint_total.data).T.rename(columns={0: "VALUE"})
                 df["EMISSION"] = impact.id
@@ -219,6 +264,13 @@ class OtooleImpact(BaseModel):
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 annual_exogenous_dfs.append(df)
+            if impact.exogenous_annual_global is not None:
+                df = pd.json_normalize(impact.exogenous_annual_global.data).T.rename(columns={0: "VALUE"})
+                df["EMISSION"] = impact.id
+                df[["REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                annual_exogenous_global_dfs.append(df)                
             if impact.exogenous_total is not None:
                 df = pd.json_normalize(impact.exogenous_total.data).T.rename(columns={0: "VALUE"})
                 df["EMISSION"] = impact.id
@@ -231,10 +283,14 @@ class OtooleImpact(BaseModel):
             dfs["EmissionsPenalty"] = pd.concat(penalty_dfs)
         if annual_constraint_dfs:
             dfs["AnnualEmissionLimit"] = pd.concat(annual_constraint_dfs)
+        if annual_constraint_global_dfs:
+            dfs["AnnualGlobalEmissionLimit"] = pd.concat(annual_constraint_global_dfs)            
         if total_constraint_dfs:
             dfs["ModelPeriodEmissionLimit"] = pd.concat(total_constraint_dfs)
         if annual_exogenous_dfs:
             dfs["AnnualExogenousEmission"] = pd.concat(annual_exogenous_dfs)
+        if annual_exogenous_global_dfs:
+            dfs["AnnualGlobalExogenousEmission"] = pd.concat(annual_exogenous_global_dfs)            
         if total_exogenous_dfs:
             dfs["ModelPeriodExogenousEmission"] = pd.concat(total_exogenous_dfs)
 

@@ -6,6 +6,7 @@ from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysda
 from tz.osemosys.schemas.compat.impact import OtooleImpact
 from tz.osemosys.schemas.validation.impact_validation import (
     exogenous_annual_within_constraint,
+    exogenous_annual_global_within_constraint,
     exogenous_total_within_constraint,
 )
 
@@ -25,12 +26,18 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     `constraint_annual` `({region:{year:float}})` - OSeMOSYS AnnualEmissionLimit.
       Annual impact constraint. Optional, defaults to `None`.
 
+    `constraint_annual_global` `({year:float})` - OSeMOSYS AnnualGlobalEmissionLimit.
+      Annual impact constraint. Optional, defaults to `None`.
+            
     `constraint_total` `({region:float})` - OSeMOSYS ModelPeriodEmissionLimit.
       Total modelling period impact constraint. Optional, defaults to `None`.
 
     `exogenous_annual` `({region:{year:float}})` - OSeMOSYS AnnualExogenousEmission.
       Annual exogenous impact. Optional, defaults to `None`.
 
+    `exogenous_annual_global` `({year:float})` - OSeMOSYS AnnualGlobalExogenousEmission.
+      Annual global exogenous impact. Optional, defaults to `None`.
+      
     `exogenous_total` `({region:float})` - OSeMOSYS ModelPeriodExogenousEmission.
       Total modelling period exogenous impact. Optional, defaults to `None`.
 
@@ -83,11 +90,15 @@ class Impact(OSeMOSYSBase, OtooleImpact):
 
     # Annual emissions constraint per region, year, and emission type
     constraint_annual: OSeMOSYSData.RY | None = Field(None)
+    # Annual emissions constraint summed across regions and per year and emission type
+    constraint_annual_global: OSeMOSYSData.RY | None = Field(None) 
     # Total modelled period emissions constraint per region and emission type
     constraint_total: OSeMOSYSData.R | None = Field(None)
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
     exogenous_annual: OSeMOSYSData.RY | None = Field(None)
+    # Annual exogenous emissions across all regions, for each year and emission type
+    exogenous_annual_global: OSeMOSYSData.RY | None = Field(None)
     # Total modelled period exogenous emission per region and emission type
     # I.e. emissions from non-modelled sources
     exogenous_total: OSeMOSYSData.R | None = Field(None)
@@ -111,6 +122,10 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             exogenous_annual_within_constraint(
                 self.id, self.constraint_annual, self.exogenous_annual
             )
+        if self.constraint_annual_global is not None and self.exogenous_annual_global is not None:
+            exogenous_annual_global_within_constraint(
+                self.id, self.constraint_annual_global, self.exogenous_annual_global
+            )            
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)
         return self
