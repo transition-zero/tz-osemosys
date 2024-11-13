@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 import xarray as xr
 from linopy import LinearExpression
 from linopy import Model as LPModel
-from linopy import available_solvers
 
 from tz.osemosys.io.load_model import load_cfg
 from tz.osemosys.model.constraints import add_constraints
@@ -272,24 +271,16 @@ class Model(RunSpec):
 
     def solve(
         self,
-        solver: str | None = None,
         lp_path: str | None = None,
         solution_vars: list[str] | str | None = None,
         **linopy_solve_kwargs: Any,
     ):
         self._build()
 
-        if solver is None:
-            solver = available_solvers[0]
-        else:
-            assert (
-                solver in available_solvers
-            ), f"Solver {solver} not available. Choose from {available_solvers}."
-
         if lp_path:
             self._m.to_file(lp_path)
 
-        self._m.solve(solver_name=solver, **linopy_solve_kwargs)
+        self._m.solve(**linopy_solve_kwargs)
 
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
