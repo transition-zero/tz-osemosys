@@ -28,7 +28,7 @@ def test_model_solve_from_otoole_csv():
     path = "examples/otoole_compat/input_csv/otoole-simple-hydro"
 
     model = Model.from_otoole_csv(path)
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 5591653.0
@@ -182,7 +182,7 @@ def test_simple_storage():
         storage=storage,
         technologies=technologies,
     )
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
     assert model.solution.NetCharge[0][1][0][0] == 75  # bat-storage 2020 Day charge
@@ -239,7 +239,7 @@ def test_simple_trade():
         ],
     )
 
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert model.solution["NetTrade"].values[0][2][0] == 30
     assert np.round(model._m.objective.value) == 30387.0
