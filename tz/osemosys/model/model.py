@@ -192,7 +192,7 @@ class Model(RunSpec):
 
     By default, the model will be solved using the first available solver in the list of available
     solvers. To specify a solver, pass the name of the solver as a string to the solve() method for
-    the argument `solver` (e.g. `model.solve(solver_name="highs")`).
+    the argument `solver_name` (e.g. `model.solve(solver_name="highs")`).
 
     ### Viewing the model solution
 
