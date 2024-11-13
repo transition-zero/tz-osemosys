@@ -5,8 +5,9 @@ import pandas as pd
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
-    from tz.osemosys.schemas.region import Region
-
+    from tz.osemosys.schemas.region import Region, RegionGroup
+    from tz.osemosys.schemas.base import OSeMOSYSData
+    from tz.osemosys.schemas.compat.base import OtooleCfg
 ##########
 # REGION #
 ##########
@@ -61,6 +62,7 @@ class OtooleRegion(BaseModel):
             )
 
         return region_instances
+   
 
     @classmethod
     def to_dataframes(cls, regions: List["Region"]):
@@ -89,3 +91,55 @@ class OtooleRegion(BaseModel):
         dfs["_REGION"].to_csv(os.path.join(output_directory, "_REGION.csv"), index=False)
 
         return True
+
+class OtooleRegionGroup(BaseModel):
+    """
+    Class to contain methods for converting RegionGroup data to and from otoole style CSVs
+    """
+    otoole_cfg: OtooleCfg | None = Field(None)
+    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+        "RegionGroupTagRegion": {
+            "attribute": "include_in_region_group",
+            "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
+        },
+    }
+    
+    @classmethod
+    def from_otoole_csv(cls, root_dir) -> List["RegionGroup"]:
+
+        region_group = pd.read_csv(os.path.join(root_dir, "REGIONGROUP.csv"))
+
+        region_group_instances = []
+        for _index, region_group in region_group.iterrows():
+            region_group_instances.append(
+                cls(
+                    id=region_group["VALUE"]
+                )
+            )
+        return region_group_instances 
+
+    @classmethod
+    def to_dataframes(cls, regionsgroup: List["RegionGroup"]):
+        # collect dataframes
+        dfs = {}
+
+        # SETS
+        dfs["REGIONGROUP"] = pd.DataFrame({"VALUE": [rg.id for rg in regionsgroup]})
+
+        return dfs    
+
+    @classmethod
+    def to_otoole_csv(cls, regionsgroup: List["RegionGroup"], output_directory: str):
+        """Write a number of Region objects to otoole-organised csvs.
+
+        Args:
+            regions (List[Region]): A list of Region instances
+            output_directory (str): Path to the root of the otoole csv directory
+        """
+
+        dfs = cls.to_dataframes(regionsgroup)
+
+        # Sets
+        dfs["REGIONGROUP"].to_csv(os.path.join(output_directory, "REGIONGROUP.csv"), index=False)
+
+        return True    

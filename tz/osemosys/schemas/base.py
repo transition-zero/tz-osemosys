@@ -445,6 +445,13 @@ def _compose_R(self, obj_id, data, regions, **sets):
 
     return self
 
+def _compose_RG(self, obj_id, data, regionsgroup, **sets):
+    # RegionGroup
+    _check_nesting_depth(obj_id, data, 1)
+    self.data = _check_set_membership(obj_id, data, {"regionsgroup": regionsgroup})
+    self.is_composed = True
+
+    return self
 
 def _compose_RY(self, obj_id, data, regions, years, **sets):
     # Region-Year
@@ -455,6 +462,14 @@ def _compose_RY(self, obj_id, data, regions, years, **sets):
 
     return self
 
+def _compose_RGY(self, obj_id, data, regionsgroup, years, **sets):
+    # RegionGroup-Year
+
+    _check_nesting_depth(obj_id, data, 2)
+    self.data = _check_set_membership(obj_id, data, {"regionsgroup": regionsgroup, "years": years})
+    self.is_composed = True
+
+    return self
 
 def _compose_RT(self, obj_id, data, regions, technologies, **sets):
     # Region-Technology
@@ -467,6 +482,16 @@ def _compose_RT(self, obj_id, data, regions, technologies, **sets):
 
     return self
 
+def _compose_RGT(self, obj_id, data, regionsgroup, technologies, **sets):
+    # RegionGroup-Technology
+
+    _check_nesting_depth(obj_id, data, 2)
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "technologies": technologies}
+    )
+    self.is_composed = True
+
+    return self
 
 def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
     # Region-Year-TimeSlice
@@ -479,6 +504,16 @@ def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
 
     return self
 
+def _compose_RGYS(self, obj_id, data, regionsgroup, years, timeslices, **sets):
+    # RegionGroup-Year-TimeSlice
+
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "years": years, "timeslices": timeslices}
+    )
+    self.is_composed = True
+
+    return self
 
 def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
     # Region-Technology-Year
@@ -491,6 +526,16 @@ def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
 
     return self
 
+def _compose_RGTY(self, obj_id, data, regionsgroup, technologies, years, **sets):
+    # RegionGroup-Technology-Year
+
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "technologies": technologies, "years": years}
+    )
+    self.is_composed = True
+
+    return self
 
 def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
     # Region-Commodity-Year
@@ -502,6 +547,15 @@ def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
 
     return self
 
+def _compose_RGCY(self, obj_id, data, regionsgroup, commodities, years, **sets):
+    # RegionGroup-Commodity-Year
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "commodities": commodities, "years": years}
+    )
+    self.is_composed = True
+
+    return self
 
 def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
     # Region-Impact-Year
@@ -513,6 +567,15 @@ def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
 
     return self
 
+def _compose_RGIY(self, obj_id, data, regionsgroup, impacts, years, **sets):
+    # RegionGroup-Impact-Year
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "impacts": impacts, "years": years}
+    )
+    self.is_composed = True
+
+    return self
 
 def _compose_RO(self, obj_id, data, regions, storage, **sets):
     # Region-stOrage
@@ -521,7 +584,6 @@ def _compose_RO(self, obj_id, data, regions, storage, **sets):
     self.is_composed = True
 
     return self
-
 
 def _compose_RRY(self, obj_id, data, regions, years, **sets):
     # Region-Commodity-Year
@@ -547,15 +609,22 @@ def _null(self, values):
 
 
 for key, func in zip(
-    ["R", "RY", "RT", "RYS", "RTY", "RCY", "RIY", "RO", "RRY", "RR", "ANY"],
+    ["R", "RG", "RY", "RGY", "RT", "RTY", "RYS", "RGYS", "RTY", "RGTY", "RCY", "RGCY", "RIY", "RGIY", "RO", "RRY", "RR", "ANY"],
     [
         _compose_R,
+        _compose_RG,
         _compose_RY,
+        _compose_RGY,
         _compose_RT,
+        _compose_RGT,
         _compose_RYS,
+        _compose_RGYS,
         _compose_RTY,
+        _compose_RGTY,
         _compose_RCY,
+        _compose_RGCY,
         _compose_RIY,
+        _compose_RGIY,
         _compose_RO,
         _compose_RRY,
         _compose_RR,
