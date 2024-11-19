@@ -32,6 +32,9 @@ class Model(RunSpec):
     `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
 
+    `regionsgroup` `(List[RegionGroup])` - List of Region Group instances to contain region group names.
+    Optional parameter, defaults to `None`.
+    
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
     commodities (OSeMOSYS FUEL).
     Required parameter.
@@ -96,6 +99,7 @@ class Model(RunSpec):
         TimeDefinition,
         Commodity,
         Region,
+        RegionGroup,
         Impact,
         OperatingMode,
     )

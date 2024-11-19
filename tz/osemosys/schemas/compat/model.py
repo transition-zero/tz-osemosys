@@ -11,7 +11,7 @@ from tz.osemosys.schemas.base import OSeMOSYSData
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.compat.base import DefaultsOtoole, OtooleCfg
 from tz.osemosys.schemas.impact import Impact
-from tz.osemosys.schemas.region import Region
+from tz.osemosys.schemas.region import Region, RegionGroup
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
@@ -183,6 +183,7 @@ class RunSpecOtoole(BaseModel):
         # load from other objects
         impacts = Impact.from_otoole_csv(root_dir=root_dir)
         regions = Region.from_otoole_csv(root_dir=root_dir)
+        regionsgroup = RegionGroup.from_otoole_csv(root_dir=root_dir)
         technologies = Technology.from_otoole_csv(root_dir=root_dir)
         storage = Storage.from_otoole_csv(root_dir=root_dir)
         commodities = Commodity.from_otoole_csv(root_dir=root_dir)
@@ -328,6 +329,7 @@ class RunSpecOtoole(BaseModel):
             renewable_production_target=renewable_production_target,
             impacts=impacts,
             regions=regions,
+            regionsgroup=regionsgroup,
             technologies=technologies,
             storage=storage,
             commodities=commodities,
@@ -478,6 +480,8 @@ class RunSpecOtoole(BaseModel):
             dfs.update(Storage.to_dataframes(storage=self.storage))
         if self.trade is not None:
             dfs.update(Trade.to_dataframes(trade=self.trade))
+        if self.regionsgroup is not None:
+            dfs.update(RegionGroup.to_dataframes(regionsgroup=self.regionsgroup))    
 
         return dfs
 
@@ -494,6 +498,8 @@ class RunSpecOtoole(BaseModel):
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
         if self.trade is not None:
             Trade.to_otoole_csv(trade=self.trade, output_directory=output_directory)
+        if self.regionsgroup is not None:
+            RegionGroup.to_otoole_csv(output_directory=output_directory)
 
         # write dataframes
         for stem, _params in self.otoole_stems.items():

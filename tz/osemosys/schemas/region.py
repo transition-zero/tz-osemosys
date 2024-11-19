@@ -84,13 +84,13 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
         id="RG1",
     )
 
-    Region(**basic_region_group)
+    RegionGroup(**basic_region_group)
     ```
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
+    #include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
 
     exclude_technologies: List[str] | None = Field(default=None)
 

@@ -663,3 +663,9 @@ OSeMOSYSData.R.DM = create_model(
     __base__=OSeMOSYSData.R,
     __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
 )
+
+OSeMOSYSData.RG.DM = create_model(
+    "OSeMOSYSData_RG_DM",
+    __base__=OSeMOSYSData.RG,
+    __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
+)

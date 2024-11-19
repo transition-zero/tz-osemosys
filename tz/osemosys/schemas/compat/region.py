@@ -7,7 +7,10 @@ from pydantic import BaseModel
 if TYPE_CHECKING:
     from tz.osemosys.schemas.region import Region, RegionGroup
     from tz.osemosys.schemas.base import OSeMOSYSData
-    from tz.osemosys.schemas.compat.base import OtooleCfg
+    # from tz.osemosys.schemas.compat.base import OtooleCfg
+    # from tz.osemosys.schemas.compat.base import OtooleCfg
+    # from tz.osemosys.utils import flatten, group_to_json    
+
 ##########
 # REGION #
 ##########
@@ -96,13 +99,13 @@ class OtooleRegionGroup(BaseModel):
     """
     Class to contain methods for converting RegionGroup data to and from otoole style CSVs
     """
-    otoole_cfg: OtooleCfg | None = Field(None)
-    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-        "RegionGroupTagRegion": {
-            "attribute": "include_in_region_group",
-            "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
-        },
-    }
+    # otoole_cfg: OtooleCfg | None = Field(None)
+    # otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+    #     "RegionGroupTagRegion": {
+    #         "attribute": "include_in_region_group",
+    #         "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
+    #     },
+    # }
     
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["RegionGroup"]:
