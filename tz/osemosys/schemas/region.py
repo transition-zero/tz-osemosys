@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Any
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 
-from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData
+from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.region import OtooleRegion, OtooleRegionGroup
 
 ##########
@@ -90,9 +90,22 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
 
     model_config = ConfigDict(extra="forbid")
 
-    #include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
+    # region group boolean assigning nodes to a group (e.g. at a country level)
+    include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
 
-    exclude_technologies: List[str] | None = Field(default=None)
+    exclude_regionsgroup: List[str] | None = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def cast_values(cls, values: Any) -> Any:
+        for field, info in cls.model_fields.items():
+            field_val = values.get(field)
+
+            if field_val is not None:
+                values[field] = cast_osemosysdata_value(field_val, info)
+
+        return values    
+
 
     def compose(self, **sets):
         # compose root OSeMOSYSData

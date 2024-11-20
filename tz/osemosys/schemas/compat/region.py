@@ -1,20 +1,19 @@
 import os
-from typing import TYPE_CHECKING, List
+from pathlib import Path
+from typing import TYPE_CHECKING, List, ClassVar, Dict, Union
 
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from tz.osemosys.schemas.region import Region, RegionGroup
     from tz.osemosys.schemas.base import OSeMOSYSData
-    # from tz.osemosys.schemas.compat.base import OtooleCfg
-    # from tz.osemosys.schemas.compat.base import OtooleCfg
-    # from tz.osemosys.utils import flatten, group_to_json    
+    from tz.osemosys.schemas.compat.base import OtooleCfg
+    from tz.osemosys.utils import flatten, group_to_json    
 
 ##########
 # REGION #
 ##########
-
 
 class OtooleRegion(BaseModel):
     """
@@ -99,30 +98,68 @@ class OtooleRegionGroup(BaseModel):
     """
     Class to contain methods for converting RegionGroup data to and from otoole style CSVs
     """
-    # otoole_cfg: OtooleCfg | None = Field(None)
-    # otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
-    #     "RegionGroupTagRegion": {
-    #         "attribute": "include_in_region_group",
-    #         "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
-    #     },
-    # }
+    #otoole_cfg: OtooleCfg | None = Field(None)
+    otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
+         "RegionGroupTagRegion": {
+             "attribute": "include_in_region_group",
+             "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
+         },
+    }
     
     @classmethod
     def from_otoole_csv(cls, root_dir) -> List["RegionGroup"]:
 
-        region_group = pd.read_csv(os.path.join(root_dir, "REGIONGROUP.csv"))
+        df_regionsgroup = pd.read_csv(os.path.join(root_dir, "REGIONGROUP.csv"))
+
+        dfs = {}
+        otoole_cfg = OtooleCfg(empty_dfs=[], non_default_idx={})
+        for key, params in list(cls.otoole_stems.items()):
+            try:
+                dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
+                if dfs[key].empty:
+                    otoole_cfg.empty_dfs.append(key)
+                else:
+                    otoole_cfg.non_default_idx[key] = (
+                        dfs[key].set_index([c for c in params["columns"] if c != "VALUE"]).index
+                    )
+            except FileNotFoundError:
+                otoole_cfg.empty_dfs.append(key)
+        
+        #####################
+        # Basic Data Checks #
+        #####################
+
+        # Check no duplicates in TECHNOLOGY.csv
+        if len(df_regionsgroup) != len(df_regionsgroup["VALUE"].unique()):
+            raise ValueError("REGIONGROUP.csv must not contain duplicate values")
+
+        # Check technology names are consistent with those in TECHNOLOGY.csv
+        for df in dfs.keys():
+            for region_group in dfs[df]["REGIONGROUP"].unique():
+                if region_group not in list(df_regionsgroup["VALUE"]):
+                    raise ValueError(f"{region_group} given in {df}.csv but not in REGIONGROUP.csv")
+                
 
         region_group_instances = []
-        for _index, region_group in region_group.iterrows():
+
+        for region_group in df_regionsgroup["VALUE"].values.tolist():
+            data_json_format = {}
             region_group_instances.append(
                 cls(
-                    id=region_group["VALUE"]
-                )
+                    id=region_group["VALUE"],
+                    otoole_cfg=otoole_cfg,
+                    include_in_region_group=(
+                        OSeMOSYSData.RGRY(data=data_json_format["RegionGroupTagRegion"])
+                        if data_json_format["RegionGroupTagRegion"] is not None
+                        else None
+                    ),
             )
+        )
+
         return region_group_instances 
 
     @classmethod
-    def to_dataframes(cls, regionsgroup: List["RegionGroup"]):
+    def to_dataframes(cls, regionsgroup: List["RegionGroup"]) -> Dict[str, pd.DataFrame]:
         # collect dataframes
         dfs = {}
 

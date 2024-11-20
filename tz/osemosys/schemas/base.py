@@ -471,6 +471,15 @@ def _compose_RGY(self, obj_id, data, regionsgroup, years, **sets):
 
     return self
 
+def _compose_RGRY(self, obj_id, data, regionsgroup, regions, years, **sets):
+    # RegionGroup-Region-Year
+
+    _check_nesting_depth(obj_id, data, 3)
+    self.data = _check_set_membership(obj_id, data, {"regionsgroup": regionsgroup, "regions": regions, "years": years})
+    self.is_composed = True
+
+    return self
+
 def _compose_RT(self, obj_id, data, regions, technologies, **sets):
     # Region-Technology
 
@@ -609,12 +618,13 @@ def _null(self, values):
 
 
 for key, func in zip(
-    ["R", "RG", "RY", "RGY", "RT", "RTY", "RYS", "RGYS", "RTY", "RGTY", "RCY", "RGCY", "RIY", "RGIY", "RO", "RRY", "RR", "ANY"],
+    ["R", "RG", "RY", "RGY", "RGRY" , "RT", "RTY", "RYS", "RGYS", "RTY", "RGTY", "RCY", "RGCY", "RIY", "RGIY", "RO", "RRY", "RR", "ANY"],
     [
         _compose_R,
         _compose_RG,
         _compose_RY,
         _compose_RGY,
+        _compose_RGRY,
         _compose_RT,
         _compose_RGT,
         _compose_RYS,
@@ -661,11 +671,5 @@ for key, func in zip(
 OSeMOSYSData.R.DM = create_model(
     "OSeMOSYSData_R_DM",
     __base__=OSeMOSYSData.R,
-    __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
-)
-
-OSeMOSYSData.RG.DM = create_model(
-    "OSeMOSYSData_RG_DM",
-    __base__=OSeMOSYSData.RG,
     __validators__={"check_or_cast_dm": field_validator("data")(check_or_cast_dm)},
 )
