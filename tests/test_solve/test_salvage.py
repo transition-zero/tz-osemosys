@@ -33,7 +33,7 @@ def test_salvage_value_straight_line():
         technologies=technologies,
     )
 
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert np.round(model.solution.DiscountedSalvageValue.sum().values) == 1203.0
 
@@ -68,6 +68,6 @@ def test_salvage_value_sinking_fund():
         technologies=technologies,
     )
 
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert np.round(model.solution.DiscountedSalvageValue.sum().values) == 1349.0
