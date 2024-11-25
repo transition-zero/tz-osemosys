@@ -32,7 +32,7 @@ regions:
   - id: US-TX
     long_name: Texas
     description: "The US state of Texas"
-
+    
   - id: ATLANTIC-MARKET
     long_name: atlantic market
     description: a node representing atlantic import markets
@@ -40,6 +40,14 @@ regions:
   - id: PACIFIC-MARKET
     long_name: pacific market
     description: a node representing pacific import markets
+
+regionsgroup:
+  - id: CA-TX
+    long_name: California-Texas group
+    description: combined CAL-TX region group
+    include_in_region_group:
+      US-CA: True
+      US-TX: True
 
 # TRADE ROUTES
 trade:

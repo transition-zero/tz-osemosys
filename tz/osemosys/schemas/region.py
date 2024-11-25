@@ -84,6 +84,8 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
         id="RG1",
     )
 
+    `include_in_region_group` `(region{year:float})` - OSeMOSYS RegionGroupTagRegion.
+
     RegionGroup(**basic_region_group)
     ```
     """
@@ -93,7 +95,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     # region group boolean assigning nodes to a group (e.g. at a country level)
     include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
 
-    exclude_regionsgroup: List[str] | None = Field(default=None)
+    #exclude_technologies: List[str] | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod

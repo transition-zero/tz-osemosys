@@ -2,7 +2,7 @@ import numpy as np
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, RegionGroup, Storage, Technology, TimeDefinition
 
-EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/phl_s5_Accelerated_Transition"
+EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/CAISO-ERCOT-IC"
 
 
 def test_model_construction_from_yaml():

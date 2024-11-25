@@ -98,7 +98,7 @@ class OtooleRegionGroup(BaseModel):
     """
     Class to contain methods for converting RegionGroup data to and from otoole style CSVs
     """
-    #otoole_cfg: OtooleCfg | None = Field(None)
+    #otoole_cfg = OtooleCfg(empty_dfs=[])
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
          "RegionGroupTagRegion": {
              "attribute": "include_in_region_group",
@@ -112,6 +112,7 @@ class OtooleRegionGroup(BaseModel):
         df_regionsgroup = pd.read_csv(os.path.join(root_dir, "REGIONGROUP.csv"))
 
         dfs = {}
+
         otoole_cfg = OtooleCfg(empty_dfs=[], non_default_idx={})
         for key, params in list(cls.otoole_stems.items()):
             try:
@@ -142,19 +143,27 @@ class OtooleRegionGroup(BaseModel):
 
         region_group_instances = []
 
+        include_in_region_group = (
+            OSeMOSYSData.RGRY.Bool(
+                group_to_json(
+                    g=dfs["RegionGroupTagRegion"].loc[dfs["RegionGroupTagRegion"]["REGION"] == region_group],
+                    root_column=None,
+                    data_columns=["REGIONGROUP", "REGION", "YEAR"],
+                    target_column="VALUE",
+                    )
+                )
+                if region_group in dfs["RegionGroupTagRegion"]["REGION"].values
+                else None
+            )
+
         for region_group in df_regionsgroup["VALUE"].values.tolist():
-            data_json_format = {}
             region_group_instances.append(
                 cls(
                     id=region_group["VALUE"],
                     otoole_cfg=otoole_cfg,
-                    include_in_region_group=(
-                        OSeMOSYSData.RGRY(data=data_json_format["RegionGroupTagRegion"])
-                        if data_json_format["RegionGroupTagRegion"] is not None
-                        else None
-                    ),
+                    include_in_region_group=include_in_region_group,
+                ),
             )
-        )
 
         return region_group_instances 
 
@@ -162,9 +171,30 @@ class OtooleRegionGroup(BaseModel):
     def to_dataframes(cls, regionsgroup: List["RegionGroup"]) -> Dict[str, pd.DataFrame]:
         # collect dataframes
         dfs = {}
-
+        
         # SETS
         dfs["REGIONGROUP"] = pd.DataFrame({"VALUE": [rg.id for rg in regionsgroup]})
+
+        include_in_region_group_dfs = []
+
+        for region_group in regionsgroup:
+
+            if region_group.include_in_region_group is not None:
+                df = pd.json_normalize(region_group.include_in_region_group.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index               
+                )
+                df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
+                include_in_region_group_dfs.append(df)                
+
+
+        dfs["RegionGroupTagRegion"] = (
+            pd.concat(include_in_region_group_dfs)
+            if include_in_region_group_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["RegionGroupTagRegion"]["columns"])
+        )
 
         return dfs    
 
@@ -177,9 +207,13 @@ class OtooleRegionGroup(BaseModel):
             output_directory (str): Path to the root of the otoole csv directory
         """
 
-        dfs = cls.to_dataframes(regionsgroup)
+        dfs = cls.to_dataframes(regionsgroup=regionsgroup)
 
         # Sets
         dfs["REGIONGROUP"].to_csv(os.path.join(output_directory, "REGIONGROUP.csv"), index=False)
+
+        for stem, _params in cls.otoole_stems.items():
+            if any([(stem not in region_group.otoole_cfg.empty_dfs) for region_group in regionsgroup]):
+                dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True    
