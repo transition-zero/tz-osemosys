@@ -100,7 +100,7 @@ def add_emissions_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExp
         m.add_constraints(con, name="E9_ModelPeriodEmissionsLimit", mask=mask)
 
         con = lex["AnnualEmissionsRegionGroup"].fillna(0) <= ds["AnnualEmissionLimitRegionGroup"] - ds[
-            "AnnualExogenousEmission"
+            "AnnualExogenousEmissionRegionGroup"
         ].fillna(0)
         mask = (ds["AnnualEmissionLimitRegionGroup"] != -1) & (ds["AnnualEmissionLimitRegionGroup"].notnull())
 

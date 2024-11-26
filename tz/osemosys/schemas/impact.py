@@ -7,6 +7,7 @@ from tz.osemosys.schemas.compat.impact import OtooleImpact
 from tz.osemosys.schemas.validation.impact_validation import (
     exogenous_annual_within_constraint,
     exogenous_total_within_constraint,
+    exogenous_annual_region_group_within_constraint,
 )
 
 
@@ -90,8 +91,11 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
     exogenous_annual: OSeMOSYSData.RY | None = Field(None)
-    # Total modelled period exogenous emission per region and emission type
+    # Total modelled period exogenous emission per region group and emission type
     # I.e. emissions from non-modelled sources
+    exogenous_annual_region_group: OSeMOSYSData.RGY | None = Field(None)
+    # Total modelled period exogenous emission per region and emission type
+    # I.e. emissions from non-modelled sources    
     exogenous_total: OSeMOSYSData.R | None = Field(None)
     # Financial penalty for each unit of eimssion per region, year, and emission type
     # E.g. used to model carbon prices
@@ -113,6 +117,10 @@ class Impact(OSeMOSYSBase, OtooleImpact):
             exogenous_annual_within_constraint(
                 self.id, self.constraint_annual, self.exogenous_annual
             )
+        if self.constraint_annual_region_group is not None and self.exogenous_annual_region_group is not None:
+            exogenous_annual_region_group_within_constraint(
+                self.id, self.constraint_annual_region_group, self.exogenous_annual_region_group
+            )            
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)
         return self

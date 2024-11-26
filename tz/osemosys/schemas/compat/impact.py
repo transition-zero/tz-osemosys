@@ -36,6 +36,10 @@ class OtooleImpact(BaseModel):
             "attribute": "exogenous_annual",
             "columns": ["REGION", "EMISSION", "YEAR", "VALUE"],
         },
+        "AnnualExogenousEmissionRegionGroup": {
+            "attribute": "exogenous_annual_region_group",
+            "columns": ["REGIONGROUP", "EMISSION", "YEAR", "VALUE"],
+        },        
         "ModelPeriodExogenousEmission": {
             "attribute": "exogenous_total",
             "columns": ["REGION", "EMISSION", "VALUE"],
@@ -159,6 +163,20 @@ class OtooleImpact(BaseModel):
                         if impact in dfs["AnnualExogenousEmission"]["EMISSION"].values
                         else None
                     ),
+                    exogenous_annual_region_group=(
+                        OSeMOSYSData.RGY(
+                            data=group_to_json(
+                                g=dfs["AnnualExogenousEmissionRegionGroup"].loc[
+                                    dfs["AnnualExogenousEmissionRegionGroup"]["EMISSION"] == impact
+                                ],
+                                root_column="EMISSION",
+                                data_columns=["REGIONGROUP", "YEAR"],
+                                target_column="VALUE",
+                            )
+                        )
+                        if impact in dfs["AnnualExogenousEmissionRegionGroup"]["EMISSION"].values
+                        else None
+                    ),                    
                     exogenous_total=(
                         OSeMOSYSData.R(
                             data=group_to_json(
@@ -209,6 +227,7 @@ class OtooleImpact(BaseModel):
         annual_constraint_region_group_dfs = []
         total_constraint_dfs = []
         annual_exogenous_dfs = []
+        annual_exogenous_region_group_dfs = []
         total_exogenous_dfs = []
 
         for impact in impacts:
@@ -245,6 +264,13 @@ class OtooleImpact(BaseModel):
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 annual_exogenous_dfs.append(df)
+            if impact.exogenous_annual_region_group is not None:
+                df = pd.json_normalize(impact.exogenous_annual_region_group.data).T.rename(columns={0: "VALUE"})
+                df["EMISSION"] = impact.id
+                df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                annual_exogenous_dfs.append(df)                
             if impact.exogenous_total is not None:
                 df = pd.json_normalize(impact.exogenous_total.data).T.rename(columns={0: "VALUE"})
                 df["EMISSION"] = impact.id
@@ -263,6 +289,8 @@ class OtooleImpact(BaseModel):
             dfs["ModelPeriodEmissionLimit"] = pd.concat(total_constraint_dfs)
         if annual_exogenous_dfs:
             dfs["AnnualExogenousEmission"] = pd.concat(annual_exogenous_dfs)
+        if annual_exogenous_region_group_dfs:
+            dfs["AnnualExogenousEmissionRegionGroup"] = pd.concat(annual_exogenous_region_group_dfs)            
         if total_exogenous_dfs:
             dfs["ModelPeriodExogenousEmission"] = pd.concat(total_exogenous_dfs)
 
