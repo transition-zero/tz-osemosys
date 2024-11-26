@@ -106,9 +106,10 @@ impacts:
     long_name: equivalent carbon dioxide emissions
     description: equivalent carbon dioxide emissions
     penalty: # mn$/mntonne
-      US-CA: 20.
-      US-TX: 10.
-    constraint_annual: "{y:225*((2041-y)/(2041-2022)) for y in ${time_definition.years}}"
+      US-CA: 0.
+      US-TX: 0.
+    constraint_annual_region_group:
+      CA-TX: "{y:225*((2041-y)/(2041-2022)) for y in ${time_definition.years}}"
 
 # RENEWABLE TARGETS
 renewable_production_target:

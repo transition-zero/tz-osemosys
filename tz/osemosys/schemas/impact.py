@@ -83,7 +83,9 @@ class Impact(OSeMOSYSBase, OtooleImpact):
 
     # Annual emissions constraint per region, year, and emission type
     constraint_annual: OSeMOSYSData.RY | None = Field(None)
-    # Total modelled period emissions constraint per region and emission type
+    # Annual emissions constraint per region group, year, and emission type
+    constraint_annual_region_group: OSeMOSYSData.RGY | None = Field(None)
+    # Total modelled period emissions constraint per region and emission type    
     constraint_total: OSeMOSYSData.R | None = Field(None)
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
