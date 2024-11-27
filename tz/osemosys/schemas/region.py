@@ -74,8 +74,8 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
 
     ## Examples
 
-    A simple example of how a region group ("RG1") might be defined is given below, along with how it can
-    be used to create an instance of the Region group class:
+    A simple example of how a region group ("RG1") might be defined is given below, along with
+    how it can be used to create an instance of the Region group class:
 
     ```python
     from tz.osemosys.schemas.region import RegionGroup

@@ -32,7 +32,8 @@ class Model(RunSpec):
     `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
 
-    `regionsgroup` `(List[RegionGroup])` - List of Region Group instances to contain region group names.
+    `regionsgroup` `(List[RegionGroup])` - List of Region Group instances to contain region group
+    names.
     Optional parameter, defaults to `None`.
     
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
