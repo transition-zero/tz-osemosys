@@ -113,7 +113,7 @@ class RunSpecOtoole(BaseModel):
             if not df_name.isupper():
                 data_dfs[df_name] = df.set_index(df.columns.difference(["VALUE"]).tolist())
 
-        for obj in Impact, Technology, Commodity, TimeDefinition, Trade, self:
+        for obj in Impact, Technology, Commodity, TimeDefinition, Trade, RegionGroup, self:
             for stem, params in obj.otoole_stems.items():
                 if stem not in data_dfs.keys():
                     data_dfs[stem] = pd.DataFrame(columns=params["columns"]).set_index(
@@ -265,16 +265,16 @@ class RunSpecOtoole(BaseModel):
             if "REMinProductionTarget" not in otoole_cfg.empty_dfs
             else None
         )
-        include_in_region_group = (
-            group_to_json(
-                g=dfs["RegionGroupTagRegion"],
-                root_column=None,
-                data_columns=["REGIONGROUP", "REGION", "YEAR"],
-                target_column="VALUE",
-            )
-            if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
-            else None
-        )
+        # include_in_region_group = (
+        #     group_to_json(
+        #         g=dfs["RegionGroupTagRegion"],
+        #         root_column=None,
+        #         data_columns=["REGIONGROUP", "REGION", "YEAR"],
+        #         target_column="VALUE",
+        #     )
+        #     if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
+        #     else None
+        # )
 
         if "RETagFuel" not in otoole_cfg.empty_dfs:
             dfs["RETagFuel"]["VALUE"] = dfs["RETagFuel"]["VALUE"].map({0: False, 1: True})
@@ -342,16 +342,16 @@ class RunSpecOtoole(BaseModel):
             dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"][
                 "VALUE"
             ].map({0: False, 1: True})
-            region_group_data = group_to_json(
+            region_group_tag_region_data = group_to_json(
                 g=dfs["RegionGroupTagRegion"],
                 root_column=None,
                 data_columns=["REGIONGROUP", "REGION", "YEAR"],
                 target_column="VALUE",
             )
-            for region_group in regionsgroup:
-                if region_group.id in region_group_data.keys():
-                    region_group.include_in_region_group = OSeMOSYSData.RGRY.Bool(
-                        region_group_data[region_group])
+            for regions in regions:
+                if regions.id in region_group_tag_region_data.keys():
+                    regions.include_in_region_group = OSeMOSYSData.RGRY.Bool(
+                        region_group_tag_region_data[regions.id])
 
         return cls(
             id=id if id else Path(root_dir).name,
@@ -361,7 +361,6 @@ class RunSpecOtoole(BaseModel):
             depreciation_method=depreciation_method or defaults.depreciation_method,
             reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
-            include_in_region_group=include_in_region_group,
             impacts=impacts,
             regions=regions,
             regionsgroup=regionsgroup,
@@ -490,7 +489,7 @@ class RunSpecOtoole(BaseModel):
             dfs["RETagTechnology"] = pd.concat(dfs_tag_technology)
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
 
-        # region group
+        # regiongroup tag parameters
         if self.include_in_region_group:
             df = pd.json_normalize(self.include_in_region_group.data).T.rename(
                 columns={0: "VALUE"}
@@ -499,16 +498,16 @@ class RunSpecOtoole(BaseModel):
             dfs["RegionGroupTagRegion"] = df
 
             dfs_tag_region_group = []
-            for region_group in self.regionsgroup:
-                if region_group.include_in_region_group is not None:
+            for regions in self.regions:
+                if regions.include_in_region_group is not None:
                     df = pd.json_normalize(
-                        region_group.include_in_region_group.data
+                        regions.include_in_region_group.data
                     ).T.rename(columns={0: "VALUE"})
-                    df["REGIONGROUP"] = region_group.id
-                    df[["REGION", "YEAR"]] = pd.DataFrame(
+                    df["REGION"] = regions.id
+                    df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
                         df.index.str.split(".").to_list(), index=df.index
                     )
-                    df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
+                    df["VALUE"] = df["VALUE"].astype(int)
                     dfs_tag_region_group.append(df)
 
             dfs["RegionGroupTagRegion"] = pd.concat(dfs_tag_region_group)
@@ -534,7 +533,8 @@ class RunSpecOtoole(BaseModel):
         dfs.update(Commodity.to_dataframes(commodities=self.commodities))
         dfs.update(Region.to_dataframes(regions=self.regions))
         dfs.update(self.time_definition.to_dataframes())
-        dfs.update(RegionGroup.to_dataframes(regionsgroup=self.regionsgroup))  
+        if self.regionsgroup is not None:
+            dfs.update(RegionGroup.to_dataframes(regionsgroup=self.regionsgroup))  
         if self.storage is not None:
             dfs.update(Storage.to_dataframes(storage=self.storage))
         if self.trade is not None:
@@ -550,8 +550,9 @@ class RunSpecOtoole(BaseModel):
         Impact.to_otoole_csv(impacts=self.impacts, output_directory=output_directory)
         Commodity.to_otoole_csv(commodities=self.commodities, output_directory=output_directory)
         Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
-        RegionGroup.to_otoole_csv(regionsgroup=self.regionsgroup, output_directory=output_directory)
         self.time_definition.to_otoole_csv(output_directory=output_directory)
+        if self.regionsgroup is not None:
+            RegionGroup.to_otoole_csv(regionsgroup=self.regionsgroup, output_directory=output_directory)        
         if self.storage is not None:
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
         if self.trade is not None:

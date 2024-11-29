@@ -85,6 +85,8 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     )
 
     `include_in_region_group` `(region{year:float})` - OSeMOSYS RegionGroupTagRegion.
+    Tag regions into a group for RE target and emissions constriants. 
+    Optional, defaults to `None`.
 
     RegionGroup(**basic_region_group)
     ```
@@ -92,10 +94,10 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
 
     model_config = ConfigDict(extra="forbid")
 
-    # region group boolean assigning nodes to a group (e.g. at a country level)
+    # regiongroup boolean assigning nodes to a group (e.g. at a country level)
     include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
 
-    #exclude_technologies: List[str] | None = Field(default=None)
+    exclude_technologies: List[str] | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod

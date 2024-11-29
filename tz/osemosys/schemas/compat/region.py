@@ -113,7 +113,7 @@ class OtooleRegionGroup(BaseModel):
 
         dfs = {}
 
-        otoole_cfg = OtooleCfg(empty_dfs=[], non_default_idx={})
+        otoole_cfg = OtooleCfg(empty_dfs=[])
         for key, params in list(cls.otoole_stems.items()):
             try:
                 dfs[key] = pd.read_csv(Path(root_dir) / f"{key}.csv")
