@@ -26,6 +26,7 @@ class Defaults(BaseSettings):
     trade_capex: float = Field(0.00001)
     trade_operating_life: int = Field(1)
     trade_capacity_activity_unit_ratio: float = Field(1.0)
+    include_in_region_group: bool = Field(False)
 
 
 class DefaultsLinopy(BaseSettings):
@@ -44,6 +45,7 @@ class DefaultsLinopy(BaseSettings):
             "ResidualCapacity": 0,
             "SpecifiedAnnualDemand": 0,
             "TradeRoute": False,
+            "RegionGroupTagRegion": False,
         }
     )
 

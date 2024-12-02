@@ -265,16 +265,16 @@ class RunSpecOtoole(BaseModel):
             if "REMinProductionTarget" not in otoole_cfg.empty_dfs
             else None
         )
-        # include_in_region_group = (
-        #     group_to_json(
-        #         g=dfs["RegionGroupTagRegion"],
-        #         root_column=None,
-        #         data_columns=["REGIONGROUP", "REGION", "YEAR"],
-        #         target_column="VALUE",
-        #     )
-        #     if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
-        #     else None
-        # )
+        include_in_region_group = (
+            group_to_json(
+                g=dfs["RegionGroupTagRegion"],
+                root_column="REGION",
+                data_columns=["REGIONGROUP", "REGION", "YEAR"],
+                target_column="VALUE",
+            )
+            if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
+            else None
+        )
 
         if "RETagFuel" not in otoole_cfg.empty_dfs:
             dfs["RETagFuel"]["VALUE"] = dfs["RETagFuel"]["VALUE"].map({0: False, 1: True})
@@ -361,6 +361,7 @@ class RunSpecOtoole(BaseModel):
             depreciation_method=depreciation_method or defaults.depreciation_method,
             reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
+            include_in_region_group=include_in_region_group or defaults.include_in_region_group,
             impacts=impacts,
             regions=regions,
             regionsgroup=regionsgroup,
@@ -503,8 +504,8 @@ class RunSpecOtoole(BaseModel):
                     df = pd.json_normalize(
                         regions.include_in_region_group.data
                     ).T.rename(columns={0: "VALUE"})
-                    df["REGION"] = regions.id
-                    df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
+                    #df["REGION"] = regions.id
+                    df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
                         df.index.str.split(".").to_list(), index=df.index
                     )
                     df["VALUE"] = df["VALUE"].astype(int)

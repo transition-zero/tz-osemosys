@@ -6,6 +6,7 @@ import pandas as pd
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
+    from tz.osemosys.defaults import defaults
     from tz.osemosys.schemas.region import Region, RegionGroup
     from tz.osemosys.schemas.base import OSeMOSYSData
     from tz.osemosys.schemas.compat.base import OtooleCfg
@@ -147,13 +148,13 @@ class OtooleRegionGroup(BaseModel):
             OSeMOSYSData.RGRY.Bool(
                 group_to_json(
                     g=dfs["RegionGroupTagRegion"].loc[dfs["RegionGroupTagRegion"]["REGION"] == region_group],
-                    root_column=None,
-                    data_columns=["REGIONGROUP", "REGION", "YEAR"],
+                    root_column="REGION",
+                    data_columns=["REGIONGROUP", "YEAR"],
                     target_column="VALUE",
                     )
                 )
                 if region_group in dfs["RegionGroupTagRegion"]["REGION"].values
-                else None
+                else OSeMOSYSData.RGRY(defaults.include_in_region_group)
             )
 
         for region_group in df_regionsgroup["VALUE"].values.tolist():
@@ -183,12 +184,12 @@ class OtooleRegionGroup(BaseModel):
                 df = pd.json_normalize(region_group.include_in_region_group.data).T.rename(
                     columns={0: "VALUE"}
                 )
+                #df["REGIONGROUP"] = region_group.id
                 df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
-                    df.index.str.split(".").to_list(), index=df.index               
+                    df.index.str.split(".").to_list(), index=df.index.unique()              
                 )
                 df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
-                include_in_region_group_dfs.append(df)                
-
+                include_in_region_group_dfs.append(df)  
 
         dfs["RegionGroupTagRegion"] = (
             pd.concat(include_in_region_group_dfs)
