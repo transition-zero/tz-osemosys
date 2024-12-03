@@ -46,9 +46,18 @@ regionsgroup:
     long_name: California-Texas group
     description: combined CAL-TX region group
     include_in_region_group:
-      US-CA: True
-      US-TX: True
+      US-TX:
+        "*": True
+      US-CA:
+        "*": True  
 
+  - id: TX-AT
+    long_name: Texas-Atlantic group
+    description: Texas-Atlantic group
+    include_in_region_group:
+      ATLANTIC-MARKET: 
+        "*": True  
+      
 # TRADE ROUTES
 trade:
   - id: "ELEC trade"

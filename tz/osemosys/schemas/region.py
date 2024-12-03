@@ -4,6 +4,7 @@ from pydantic import ConfigDict, Field, model_validator
 
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.region import OtooleRegion, OtooleRegionGroup
+from tz.osemosys.defaults import defaults
 
 ##########
 # REGION #
@@ -95,7 +96,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     model_config = ConfigDict(extra="forbid")
 
     # regiongroup boolean assigning nodes to a group (e.g. at a country level)
-    include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
+    include_in_region_group: OSeMOSYSData.GRY.Bool | None = Field(defaults.include_in_region_group)
 
     exclude_technologies: List[str] | None = Field(default=None)
 

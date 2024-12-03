@@ -122,7 +122,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     constraint_annual_region_group=(
-                        OSeMOSYSData.RGY(
+                        OSeMOSYSData.GY(
                             data=group_to_json(
                                 g=dfs["AnnualEmissionLimitRegionGroup"].loc[
                                     dfs["AnnualEmissionLimitRegionGroup"]["EMISSION"] == impact
@@ -164,7 +164,7 @@ class OtooleImpact(BaseModel):
                         else None
                     ),
                     exogenous_annual_region_group=(
-                        OSeMOSYSData.RGY(
+                        OSeMOSYSData.GY(
                             data=group_to_json(
                                 g=dfs["AnnualExogenousEmissionRegionGroup"].loc[
                                     dfs["AnnualExogenousEmissionRegionGroup"]["EMISSION"] == impact

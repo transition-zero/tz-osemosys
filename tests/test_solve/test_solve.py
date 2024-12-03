@@ -2,7 +2,7 @@ import numpy as np
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, RegionGroup, Storage, Technology, TimeDefinition
 
-EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/phl_s5_Accelerated_Transition/"
+EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/CAISO-ERCOT-IC/"
 
 
 def test_model_construction_from_yaml():
@@ -20,6 +20,7 @@ def test_model_construction_from_yaml():
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 29044.0
 
+test_model_construction_from_yaml()
 
 # def test_model_solve_from_otoole_csv():
 #     """

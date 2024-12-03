@@ -227,7 +227,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     
     # REGION GROUPS
     # -------
-    include_in_region_group: OSeMOSYSData.RGRY.Bool | None = Field(None)
+    #include_in_region_group: OSeMOSYSData.GRY.Bool | None = Field(defaults.include_in_region_group)
 
     def maybe_mixin_discount_rate_idv(self):
         regions = [region.id for region in self.regions]
@@ -352,10 +352,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.renewable_production_target = self.renewable_production_target.compose(
                 self.id, self.renewable_production_target.data, **sets
             )
-        if self.include_in_region_group:
-            self.include_in_region_group = self.include_in_region_group.compose(
-                self.id, self.include_in_region_group.data, **sets
-            )
+        # if self.include_in_region_group:
+        #     self.include_in_region_group = self.include_in_region_group.compose(
+        #         self.id, self.include_in_region_group.data, **sets
+        #     )
         self.cost_of_capital = self.maybe_mixin_discount_rate_idv()
         if self.cost_of_capital:
             self.cost_of_capital = self.cost_of_capital.compose(

@@ -72,10 +72,10 @@ class RunSpecOtoole(BaseModel):
             "attribute": "cost_of_capital_storage",
             "columns": ["REGION", "STORAGE", "VALUE"],
         },
-         "RegionGroupTagRegion": {
-             "attribute": "include_in_region_group",
-             "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
-         },             
+        #  "RegionGroupTagRegion": {
+        #      "attribute": "include_in_region_group",
+        #      "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
+        #  },             
     }
 
     def map_datatypes(self, df: pd.DataFrame):
@@ -121,7 +121,7 @@ class RunSpecOtoole(BaseModel):
                     )
 
         # Convert params to data arrays
-        data_arrays = {
+            data_arrays = {
             var_name: self.map_datatypes(df).to_xarray()["VALUE"]
             for var_name, df in data_dfs.items()
             if not var_name.isupper()
@@ -265,16 +265,16 @@ class RunSpecOtoole(BaseModel):
             if "REMinProductionTarget" not in otoole_cfg.empty_dfs
             else None
         )
-        include_in_region_group = (
-            group_to_json(
-                g=dfs["RegionGroupTagRegion"],
-                root_column="REGION",
-                data_columns=["REGIONGROUP", "REGION", "YEAR"],
-                target_column="VALUE",
-            )
-            if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
-            else None
-        )
+        # include_in_region_group = (
+        #     group_to_json(
+        #         g=dfs["RegionGroupTagRegion"],
+        #         root_column="REGION",
+        #         data_columns=["REGIONGROUP", "REGION", "YEAR"],
+        #         target_column="VALUE",
+        #     )
+        #     if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
+        #     else None
+        # )
 
         if "RETagFuel" not in otoole_cfg.empty_dfs:
             dfs["RETagFuel"]["VALUE"] = dfs["RETagFuel"]["VALUE"].map({0: False, 1: True})
@@ -338,20 +338,20 @@ class RunSpecOtoole(BaseModel):
                         reserve_margin_technology_data[technology.id]
                     )
 
-        if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
-            dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"][
-                "VALUE"
-            ].map({0: False, 1: True})
-            region_group_tag_region_data = group_to_json(
-                g=dfs["RegionGroupTagRegion"],
-                root_column=None,
-                data_columns=["REGIONGROUP", "REGION", "YEAR"],
-                target_column="VALUE",
-            )
-            for regions in regions:
-                if regions.id in region_group_tag_region_data.keys():
-                    regions.include_in_region_group = OSeMOSYSData.RGRY.Bool(
-                        region_group_tag_region_data[regions.id])
+        # if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
+        #     dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"][
+        #         "VALUE"
+        #     ].map({0: False, 1: True})
+        #     region_group_tag_region_data = group_to_json(
+        #         g=dfs["RegionGroupTagRegion"],
+        #         root_column="REGION",
+        #         data_columns=["REGIONGROUP", "YEAR"],
+        #         target_column="VALUE",
+        #     )
+        #     for regions in regions:
+        #         if regions.id in region_group_tag_region_data.keys():
+        #             regions.include_in_region_group = OSeMOSYSData.GRY.Bool(
+        #                 region_group_tag_region_data[regions.id])
 
         return cls(
             id=id if id else Path(root_dir).name,
@@ -361,7 +361,7 @@ class RunSpecOtoole(BaseModel):
             depreciation_method=depreciation_method or defaults.depreciation_method,
             reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
-            include_in_region_group=include_in_region_group or defaults.include_in_region_group,
+            #include_in_region_group=include_in_region_group or defaults.include_in_region_group,
             impacts=impacts,
             regions=regions,
             regionsgroup=regionsgroup,
@@ -491,27 +491,27 @@ class RunSpecOtoole(BaseModel):
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
 
         # regiongroup tag parameters
-        if self.include_in_region_group:
-            df = pd.json_normalize(self.include_in_region_group.data).T.rename(
-                columns={0: "VALUE"}
-            )
-            df[["REGIONGROUP", "REGION" , "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
-            dfs["RegionGroupTagRegion"] = df
+        # if self.include_in_region_group:
+        #     df = pd.json_normalize(self.include_in_region_group.data).T.rename(
+        #         columns={0: "VALUE"}
+        #     )
+        #     df[["REGIONGROUP", "REGION" , "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
+        #     dfs["RegionGroupTagRegion"] = df
 
-            dfs_tag_region_group = []
-            for regions in self.regions:
-                if regions.include_in_region_group is not None:
-                    df = pd.json_normalize(
-                        regions.include_in_region_group.data
-                    ).T.rename(columns={0: "VALUE"})
-                    #df["REGION"] = regions.id
-                    df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
-                        df.index.str.split(".").to_list(), index=df.index
-                    )
-                    df["VALUE"] = df["VALUE"].astype(int)
-                    dfs_tag_region_group.append(df)
+        #     dfs_tag_region_group = []
+        #     for regions in self.regions:
+        #         if regions.include_in_region_group is not None:
+        #             df = pd.json_normalize(
+        #                 regions.include_in_region_group.data
+        #             ).T.rename(columns={0: "VALUE"})
+        #             #df["REGION"] = regions.id
+        #             df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
+        #                 df.index.str.split(".").to_list(), index=df.index
+        #             )
+        #             df["VALUE"] = df["VALUE"].astype(int)
+        #             dfs_tag_region_group.append(df)
 
-            dfs["RegionGroupTagRegion"] = pd.concat(dfs_tag_region_group)
+        #     dfs["RegionGroupTagRegion"] = pd.concat(dfs_tag_region_group)
 
         return dfs
 
