@@ -196,7 +196,7 @@ class OtooleRegionGroup(BaseModel):
                 df = pd.json_normalize(regions.include_in_region_group.data).T.rename(
                     columns={0: "VALUE"}
                 )
-            df["REGION"] = regions.id
+            #df["REGION"] = regions.id
             df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index.unique()              
                 )
@@ -205,8 +205,8 @@ class OtooleRegionGroup(BaseModel):
 
         dfs["RegionGroupTagRegion"] = (
             pd.concat(include_in_region_group_dfs).drop_duplicates()
-        #     if include_in_region_group_dfs
-        #     else pd.DataFrame(columns=cls.otoole_stems["RegionGroupTagRegion"])
+            if include_in_region_group_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["RegionGroupTagRegion"])
         )
 
         return dfs    
