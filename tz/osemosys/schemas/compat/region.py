@@ -160,7 +160,7 @@ class OtooleRegionGroup(BaseModel):
                             data_columns=data_columns,
                             target_column="VALUE",
                         )
-                        if region_group in dfs[stem]["REGIONGROUP"].values
+                        if region_group not in otoole_cfg.empty_dfs
                         else None
                     )
                 # If input CSV missing
@@ -171,8 +171,8 @@ class OtooleRegionGroup(BaseModel):
                     cls(
                         id=region_group,
                         otoole_cfg=otoole_cfg,
-                    include_in_region_group=(
-                        OSeMOSYSData.GRY(data=data_json_format["RegionGroupTagRegion"])
+                        include_in_region_group=(
+                        OSeMOSYSData.GRY.Bool(data=data_json_format["RegionGroupTagRegion"])
                         if data_json_format["RegionGroupTagRegion"] is not None
                         else OSeMOSYSData.GRY(defaults.include_in_region_group)
                     ),
