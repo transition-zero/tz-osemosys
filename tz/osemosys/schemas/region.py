@@ -96,7 +96,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     model_config = ConfigDict(extra="forbid")
 
     # regiongroup boolean assigning nodes to a group (e.g. at a country level)
-    include_in_region_group: OSeMOSYSData.GRY.Bool | None = Field(defaults.include_in_region_group)
+    include_in_region_group: OSeMOSYSData.RY.Bool | None = Field(defaults.include_in_region_group)
 
     exclude_technologies: List[str] | None = Field(default=None)
 

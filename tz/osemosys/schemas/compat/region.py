@@ -105,7 +105,7 @@ class OtooleRegionGroup(BaseModel):
     otoole_stems: ClassVar[dict[str : dict[str : Union[str, list[str]]]]] = {
          "RegionGroupTagRegion": {
              "attribute": "include_in_region_group",
-             "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
+             "columns": ["REGION", "YEAR", "VALUE"],
          },
     }
     
@@ -146,38 +146,26 @@ class OtooleRegionGroup(BaseModel):
         region_group_instances = []
 
         for region_group in df_regionsgroup["VALUE"].values.tolist():
-            data_json_format = {}
-            for stem, params in cls.otoole_stems.items():
-                # If input CSV present
-                if stem in dfs:
-                    data_columns = [
-                        c for c in params["columns"] if c not in ["REGIONGROUP", "VALUE"]
-                    ]
-                    data_json_format[stem] = (
-                        group_to_json(
-                            g=dfs[stem].loc[dfs[stem]["REGIONGROUP"] == region_group],
-                            root_column="REGIONGROUP",
-                            data_columns=data_columns,
-                            target_column="VALUE",
-                        )
-                        if region_group not in otoole_cfg.empty_dfs
-                        else None
-                    )
-                # If input CSV missing
-                else:
-                    data_json_format[stem] = None
+            include_in_region_group = (
+                OSeMOSYSData.RY(
+                    group_to_json(
+                        g=dfs["RegionGroupTagRegion"].loc[
+                            dfs["RegionGroupTagRegion"]
+                            ],
+                        root_column="REGIONGROUP",
+                        data_columns=["REGION", "YEAR"],
+                        target_column="VALUE",   
+                    )             
+                )
+            )
 
             region_group_instances.append(
                     cls(
                         id=region_group,
                         otoole_cfg=otoole_cfg,
-                        include_in_region_group=(
-                        OSeMOSYSData.GRY.Bool(data=data_json_format["RegionGroupTagRegion"])
-                        if data_json_format["RegionGroupTagRegion"] is not None
-                        else OSeMOSYSData.GRY(defaults.include_in_region_group)
+                        include_in_region_group=include_in_region_group,
                     ),
                 ),
-            )
 
         return region_group_instances 
 
@@ -190,23 +178,25 @@ class OtooleRegionGroup(BaseModel):
         dfs["REGIONGROUP"] = pd.DataFrame({"VALUE": [region_group.id for region_group in regionsgroup]})
 
         include_in_region_group_dfs = []
-
+        
         for regions in regionsgroup:
-            if regions.include_in_region_group is not False:
+
+            if regions.include_in_region_group is not None:
                 df = pd.json_normalize(regions.include_in_region_group.data).T.rename(
                     columns={0: "VALUE"}
                 )
-            #df["REGION"] = regions.id
-            df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
-                    df.index.str.split(".").to_list(), index=df.index.unique()              
+            df["REGIONGROUP"] = regions.id
+            df[["REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index              
                 )
             df["VALUE"] = df["VALUE"].map({True: 1, False: 0})
-        include_in_region_group_dfs.append(df)  
+            
+            include_in_region_group_dfs.append(df)
 
         dfs["RegionGroupTagRegion"] = (
             pd.concat(include_in_region_group_dfs).drop_duplicates()
             if include_in_region_group_dfs
-            else pd.DataFrame(columns=cls.otoole_stems["RegionGroupTagRegion"])
+            else pd.DataFrame(columns=cls.otoole_stems["RegionGroupTagRegion"]["columns"])          
         )
 
         return dfs    

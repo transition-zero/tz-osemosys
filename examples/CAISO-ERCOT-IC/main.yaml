@@ -49,24 +49,24 @@ regionsgroup:
       "US-TX": 
         "*": True
       "US-CA": 
-        "*": True
-      "ATLANTIC-MARKET":
-        "*": False        
-      "PACIFIC-MARKET":
-        "*": False 
+        "*": True     
+      "PACIFIC-MARKET": 
+        "*": False
+      "ATLANTIC-MARKET": 
+        "*": False  
 
   - id: PA-AT
     long_name: Texas-Atlantic group
     description: Texas-Atlantic group
     include_in_region_group: 
+      "PACIFIC-MARKET": 
+        "*": True
+      "ATLANTIC-MARKET": 
+        "*": True  
       "US-TX": 
         "*": False
       "US-CA": 
-        "*": False
-      "ATLANTIC-MARKET":
-        "*": True        
-      "PACIFIC-MARKET":
-        "*": True 
+        "*": False                
 
 # TRADE ROUTES
 trade:
