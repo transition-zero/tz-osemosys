@@ -155,7 +155,9 @@ def validate_adjacency_keys(
         set(list(adj["timeslices"].keys()) + list(adj["timeslices"].values())) != set(timeslices)
     ):
         raise ValueError("provided 'timeslices' do not match keys or values of 'adj.timeslices'")
-    if {int(yr) for yr in list(adj["years"].keys()) + list(adj["years"].values())} != set(years):
+    if len(years) > 1 and {
+        int(yr) for yr in list(adj["years"].keys()) + list(adj["years"].values())
+    } != set(years):
         raise ValueError("provided 'years' do not match keys or values of 'adj.years'")
     if seasons is not None and "seasons" in adj.keys():
         if adj["seasons"] != {}:
