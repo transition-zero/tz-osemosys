@@ -273,12 +273,12 @@ class Model(RunSpec):
     def solve(
         self,
         solution_vars: list[str] | str | None = None,
-        solver_options: dict[str, Any] = {},
+        solver_options: dict[str, Any] | None = None,
         **linopy_solve_kwargs: Any,
     ) -> tuple[str, str]:
         self._build()
 
-        self._m.solve(**solver_options, **linopy_solve_kwargs)
+        self._m.solve(**(solver_options or {}), **linopy_solve_kwargs)
 
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
