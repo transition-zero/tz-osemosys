@@ -80,7 +80,7 @@ cloudpath=[
 # package-data = {"sample" = ["*.dat"]}
 
 [tool.setuptools.packages]
-find = {}
+find = { include = ["tz.*"] }
 
 [build-system]
 # These are the assumed default build requirements from pip:

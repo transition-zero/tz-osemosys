@@ -262,25 +262,23 @@ class Model(RunSpec):
         add_constraints(self._data, self._m, self._linear_expressions)
         self._objective_constant = add_objective(self._m, self._linear_expressions)
 
-    def _build(self):
-        self._data = self._build_dataset()
-        self._build_model()
+    def _build(self, *, force: bool = False):
+        if force or not hasattr(self, "_data") or not hasattr(self, "_m"):
+            self._data = self._build_dataset()
+            self._build_model()
 
-    def _get_solution(self, solution_vars: list[str] | str | None = None):
+    def _get_solution(self, solution_vars: list[str] | str | None = None) -> xr.Dataset:
         return build_solution(self._m, self._linear_expressions, solution_vars)
 
     def solve(
         self,
-        lp_path: str | None = None,
         solution_vars: list[str] | str | None = None,
+        solver_options: dict[str, Any] = {},
         **linopy_solve_kwargs: Any,
-    ):
+    ) -> tuple[str, str]:
         self._build()
 
-        if lp_path:
-            self._m.to_file(lp_path)
-
-        self._m.solve(**linopy_solve_kwargs)
+        self._m.solve(**solver_options, **linopy_solve_kwargs)
 
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
@@ -290,7 +288,7 @@ class Model(RunSpec):
             # TODO: find out why and add constant back on: + self._objective_constant
             self._objective = self._solution.TotalDiscountedCost.sum().values
 
-        return self._m.status
+        return self._m.status, self._m.termination_condition
 
     @property
     def solution(self):
