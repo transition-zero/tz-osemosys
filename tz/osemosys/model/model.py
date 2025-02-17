@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 import xarray as xr
 from linopy import LinearExpression
 from linopy import Model as LPModel
-from linopy import available_solvers
 
 from tz.osemosys.io.load_model import load_cfg
 from tz.osemosys.model.constraints import add_constraints
@@ -193,7 +192,7 @@ class Model(RunSpec):
 
     By default, the model will be solved using the first available solver in the list of available
     solvers. To specify a solver, pass the name of the solver as a string to the solve() method for
-    the argument `solver` (e.g. `model.solve(solver="highs")`).
+    the argument `solver_name` (e.g. `model.solve(solver_name="highs")`).
 
     ### Viewing the model solution
 
@@ -263,33 +262,23 @@ class Model(RunSpec):
         add_constraints(self._data, self._m, self._linear_expressions)
         self._objective_constant = add_objective(self._m, self._linear_expressions)
 
-    def _build(self):
-        self._data = self._build_dataset()
-        self._build_model()
+    def _build(self, *, force: bool = False):
+        if force or not hasattr(self, "_data") or not hasattr(self, "_m"):
+            self._data = self._build_dataset()
+            self._build_model()
 
-    def _get_solution(self, solution_vars: list[str] | str | None = None):
+    def _get_solution(self, solution_vars: list[str] | str | None = None) -> xr.Dataset:
         return build_solution(self._m, self._linear_expressions, solution_vars)
 
     def solve(
         self,
-        solver: str | None = None,
-        lp_path: str | None = None,
         solution_vars: list[str] | str | None = None,
+        solver_options: dict[str, Any] | None = None,
         **linopy_solve_kwargs: Any,
-    ):
+    ) -> tuple[str, str]:
         self._build()
 
-        if solver is None:
-            solver = available_solvers[0]
-        else:
-            assert (
-                solver in available_solvers
-            ), f"Solver {solver} not available. Choose from {available_solvers}."
-
-        if lp_path:
-            self._m.to_file(lp_path)
-
-        self._m.solve(solver_name=solver, **linopy_solve_kwargs)
+        self._m.solve(**(solver_options or {}), **linopy_solve_kwargs)
 
         if self._m.termination_condition == "optimal":
             self._solution = self._get_solution(solution_vars)
@@ -299,7 +288,7 @@ class Model(RunSpec):
             # TODO: find out why and add constant back on: + self._objective_constant
             self._objective = self._solution.TotalDiscountedCost.sum().values
 
-        return self._m.status
+        return self._m.status, self._m.termination_condition
 
     @property
     def solution(self):
