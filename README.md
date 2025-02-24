@@ -52,11 +52,9 @@ We have added the following features:
 
 ## Documentation
 
-[TZ-OSeMOSYS](https://docs.feo.transitionzero.org/)
+[TZ-OSeMOSYS](docs)
 
 [Examples](examples)
-
-[TransitionZero Platform Docs](https://docs.feo.transitionzero.org/)
 
 [OSeMOSYS Docs](https://osemosys.readthedocs.io/en/latest/)
 
