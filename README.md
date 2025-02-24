@@ -4,7 +4,7 @@
   <a href="https://www.transitionzero.org/">
 </picture>
 
-# TZ-OSEMOSYS - a modern long-run systems modelling framework
+# TZ-OSeMOSYS - a modern long-run systems modelling framework
 
 <!-- badges-begin -->
 
@@ -32,18 +32,14 @@
 <!-- badges-end -->
 
 
-**OSeMOSYS** is an open source modelling system for long-run systems analysis and planning.
-It has been employed to develop energy systems models from the scale of the globe, continents, countries, regions, and villages.
-OSeMOSYS is extremely flexible - it can be used for high-fidelity representations of power systems, rich with technological detail;
-medium-fidelity representations of all-energy systems including upstream energy supply, final energy demand, and climate policities;
-or low-fidelity nexus problems including commodities like materials, energy, and financing, and a range of environomental and social impacts.
+**OSeMOSYS** is an open source modelling system for long-run systems analysis and planning. It has been employed to develop energy systems models from the scale of the globe, continents, countries, regions, and villages. OSeMOSYS is extremely flexible - it can be used for high-fidelity representations of power systems, rich with technological detail; medium-fidelity representations of all-energy systems including upstream energy supply, final energy demand, and climate policies; or low-fidelity nexus problems including commodities like materials, energy, and financing, and a range of environmental and social impacts. 
 
 OSeMOSYS is entirely open-source and can be used with a variety of programming languages and solvers.
 
 ## OSeMOSYS with the Future Energy Outlook
 
 TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package (tz-osemosys).
-This implementation of OSeMOSYS underlies our Future Energy Outlook capacity expansion model builder.
+This implementation of OSeMOSYS underlies our [Scenario Builder](https://builder.transitionzero.org/), a no-code platform for energy system modelling.
 We have added the following features:
 
 * [Pydantic](https://docs.pydantic.dev/latest/)-based model construction and validation
@@ -78,11 +74,11 @@ The docker container is used in testing, but can also be used for local developm
 docker run -v $(pwd):/home -it  ghcr.io/transition-zero/tz-highs/highs-python:latest /bin/bash -c 'cd /home && /bin/bash'
 ```
 
-*note! Any files changed within this mounted directory will persist, but any changes to environments, installed packes, etc. will not!*
+*note! Any files changed within this mounted directory will persist, but any changes to environments, installed packages, etc. will not!*
 
 ## Quickstart
 
-TZ-OSeMOSYS provides several entrypoints to get started quickly, however your model is specified.
+TZ-OSeMOSYS provides several entry-points to get started quickly, however your model is specified.
 
 ### From Pydantic objects
 
@@ -174,7 +170,7 @@ my_model = Model.from_yaml("path/to/yaml/directory")
 
 ### From Otoole outputs (legacy)
 
-TZ-OSeMOSYS is provided with backwards compatability with the [otoole](https://github.com/OSeMOSYS/otoole) osemosys tooling. Any legacy models can be loaded from the directory of otoole-formatted csvs.
+TZ-OSeMOSYS is provided with backwards compatibility with the [otoole](https://github.com/OSeMOSYS/otoole) osemosys tooling. Any legacy models can be loaded from the directory of otoole-formatted csvs.
 
 ```python
 from tz.osemosys import Model
