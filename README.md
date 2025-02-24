@@ -36,7 +36,7 @@
 
 OSeMOSYS is entirely open-source and can be used with a variety of programming languages and solvers.
 
-## OSeMOSYS with the Future Energy Outlook
+## OSeMOSYS with Scenario Builder
 
 TransitionZero has rebuilt OSeMOSYS as a pip-installable Python package (tz-osemosys).
 This implementation of OSeMOSYS underlies our [Scenario Builder](https://builder.transitionzero.org/), a no-code platform for energy system modelling.
