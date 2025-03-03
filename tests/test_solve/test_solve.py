@@ -16,9 +16,11 @@ def test_model_construction_from_yaml():
 
     model._m.solve(solver_name="highs")
 
+    breakpoint()
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 29044.0
 
+test_model_construction_from_yaml()
 
 def test_model_solve_from_otoole_csv():
     """
@@ -61,6 +63,7 @@ def test_most_simple():
 
     model._m.solve(solver_name="highs")
 
+    breakpoint()
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 45736.0
 

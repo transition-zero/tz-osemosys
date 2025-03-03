@@ -136,7 +136,7 @@ class OtooleCommodity(BaseModel):
                         g=dfs["RETagFuel"].loc[dfs["RETagFuel"]["FUEL"] == commodity],
                         root_column="FUEL",
                         data_columns=["REGION", "YEAR"],
-                        target_column="VALUE",
+                        target_column="VALUE"
                     )
                 )
                 if commodity in dfs["RETagFuel"]["FUEL"].values

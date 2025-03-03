@@ -13,7 +13,7 @@ from tz.osemosys.schemas.base import (
 from tz.osemosys.schemas.commodity import Commodity
 from tz.osemosys.schemas.compat.model import RunSpecOtoole
 from tz.osemosys.schemas.impact import Impact
-from tz.osemosys.schemas.region import Region
+from tz.osemosys.schemas.region import Region, RegionGroup
 from tz.osemosys.schemas.storage import Storage
 from tz.osemosys.schemas.technology import Technology
 from tz.osemosys.schemas.time_definition import TimeDefinition
@@ -50,6 +50,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
     `regions` `(List[Region])` - List of Region instances to contain region names.
     Required parameter.
+
+    'regionsgroup' `(List[RegionGroup])` - List of Region group instances to contain region group 
+    names.
+    Optional parameter, defaults to `None`.
 
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
     commodities (OSeMOSYS FUEL).
@@ -200,6 +204,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # ----------
     time_definition: TimeDefinition
     regions: List[Region]
+    regionsgroup: List[RegionGroup] | None = Field(None)
     commodities: List[Commodity]
     impacts: List[Impact]
     technologies: List[Technology]  # just production technologies for now
@@ -219,6 +224,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # TARGETS
     # -------
     renewable_production_target: OSeMOSYSData.RY | None = Field(None)
+    
+    # REGION GROUPS
+    # -------
+    #include_in_region_group: OSeMOSYSData.GRY.Bool | None = Field(defaults.include_in_region_group)
 
     def maybe_mixin_discount_rate_idv(self):
         regions = [region.id for region in self.regions]
@@ -308,9 +317,12 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             "regions": [region.id for region in self.regions],
             "technologies": [technology.id for technology in self.technologies],
             "impacts": [impact.id for impact in self.impacts],
+            "regionsgroup": [region_group.id for region_group in self.regionsgroup],
         }
         if self.storage:
             sets = {**sets, **{"storage": [storage.id for storage in self.storage]}}
+        if self.regionsgroup:
+            sets = {**sets, **{"regionsgroup": [regiongroup.id for regiongroup in self.regionsgroup]}}
 
         self.commodities = [commodity.compose(**sets) for commodity in self.commodities]
         self.regions = [region.compose(**sets) for region in self.regions]
@@ -320,6 +332,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.storage = [storage.compose(**sets) for storage in self.storage]
         if self.trade:
             self.trade = [trade.compose(**sets) for trade in self.trade]
+        if self.regionsgroup:
+            self.regionsgroup = [regiongroup.compose(**sets) for regiongroup in self.regionsgroup]    
 
         # compose own parameters
         if self.depreciation_method:
@@ -338,7 +352,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.renewable_production_target = self.renewable_production_target.compose(
                 self.id, self.renewable_production_target.data, **sets
             )
-
+        # if self.include_in_region_group:
+        #     self.include_in_region_group = self.include_in_region_group.compose(
+        #         self.id, self.include_in_region_group.data, **sets
+        #     )
         self.cost_of_capital = self.maybe_mixin_discount_rate_idv()
         if self.cost_of_capital:
             self.cost_of_capital = self.cost_of_capital.compose(
