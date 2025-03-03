@@ -15,6 +15,9 @@ def add_lex_re_production(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     ProductionByTechnologyRE = RateOfProductionByTechnologyRE * ds["YearSplit"]
     ProductionRE = RateOfProductionRE * ds["YearSplit"]
     ProductionAnnualRE = ProductionRE.sum(dims="TIMESLICE")
+    ProductionAnnualRERegionGroup = ProductionAnnualRE.sum(dims="REGION").where(
+        ds["RegionGroupTagRegion"] == 1
+    )
 
     lex.update(
         {
@@ -24,5 +27,6 @@ def add_lex_re_production(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
             "ProductionRE": ProductionRE,
             "ProductionByTechnologyRE": ProductionByTechnologyRE,
             "ProductionAnnualRE": ProductionAnnualRE,
+            "ProductionAnnualRERegionGroup": ProductionAnnualRERegionGroup,
         }
     )

@@ -106,6 +106,13 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     produced by the technologies tagged with the include_in_joint_renewable_target parameter.
     Optional parameter, defaults to `None`.
 
+    `region_group_renewable_production_target` `({regiongroup:{year:float}})` - OSeMOSYS RegionGroupREMinProductionTarget.
+    Minimum ratio of all renewable commodities tagged in the
+    include_in_joint_renewable_target parameter, to be
+    produced by the technologies tagged with the include_in_joint_renewable_target parameter,
+    summed across regions within a region group.
+    Optional parameter, defaults to `None`.
+
     ## Examples
 
     ### From dicts
@@ -224,6 +231,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     # TARGETS
     # -------
     renewable_production_target: OSeMOSYSData.RY | None = Field(None)
+    region_group_renewable_production_target: OSeMOSYSData.GY | None = Field(None)
     
     # REGION GROUPS
     # -------
@@ -352,10 +360,10 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
             self.renewable_production_target = self.renewable_production_target.compose(
                 self.id, self.renewable_production_target.data, **sets
             )
-        # if self.include_in_region_group:
-        #     self.include_in_region_group = self.include_in_region_group.compose(
-        #         self.id, self.include_in_region_group.data, **sets
-        #     )
+        if self.region_group_renewable_production_target:
+            self.region_group_renewable_production_target = self.region_group_renewable_production_target.compose(
+                self.id, self.region_group_renewable_production_target.data, **sets
+            )    
         self.cost_of_capital = self.maybe_mixin_discount_rate_idv()
         if self.cost_of_capital:
             self.cost_of_capital = self.cost_of_capital.compose(

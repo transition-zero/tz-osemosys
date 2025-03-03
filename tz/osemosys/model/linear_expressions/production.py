@@ -16,6 +16,9 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     ProductionByTechnology = RateOfProductionByTechnology * ds["YearSplit"]
     Production = RateOfProduction * ds["YearSplit"]
     ProductionAnnual = Production.sum(dims="TIMESLICE")
+    ProductionAnnualRegionGroup = ProductionAnnual.sum(dims="REGION").where(
+        ds["RegionGroupTagRegion"] == 1
+    )
 
     RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
         ds["InputActivityRatio"].notnull(), drop=False
@@ -35,6 +38,7 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "Production": Production,
             "ProductionByTechnology": ProductionByTechnology,
             "ProductionAnnual": ProductionAnnual,
+            "ProductionAnnualRegionGroup": ProductionAnnualRegionGroup,
             "RateOfUseByTechnologyByMode": RateOfUseByTechnologyByMode,
             "RateOfUseByTechnology": RateOfUseByTechnology,
             "RateOfUse": RateOfUse,

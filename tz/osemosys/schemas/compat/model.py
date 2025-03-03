@@ -72,10 +72,10 @@ class RunSpecOtoole(BaseModel):
             "attribute": "cost_of_capital_storage",
             "columns": ["REGION", "STORAGE", "VALUE"],
         },
-        #  "RegionGroupTagRegion": {
-        #      "attribute": "include_in_region_group",
-        #      "columns": ["REGIONGROUP", "REGION", "YEAR", "VALUE"],
-        #  },             
+        "RegionGroupREMinProductionTarget": {
+            "attribute": "region_group_renewable_production_target",
+            "columns": ["REGIONGROUP", "YEAR", "VALUE"],
+        },          
     }
 
     def map_datatypes(self, df: pd.DataFrame):
@@ -265,16 +265,16 @@ class RunSpecOtoole(BaseModel):
             if "REMinProductionTarget" not in otoole_cfg.empty_dfs
             else None
         )
-        # include_in_region_group = (
-        #     group_to_json(
-        #         g=dfs["RegionGroupTagRegion"],
-        #         root_column="REGION",
-        #         data_columns=["REGIONGROUP", "REGION", "YEAR"],
-        #         target_column="VALUE",
-        #     )
-        #     if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs
-        #     else None
-        # )
+        region_group_renewable_production_target = (
+            group_to_json(
+                g=dfs["RegionGroupREMinProductionTarget"],
+                root_column=None,
+                data_columns=["REGIONGROUP", "YEAR"],
+                target_column="VALUE",
+            )
+            if "RegionGroupREMinProductionTarget" not in otoole_cfg.empty_dfs
+            else None
+        )
 
         if "RETagFuel" not in otoole_cfg.empty_dfs:
             dfs["RETagFuel"]["VALUE"] = dfs["RETagFuel"]["VALUE"].map({0: False, 1: True})
@@ -304,6 +304,20 @@ class RunSpecOtoole(BaseModel):
                 if technology.id in re_tagtechnology_data.keys():
                     technology.include_in_joint_renewable_target = OSeMOSYSData.RY.Bool(
                         re_tagtechnology_data[technology.id]
+                    )
+
+        if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
+            dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"]["VALUE"].map({0: False, 1: True})
+            region_group_tag_data = group_to_json(
+                g=dfs["RegionGroupTagRegion"],
+                root_column="REGIONGROUP",
+                data_columns=["REGION", "YEAR"],
+                target_column="VALUE",
+            )
+            for regions in regionsgroup:
+                if regions.id in region_group_tag_data.keys():
+                    regions.include_in_region_group = OSeMOSYSData.GY.Bool(
+                        region_group_tag_data[regions.id]
                     )
 
         if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs:
@@ -338,21 +352,6 @@ class RunSpecOtoole(BaseModel):
                         reserve_margin_technology_data[technology.id]
                     )
 
-        # if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
-        #     dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"][
-        #         "VALUE"
-        #     ].map({0: False, 1: True})
-        #     region_group_tag_region_data = group_to_json(
-        #         g=dfs["RegionGroupTagRegion"],
-        #         root_column="REGION",
-        #         data_columns=["REGIONGROUP", "YEAR"],
-        #         target_column="VALUE",
-        #     )
-        #     for regions in regions:
-        #         if regions.id in region_group_tag_region_data.keys():
-        #             regions.include_in_region_group = OSeMOSYSData.GRY.Bool(
-        #                 region_group_tag_region_data[regions.id])
-
         return cls(
             id=id if id else Path(root_dir).name,
             discount_rate=discount_rate or defaults.discount_rate,
@@ -361,7 +360,7 @@ class RunSpecOtoole(BaseModel):
             depreciation_method=depreciation_method or defaults.depreciation_method,
             reserve_margin=reserve_margin or defaults.reserve_margin,
             renewable_production_target=renewable_production_target,
-            #include_in_region_group=include_in_region_group or defaults.include_in_region_group,
+            region_group_renewable_production_target=region_group_renewable_production_target,
             impacts=impacts,
             regions=regions,
             regionsgroup=regionsgroup,
@@ -451,7 +450,7 @@ class RunSpecOtoole(BaseModel):
                 pd.concat(dfs_tag_fuel)
                 if dfs_tag_fuel
                 else pd.DataFrame(columns=self.otoole_stems["ReserveMarginTagFuel"]["columns"])
-            )
+            )        
 
         # min renewable production targets
         if self.renewable_production_target:
@@ -490,28 +489,42 @@ class RunSpecOtoole(BaseModel):
             dfs["RETagTechnology"] = pd.concat(dfs_tag_technology)
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
 
-        # regiongroup tag parameters
-        # if self.include_in_region_group:
-        #     df = pd.json_normalize(self.include_in_region_group.data).T.rename(
-        #         columns={0: "VALUE"}
-        #     )
-        #     df[["REGIONGROUP", "REGION" , "YEAR"]] = pd.DataFrame(df.index.str.split(".").to_list(), index=df.index)
-        #     dfs["RegionGroupTagRegion"] = df
+        if self.region_group_renewable_production_target:
+            df = pd.json_normalize(self.region_group_renewable_production_target.data).T.rename(columns={0: "VALUE"})
+            df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
+                df.index.str.split(".").to_list(), index=df.index
+            )
+            dfs["RegionGroupREMinProductionTarget"] = df
 
-        #     dfs_tag_region_group = []
-        #     for regions in self.regions:
-        #         if regions.include_in_region_group is not None:
-        #             df = pd.json_normalize(
-        #                 regions.include_in_region_group.data
-        #             ).T.rename(columns={0: "VALUE"})
-        #             #df["REGION"] = regions.id
-        #             df[["REGIONGROUP", "REGION", "YEAR"]] = pd.DataFrame(
-        #                 df.index.str.split(".").to_list(), index=df.index
-        #             )
-        #             df["VALUE"] = df["VALUE"].astype(int)
-        #             dfs_tag_region_group.append(df)
+            dfs_tag_technology = []
+            for technology in self.technologies:
+                if technology.include_in_joint_renewable_target is not None:
+                    df = pd.json_normalize(
+                        technology.include_in_joint_renewable_target.data
+                    ).T.rename(columns={0: "VALUE"})
+                    df["TECHNOLOGY"] = technology.id
+                    df[["REGION", "YEAR"]] = pd.DataFrame(
+                        df.index.str.split(".").to_list(), index=df.index
+                    )
+                    df["VALUE"] = df["VALUE"].astype(int)
+                    dfs_tag_technology.append(df)
 
-        #     dfs["RegionGroupTagRegion"] = pd.concat(dfs_tag_region_group)
+            dfs_tag_fuel = []
+            for commodity in self.commodities:
+                if commodity.include_in_joint_renewable_target is not None:
+                    df = pd.json_normalize(
+                        commodity.include_in_joint_renewable_target.data
+                    ).T.rename(columns={0: "VALUE"})
+                    df["FUEL"] = commodity.id
+                    df[["REGION", "YEAR"]] = pd.DataFrame(
+                        df.index.str.split(".").to_list(), index=df.index
+                    )
+                    df["VALUE"] = df["VALUE"].astype(int)
+                    dfs_tag_fuel.append(df)
+
+            dfs["RETagTechnology"] = pd.concat(dfs_tag_technology)
+            dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
+
 
         return dfs
 
