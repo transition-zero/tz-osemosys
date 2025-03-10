@@ -10,6 +10,8 @@ SOLUTION_KEYS = [
     "CapitalInvestment",
     "CapitalInvestmentStorage",
     "DemandNeedingReserveMargin",
+    "DiscountedAnnualFixedOperatingCost",
+    "DiscountedAnnualVariableOperatingCost",
     "DiscountedCapitalInvestment",
     "DiscountedCapitalInvestmentStorage",
     "DiscountedOperatingCost",
