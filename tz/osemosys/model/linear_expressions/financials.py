@@ -33,7 +33,11 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     SV2Cost = ds["CapitalCost"].fillna(0) * (1 - (lex["SV2Numerator"] / lex["SV2Denominator"]))
 
     # costs
-    DiscountedOperatingCost = OperatingCost / lex["DiscountFactorMid"]
+    DiscountedAnnualFixedOperatingCost = AnnualFixedOperatingCost / lex["DiscountFactorMid"]
+    DiscountedAnnualVariableOperatingCost = AnnualVariableOperatingCost / lex["DiscountFactorMid"]
+    DiscountedOperatingCost = (
+        DiscountedAnnualVariableOperatingCost + DiscountedAnnualFixedOperatingCost
+    )
 
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
@@ -80,6 +84,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "AnnualVariableOperatingCost": AnnualVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
+            "DiscountedAnnualFixedOperatingCost": DiscountedAnnualFixedOperatingCost,
+            "DiscountedAnnualVariableOperatingCost": DiscountedAnnualVariableOperatingCost,
             "DiscountedOperatingCost": DiscountedOperatingCost,
             "DiscountedCapitalInvestment": DiscountedCapitalInvestment,
             "DiscountedSalvageValue": DiscountedSalvageValue,
