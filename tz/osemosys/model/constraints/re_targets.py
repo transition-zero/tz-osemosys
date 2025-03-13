@@ -57,7 +57,7 @@ def add_re_targets_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearEx
     mask = ds["RETagFuel"] == 1
     m.add_constraints(con, name="RE1_RenewableProduction_MinConstraint", mask=mask)
 
-    con = lex["ProductionAnnualRERegionGroup"] >= (lex["ProductionAnnualRegionGroup"] 
+    con = lex["ProductionAnnualRERegionGroupAggregate"] >= (lex["ProductionAnnualRegionGroupAggregate"] 
         * ds["RegionGroupREMinProductionTarget"])
     mask = ds["RETagFuel"] == 1
     m.add_constraints(con, name="RE2_RegionGroup_RenewableProduction_MinConstraint", mask=mask)
