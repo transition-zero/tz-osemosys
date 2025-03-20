@@ -212,8 +212,6 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     technology's capacity year on year, expressed as a decimal (e.g. 0.2 for 20%). Optional,
     defaults to `None`.
 
-    `capacity_annual_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
-
     `activity_annual_max` `({region:{year:float}})` - OSeMOSYS
     TotalTechnologyAnnualActivityUpperLimit.
     Total maximum level of activity allowed for a technology in one year.
@@ -316,8 +314,6 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # additional capacity lower bounds (MUST build)
     capacity_additional_min: OSeMOSYSData.RY | None = Field(None)
     capacity_additional_min_growth_rate: OSeMOSYSData.RY | None = Field(None)
-
-    capacity_annual_max: OSeMOSYSData.RY | None = Field(None)
 
     # activity
     activity_annual_max: OSeMOSYSData.RY | None = Field(None)
