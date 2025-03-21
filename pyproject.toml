@@ -29,7 +29,7 @@ classifiers = [  # Optional
 dependencies = [
   "pydantic>2",
   "pydantic-settings",
-  "xarray<2025.03.0",
+  "xarray",
   "orjson",
   "linopy",
 ]
