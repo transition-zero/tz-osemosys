@@ -32,7 +32,8 @@ def add_lex_re_production(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     lex.update(
         {
             "RateOfProductionByTechnologyByModeRE": RateOfProductionByTechnologyByModeRE,
-            "RateOfProductionByTechnologyByModeRERegionGroup": RateOfProductionByTechnologyByModeRERegionGroup,
+            "RateOfProductionByTechnologyByModeRERegionGroup": 
+                RateOfProductionByTechnologyByModeRERegionGroup,
             "RateOfProductionByTechnologyRE": RateOfProductionByTechnologyRE,
             "RateOfProductionByTechnologyRERegionGroup": RateOfProductionByTechnologyRERegionGroup,
             "RateOfProductionRE": RateOfProductionRE,

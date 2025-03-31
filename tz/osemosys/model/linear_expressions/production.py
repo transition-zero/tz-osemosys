@@ -42,7 +42,8 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     lex.update(
         {
             "RateOfProductionByTechnologyByMode": RateOfProductionByTechnologyByMode,
-            "RateOfProductionByTechnologyByModeRegionGroup": RateOfProductionByTechnologyByModeRegionGroup,
+            "RateOfProductionByTechnologyByModeRegionGroup": 
+                RateOfProductionByTechnologyByModeRegionGroup,
             "RateOfProductionByTechnology": RateOfProductionByTechnology,
             "RateOfProductionByTechnologyRegionGroup": RateOfProductionByTechnologyRegionGroup,
             "RateOfProduction": RateOfProduction,
