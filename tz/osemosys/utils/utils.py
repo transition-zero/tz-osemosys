@@ -370,8 +370,8 @@ def to_df_helper(self):
         },
         "regionsgroup": {
             "otoole_stems": self.regionsgroup[0].otoole_stems,
-            "root_column": "REGIONGROUP", 
-        },            
+            "root_column": "REGIONGROUP",
+        },
         "commodities": {
             "otoole_stems": self.commodities[0].otoole_stems,
             "root_column": "FUEL",

@@ -19,7 +19,10 @@ def exogenous_annual_within_constraint(id, constraint_annual, exogenous_annual):
 
     return True
 
-def exogenous_annual_region_group_within_constraint(id, constraint_annual_region_group, exogenous_annual_region_group):
+
+def exogenous_annual_region_group_within_constraint(
+    id, constraint_annual_region_group, exogenous_annual_region_group
+):
     """
     Check exogenous_annual <= constraint_annual for each region, impact and year
     """
@@ -36,6 +39,7 @@ def exogenous_annual_region_group_within_constraint(id, constraint_annual_region
             )
 
     return True
+
 
 def exogenous_total_within_constraint(id, constraint_total, exogenous_total):
     """

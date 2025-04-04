@@ -12,12 +12,10 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
     )
 
     AnnualTechnologyEmissionByModeRegionGroup = (
-        (ds["EmissionActivityRatio"] * ds["YearSplit"] * m["RateOfActivity"])
-        .sum("TIMESLICE")
-        ).where(
-            ds["EmissionActivityRatio"].notnull()
-            & (ds["RegionGroupTagRegion"] == 1),
-            drop=False,
+        (ds["EmissionActivityRatio"] * ds["YearSplit"] * m["RateOfActivity"]).sum("TIMESLICE")
+    ).where(
+        ds["EmissionActivityRatio"].notnull() & (ds["RegionGroupTagRegion"] == 1),
+        drop=False,
     )
 
     AnnualTechnologyEmission = AnnualTechnologyEmissionByMode.sum(dims="MODE_OF_OPERATION").where(
@@ -25,9 +23,8 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
     )
 
     AnnualTechnologyEmissionRegionGroup = AnnualTechnologyEmissionByModeRegionGroup.sum(
-        dims="MODE_OF_OPERATION").where(
-        ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    )
+        dims="MODE_OF_OPERATION"
+    ).where(ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False)
 
     AnnualTechnologyEmissionPenaltyByEmission = (
         AnnualTechnologyEmission * ds["EmissionsPenalty"]

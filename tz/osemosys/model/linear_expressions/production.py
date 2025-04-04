@@ -9,15 +9,15 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     RateOfProductionByTechnologyByMode = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
         ds["OutputActivityRatio"].notnull(), drop=False
     )
-    RateOfProductionByTechnologyByModeRegionGroup = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
-       ds["OutputActivityRatio"].notnull() & (ds["RegionGroupTagRegion"] == 1), drop=False
+    RateOfProductionByTechnologyByModeRG = m["RateOfActivity"] * ds["OutputActivityRatio"].where(
+        ds["OutputActivityRatio"].notnull() & (ds["RegionGroupTagRegion"] == 1), drop=False
     )
     RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
         ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
     ).sum(dims="MODE_OF_OPERATION")
-    RateOfProductionByTechnologyRegionGroup = RateOfProductionByTechnologyByModeRegionGroup.where(
-       ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")    
+    RateOfProductionByTechnologyRegionGroup = RateOfProductionByTechnologyByModeRG.where(
+        ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
+    ).sum(dims="MODE_OF_OPERATION")
     RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
     RateOfProductionRegionGroup = RateOfProductionByTechnologyRegionGroup.sum(dims="TECHNOLOGY")
     ProductionByTechnology = RateOfProductionByTechnology * ds["YearSplit"]
@@ -27,7 +27,8 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     ProductionAnnual = Production.sum(dims="TIMESLICE")
     ProductionAnnualRegionGroup = ProductionRegionGroup.sum(dims="TIMESLICE")
     ProductionAnnualRegionGroupAggregate = ProductionAnnualRegionGroup.sum(dims="REGION").where(
-        ds["RegionGroupTagRegion"] == 1, drop=False)
+        ds["RegionGroupTagRegion"] == 1, drop=False
+    )
 
     RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
         ds["InputActivityRatio"].notnull(), drop=False
@@ -42,8 +43,7 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     lex.update(
         {
             "RateOfProductionByTechnologyByMode": RateOfProductionByTechnologyByMode,
-            "RateOfProductionByTechnologyByModeRegionGroup": 
-                RateOfProductionByTechnologyByModeRegionGroup,
+            "RateOfProductionByTechnologyByModeRG": RateOfProductionByTechnologyByModeRG,
             "RateOfProductionByTechnology": RateOfProductionByTechnology,
             "RateOfProductionByTechnologyRegionGroup": RateOfProductionByTechnologyRegionGroup,
             "RateOfProduction": RateOfProduction,

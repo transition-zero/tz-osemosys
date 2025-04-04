@@ -445,6 +445,7 @@ def _compose_R(self, obj_id, data, regions, **sets):
 
     return self
 
+
 def _compose_G(self, obj_id, data, regionsgroup, **sets):
     # RegionGroup
     _check_nesting_depth(obj_id, data, 1)
@@ -452,6 +453,7 @@ def _compose_G(self, obj_id, data, regionsgroup, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_RY(self, obj_id, data, regions, years, **sets):
     # Region-Year
@@ -462,6 +464,7 @@ def _compose_RY(self, obj_id, data, regions, years, **sets):
 
     return self
 
+
 def _compose_GY(self, obj_id, data, regionsgroup, years, **sets):
     # RegionGroup-Year
 
@@ -471,23 +474,30 @@ def _compose_GY(self, obj_id, data, regionsgroup, years, **sets):
 
     return self
 
+
 def _compose_GRY(self, obj_id, data, regionsgroup, regions, years, **sets):
     # RegionGroup-Region-Year
 
     _check_nesting_depth(obj_id, data, 3)
-    self.data = _check_set_membership(obj_id, data, {"regionsgroup": regionsgroup, "regions": regions, "years": years})
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "regions": regions, "years": years}
+    )
     self.is_composed = True
 
     return self
+
 
 def _compose_GR(self, obj_id, data, regionsgroup, regions, **sets):
     # RegionGroup-Region-Year
 
     _check_nesting_depth(obj_id, data, 2)
-    self.data = _check_set_membership(obj_id, data, {"regionsgroup": regionsgroup, "regions": regions})
+    self.data = _check_set_membership(
+        obj_id, data, {"regionsgroup": regionsgroup, "regions": regions}
+    )
     self.is_composed = True
 
     return self
+
 
 def _compose_RT(self, obj_id, data, regions, technologies, **sets):
     # Region-Technology
@@ -500,6 +510,7 @@ def _compose_RT(self, obj_id, data, regions, technologies, **sets):
 
     return self
 
+
 def _compose_GT(self, obj_id, data, regionsgroup, technologies, **sets):
     # RegionGroup-Technology
 
@@ -510,6 +521,7 @@ def _compose_GT(self, obj_id, data, regionsgroup, technologies, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
     # Region-Year-TimeSlice
@@ -522,6 +534,7 @@ def _compose_RYS(self, obj_id, data, regions, years, timeslices, **sets):
 
     return self
 
+
 def _compose_GYS(self, obj_id, data, regionsgroup, years, timeslices, **sets):
     # RegionGroup-Year-TimeSlice
 
@@ -532,6 +545,7 @@ def _compose_GYS(self, obj_id, data, regionsgroup, years, timeslices, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
     # Region-Technology-Year
@@ -544,6 +558,7 @@ def _compose_RTY(self, obj_id, data, regions, technologies, years, **sets):
 
     return self
 
+
 def _compose_GTY(self, obj_id, data, regionsgroup, technologies, years, **sets):
     # RegionGroup-Technology-Year
 
@@ -555,6 +570,7 @@ def _compose_GTY(self, obj_id, data, regionsgroup, technologies, years, **sets):
 
     return self
 
+
 def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
     # Region-Commodity-Year
     _check_nesting_depth(obj_id, data, 3)
@@ -564,6 +580,7 @@ def _compose_RCY(self, obj_id, data, regions, commodities, years, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_GCY(self, obj_id, data, regionsgroup, commodities, years, **sets):
     # RegionGroup-Commodity-Year
@@ -575,6 +592,7 @@ def _compose_GCY(self, obj_id, data, regionsgroup, commodities, years, **sets):
 
     return self
 
+
 def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
     # Region-Impact-Year
     _check_nesting_depth(obj_id, data, 3)
@@ -584,6 +602,7 @@ def _compose_RIY(self, obj_id, data, regions, impacts, years, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_GIY(self, obj_id, data, regionsgroup, impacts, years, **sets):
     # RegionGroup-Impact-Year
@@ -595,6 +614,7 @@ def _compose_GIY(self, obj_id, data, regionsgroup, impacts, years, **sets):
 
     return self
 
+
 def _compose_RO(self, obj_id, data, regions, storage, **sets):
     # Region-stOrage
     _check_nesting_depth(obj_id, data, 2)
@@ -602,6 +622,7 @@ def _compose_RO(self, obj_id, data, regions, storage, **sets):
     self.is_composed = True
 
     return self
+
 
 def _compose_RRY(self, obj_id, data, regions, years, **sets):
     # Region-Commodity-Year
@@ -627,7 +648,28 @@ def _null(self, values):
 
 
 for key, func in zip(
-    ["R", "G", "RY", "GY", "GRY", "GR", "RT", "RTY", "RYS", "GYS", "RTY", "GTY", "RCY", "GCY", "RIY", "GIY", "RO", "RRY", "RR", "ANY"],
+    [
+        "R",
+        "G",
+        "RY",
+        "GY",
+        "GRY",
+        "GR",
+        "RT",
+        "RTY",
+        "RYS",
+        "GYS",
+        "RTY",
+        "GTY",
+        "RCY",
+        "GCY",
+        "RIY",
+        "GIY",
+        "RO",
+        "RRY",
+        "RR",
+        "ANY",
+    ],
     [
         _compose_R,
         _compose_G,

@@ -75,7 +75,7 @@ class RunSpecOtoole(BaseModel):
         "RegionGroupREMinProductionTarget": {
             "attribute": "region_group_renewable_production_target",
             "columns": ["REGIONGROUP", "YEAR", "VALUE"],
-        },          
+        },
     }
 
     def map_datatypes(self, df: pd.DataFrame):
@@ -120,12 +120,12 @@ class RunSpecOtoole(BaseModel):
                         [c for c in params["columns"] if c != "VALUE"]
                     )
 
-        # Convert params to data arrays
+            # Convert params to data arrays
             data_arrays = {
-            var_name: self.map_datatypes(df).to_xarray()["VALUE"]
-            for var_name, df in data_dfs.items()
-            if not var_name.isupper()
-        }
+                var_name: self.map_datatypes(df).to_xarray()["VALUE"]
+                for var_name, df in data_dfs.items()
+                if not var_name.isupper()
+            }
 
         coords = {
             var_name: df["VALUE"].astype(str).tolist()
@@ -203,9 +203,7 @@ class RunSpecOtoole(BaseModel):
         otoole_cfg.empty_dfs += list(
             set(flatten([commodity.otoole_cfg.empty_dfs for commodity in commodities]))
         )
-        otoole_cfg.empty_dfs += list(
-            set(time_definition.otoole_cfg.empty_dfs)
-        )
+        otoole_cfg.empty_dfs += list(set(time_definition.otoole_cfg.empty_dfs))
         otoole_cfg.empty_dfs += list(
             set(flatten([region_group.otoole_cfg.empty_dfs for region_group in regionsgroup]))
         )
@@ -307,7 +305,9 @@ class RunSpecOtoole(BaseModel):
                     )
 
         if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
-            dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"]["VALUE"].map({0: False, 1: True})
+            dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"]["VALUE"].map(
+                {0: False, 1: True}
+            )
             region_group_tag_data = group_to_json(
                 g=dfs["RegionGroupTagRegion"],
                 root_column="REGIONGROUP",
@@ -450,7 +450,7 @@ class RunSpecOtoole(BaseModel):
                 pd.concat(dfs_tag_fuel)
                 if dfs_tag_fuel
                 else pd.DataFrame(columns=self.otoole_stems["ReserveMarginTagFuel"]["columns"])
-            )        
+            )
 
         # min renewable production targets
         if self.renewable_production_target:
@@ -490,7 +490,9 @@ class RunSpecOtoole(BaseModel):
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
 
         if self.region_group_renewable_production_target:
-            df = pd.json_normalize(self.region_group_renewable_production_target.data).T.rename(columns={0: "VALUE"})
+            df = pd.json_normalize(self.region_group_renewable_production_target.data).T.rename(
+                columns={0: "VALUE"}
+            )
             df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
                 df.index.str.split(".").to_list(), index=df.index
             )
@@ -525,7 +527,6 @@ class RunSpecOtoole(BaseModel):
             dfs["RETagTechnology"] = pd.concat(dfs_tag_technology)
             dfs["RETagFuel"] = pd.concat(dfs_tag_fuel)
 
-
         return dfs
 
     def to_dataframes(self) -> Dict[str, pd.DataFrame]:
@@ -548,11 +549,11 @@ class RunSpecOtoole(BaseModel):
         dfs.update(Region.to_dataframes(regions=self.regions))
         dfs.update(self.time_definition.to_dataframes())
         if self.regionsgroup is not None:
-            dfs.update(RegionGroup.to_dataframes(regionsgroup=self.regionsgroup))  
+            dfs.update(RegionGroup.to_dataframes(regionsgroup=self.regionsgroup))
         if self.storage is not None:
             dfs.update(Storage.to_dataframes(storage=self.storage))
         if self.trade is not None:
-            dfs.update(Trade.to_dataframes(trade=self.trade))   
+            dfs.update(Trade.to_dataframes(trade=self.trade))
 
         return dfs
 
@@ -566,7 +567,9 @@ class RunSpecOtoole(BaseModel):
         Region.to_otoole_csv(regions=self.regions, output_directory=output_directory)
         self.time_definition.to_otoole_csv(output_directory=output_directory)
         if self.regionsgroup is not None:
-            RegionGroup.to_otoole_csv(regionsgroup=self.regionsgroup, output_directory=output_directory)        
+            RegionGroup.to_otoole_csv(
+                regionsgroup=self.regionsgroup, output_directory=output_directory
+            )
         if self.storage is not None:
             Storage.to_otoole_csv(storage=self.storage, output_directory=output_directory)
         if self.trade is not None:

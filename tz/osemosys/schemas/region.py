@@ -1,10 +1,10 @@
-from typing import List, Any
+from typing import Any, List
 
 from pydantic import ConfigDict, Field, model_validator
 
+from tz.osemosys.defaults import defaults
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.region import OtooleRegion, OtooleRegionGroup
-from tz.osemosys.defaults import defaults
 
 ##########
 # REGION #
@@ -64,7 +64,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
 
     The Region Group class contains data related to region groups. One Region group instance
     is given for a user defined selection of regions. In this way, national climate policies/
-    national renewable energy targets can be taken into account with sub-national 
+    national renewable energy targets can be taken into account with sub-national
     nodal representation. For example, a country-level NDC commitment can be implemented in a
     multi-node national model by grouping all nodes in a country and the decision as to the
     distribution of emissions across nodes will be determined endogenously.
@@ -78,7 +78,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     A simple example of how a region group ("RG1") might be defined is given below, along with
     how it can be used to create an instance of the Region group class:
 
-    ```python
+
     from tz.osemosys.schemas.region import RegionGroup
 
     basic_region_group = dict(
@@ -86,11 +86,11 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
     )
 
     `include_in_region_group` `(region{year:float})` - OSeMOSYS RegionGroupTagRegion.
-    Tag regions into a group for RE target and emissions constriants. 
+    Tag regions into a group for RE target and emissions constriants.
     Optional, defaults to `None`.
 
     RegionGroup(**basic_region_group)
-    ```
+
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -109,8 +109,7 @@ class RegionGroup(OSeMOSYSBase, OtooleRegionGroup):
             if field_val is not None:
                 values[field] = cast_osemosysdata_value(field_val, info)
 
-        return values    
-
+        return values
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
