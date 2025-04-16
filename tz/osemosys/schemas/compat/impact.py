@@ -274,7 +274,7 @@ class OtooleImpact(BaseModel):
                 df[["REGIONGROUP", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
-                annual_exogenous_dfs.append(df)
+                annual_exogenous_region_group_dfs.append(df)
             if impact.exogenous_total is not None:
                 df = pd.json_normalize(impact.exogenous_total.data).T.rename(columns={0: "VALUE"})
                 df["EMISSION"] = impact.id
@@ -322,6 +322,7 @@ class OtooleImpact(BaseModel):
         # params to csv where appropriate
         for stem, _params in cls.otoole_stems.items():
             if any([(stem not in impact.otoole_cfg.empty_dfs) for impact in impacts]):
+
                 dfs[stem].to_csv(os.path.join(output_directory, f"{stem}.csv"), index=False)
 
         return True

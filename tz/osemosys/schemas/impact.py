@@ -26,10 +26,18 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     `constraint_annual` `({region:{year:float}})` - OSeMOSYS AnnualEmissionLimit.
       Annual impact constraint. Optional, defaults to `None`.
 
+    `constraint_annual_region_group` `({regiongroup:{year:float}})` -
+      OSeMOSYS AnnualEmissionLimitRegionGroup.
+      Annual impact constraint. Optional, defaults to `None`.
+
     `constraint_total` `({region:float})` - OSeMOSYS ModelPeriodEmissionLimit.
       Total modelling period impact constraint. Optional, defaults to `None`.
 
     `exogenous_annual` `({region:{year:float}})` - OSeMOSYS AnnualExogenousEmission.
+      Annual exogenous impact. Optional, defaults to `None`.
+
+    `exogenous_annual_region_group` `({regiongroup:{year:float}})` -
+      OSeMOSYS AnnualExogenousEmissionRegionGroup.
       Annual exogenous impact. Optional, defaults to `None`.
 
     `exogenous_total` `({region:float})` - OSeMOSYS ModelPeriodExogenousEmission.
