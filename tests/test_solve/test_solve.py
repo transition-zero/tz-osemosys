@@ -20,6 +20,9 @@ def test_model_construction_from_yaml():
     assert np.round(model._m.objective.value) == 29044.0
 
 
+test_model_construction_from_yaml()
+
+
 def test_model_solve_from_otoole_csv():
     """
     Check that a model can be constructed and solved from a otoole style set of CSVs

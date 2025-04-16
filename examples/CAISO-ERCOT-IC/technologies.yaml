@@ -51,3 +51,55 @@ technologies:
     activity_annual_min: null
     activity_total_max: null
     activity_total_min: null
+
+  - id: coal
+    long_name: coal gen
+    description: coal gen
+    capacity_activity_unit_ratio: 31.536
+    capacity_one_tech_unit: null
+    availability_factor: 1.
+    capacity_factor: 1.
+    operating_life: 25
+    include_in_joint_reserve_margin: true
+    include_in_joint_renewable_target: true
+    # Not Implemented
+    # include_regions: null
+    # exclude_regions:
+    #   - ATLANTIC-MARKET
+    #   - PACIFIC-MARKET
+    capex:
+      "*": "{y:100 - 100*(max(${time_definition.years})-y)/(max(${time_definition.years}) - min(${time_definition.years})) for y in ${time_definition.years}}"
+    opex_fixed: 5
+    operating_modes:
+      - id: GEN
+        long_name: generation mode
+        description: default generation mode
+        emission_activity_ratio: {"CO2": 0.1}
+        input_activity_ratio: null
+        output_activity_ratio:
+          "*":            # all regions
+            ELEC:
+              "*":        # all years
+                1.
+        to_storage: null
+        from_storage: null
+        opex_variable: 0.
+    residual_capacity: 166.3
+
+    # CAPACITY
+    capacity_gross_max: 500.
+    capacity_gross_min: 0.
+    capacity_additional_min: 0.
+
+    # To be implemented
+    # additional_capacity_max_ceil: null
+    # additional_capacity_max_floor: 5
+    # additional_capacity_max_growth_rate: 0.1
+    # additional_capacity_min_growth_rate: 0.
+
+
+    # constraints - activity
+    activity_annual_max: null
+    activity_annual_min: null
+    activity_total_max: null
+    activity_total_min: null
