@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional
 
 import xarray as xr
@@ -290,13 +291,13 @@ class Model(RunSpec):
 
         return self._m.status, self._m.termination_condition
 
-    def save_netcdf(self, path: str) -> None:
+    def save_netcdf(self, path: str | os.PathLike[str]) -> None:
         if not hasattr(self, "_data"):
             self._data = self._build_dataset()
         ds = self._data if self._solution is None else self._data.merge(self._solution)
         ds.to_netcdf(path, engine="h5netcdf")
 
-    def read_netcdf(self, path: str) -> None:
+    def read_netcdf(self, path: str | os.PathLike[str]):
         raise NotImplementedError("Reading from netcdf is not implemented yet.")
 
     @property
