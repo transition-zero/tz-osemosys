@@ -352,6 +352,16 @@ class OtooleTrade(BaseModel):
             if capacity_activity_unit_ratio_dfs
             else pd.DataFrame(columns=cls.otoole_stems["TradeCapacityToActivityUnit"]["columns"])
         )
+        dfs["TradeRouteLookup"] = pd.DataFrame(
+            [
+                (r, _r, t.commodity, t.id)
+                for t in trade
+                if t.trade_routes is not None
+                for r in t.trade_routes.data
+                for _r in t.trade_routes.data[r]
+            ],
+            columns=["REGION", "_REGION", "FUEL", "VALUE"],
+        )
 
         return dfs
 
