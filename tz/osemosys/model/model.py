@@ -295,7 +295,7 @@ class Model(RunSpec):
             self._data = self._build_dataset()
         ds = self._data if self._solution is None else self._data.merge(self._solution)
         ds.to_netcdf(path, engine="h5netcdf")
-    
+
     def read_netcdf(self, path: str) -> None:
         raise NotImplementedError("Reading from netcdf is not implemented yet.")
 
