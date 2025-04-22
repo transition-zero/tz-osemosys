@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+import xarray as xr
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
 
@@ -32,6 +35,22 @@ def test_model_solve_from_otoole_csv():
 
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 5591653.0
+
+
+def test_model_save_netcdf(tmp_path: Path):
+    model = Model.from_yaml(EXAMPLE_YAML)
+    assert not hasattr(model, "_data")
+    model.save_netcdf(tmp_path / "model.build.nc")
+    assert hasattr(model, "_data")
+    model.solve(solver_name="highs")
+    assert model._solution is not None
+    model.save_netcdf(tmp_path / "model.solve.nc")
+
+    ds = xr.load_dataset(tmp_path / "model.solve.nc")
+    for var in model._data:
+        xr.testing.assert_identical(ds[var], model._data[var])
+    for var in model._solution:
+        xr.testing.assert_identical(ds[var], model._solution[var])
 
 
 def test_most_simple():
