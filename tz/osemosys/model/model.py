@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional
 
 import xarray as xr
@@ -280,7 +281,7 @@ class Model(RunSpec):
 
         self._m.solve(**(solver_options or {}), **linopy_solve_kwargs)
 
-        if self._m.termination_condition == "optimal":
+        if self._m.status == "ok":
             self._solution = self._get_solution(solution_vars)
 
             # rather hacky - constants not currently supported in objective functions:
@@ -289,6 +290,15 @@ class Model(RunSpec):
             self._objective = self._solution.TotalDiscountedCost.sum().values
 
         return self._m.status, self._m.termination_condition
+
+    def save_netcdf(self, path: str | os.PathLike[str]) -> None:
+        if not hasattr(self, "_data"):
+            self._data = self._build_dataset()
+        ds = self._data if self._solution is None else self._data.merge(self._solution)
+        ds.to_netcdf(path, engine="h5netcdf")
+
+    def read_netcdf(self, path: str | os.PathLike[str]):
+        raise NotImplementedError("Reading from netcdf is not implemented yet.")
 
     @property
     def solution(self):
