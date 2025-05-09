@@ -9,6 +9,7 @@ from .capacity_adequacy_a import add_capacity_adequacy_a_constraints
 from .capacity_adequacy_b import add_capacity_adequacy_b_constraints
 from .capacity_growth_rate import add_capacity_growthrate_constraints
 from .emissions import add_emissions_constraints
+from .regiongroup import add_regiongroup_constraints
 from .energy_balance_a import add_energy_balance_a_constraints
 from .energy_balance_b import add_energy_balance_b_constraints
 from .new_capacity import add_new_capacity_constraints
@@ -41,6 +42,8 @@ def add_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) 
     m = add_energy_balance_a_constraints(ds, m, lex)
     m = add_energy_balance_b_constraints(ds, m, lex)
     m = add_emissions_constraints(ds, m, lex)
+    if ds["REGIONGROUP"].size > 0:
+        m = add_regiongroup_constraints(ds, m, lex)
     m = add_annual_activity_constraints(ds, m, lex)
     m = add_new_capacity_constraints(ds, m, lex)
     if ds["REMinProductionTarget"].notnull().any():

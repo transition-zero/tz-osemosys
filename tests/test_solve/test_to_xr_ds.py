@@ -1,6 +1,6 @@
 from tz.osemosys.io.load_model import load_model
 
-EXAMPLE_YAML = "/home/dwelsby/repos/tz-osemosys/examples/utopia"
+EXAMPLE_YAML = "examples/utopia/main.yaml"
 
 
 def test_to_xr_ds():

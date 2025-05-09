@@ -20,7 +20,7 @@ def test_model_construction_from_yaml():
     assert np.round(model._m.objective.value) == 29044.0
 
 
-test_model_construction_from_yaml()
+
 
 
 def test_model_solve_from_otoole_csv():
