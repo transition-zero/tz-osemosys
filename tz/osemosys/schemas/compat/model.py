@@ -120,12 +120,12 @@ class RunSpecOtoole(BaseModel):
                         [c for c in params["columns"] if c != "VALUE"]
                     )
 
-            # Convert params to data arrays
-            data_arrays = {
-                var_name: self.map_datatypes(df).to_xarray()["VALUE"]
-                for var_name, df in data_dfs.items()
-                if not var_name.isupper()
-            }
+        # Convert params to data arrays
+        data_arrays = {
+            var_name: self.map_datatypes(df).to_xarray()["VALUE"]
+            for var_name, df in data_dfs.items()
+            if not var_name.isupper()
+        }
 
         coords = {
             var_name: df["VALUE"].astype(str).tolist()
@@ -204,13 +204,6 @@ class RunSpecOtoole(BaseModel):
             set(flatten([commodity.otoole_cfg.empty_dfs for commodity in commodities]))
         )
         otoole_cfg.empty_dfs += list(set(time_definition.otoole_cfg.empty_dfs))
-        # if regionsgroup is not None:
-        #     otoole_cfg.empty_dfs += list(
-        #         set(flatten([region_group.otoole_cfg.empty_dfs for region_group in regionsgroup]))
-        #     )
-        # # If the regionsgroup class is empty, append RegionGroupTagRegion to empty_dfs
-        # else: 
-        #     otoole_cfg.empty_dfs += ["RegionGroupTagRegion"]
 
         # read in depreciation_method and replace enum
         if "DepreciationMethod" not in otoole_cfg.empty_dfs:
@@ -307,22 +300,6 @@ class RunSpecOtoole(BaseModel):
                     technology.include_in_joint_renewable_target = OSeMOSYSData.RY.Bool(
                         re_tagtechnology_data[technology.id]
                     )
-        # Add RegionGroup tags to the Region classes
-        # if "RegionGroupTagRegion" not in otoole_cfg.empty_dfs:
-        #     dfs["RegionGroupTagRegion"]["VALUE"] = dfs["RegionGroupTagRegion"]["VALUE"].map(
-        #         {0: False, 1: True}
-        #     )
-        #     region_group_tag_data = group_to_json(
-        #         g=dfs["RegionGroupTagRegion"],
-        #         root_column="REGIONGROUP",
-        #         data_columns=["REGION", "YEAR"],
-        #         target_column="VALUE",
-        #     )
-        #     for regions in regionsgroup:
-        #         if regions.id in region_group_tag_data.keys():
-        #             regions.include_in_region_group = OSeMOSYSData.GY.Bool(
-        #                 region_group_tag_data[regions.id]
-        #             )
 
         if "ReserveMarginTagFuel" not in otoole_cfg.empty_dfs:
             dfs["ReserveMarginTagFuel"]["VALUE"] = dfs["ReserveMarginTagFuel"]["VALUE"].map(
