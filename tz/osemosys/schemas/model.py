@@ -52,7 +52,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     Required parameter.
 
     'regionsgroup' `(List[RegionGroup])` - List of Region group instances to contain region group
-    names.
+    names. See RegionGroup documentation for a detailed description of how region groups can be
+    used.
     Optional parameter, defaults to `None`.
 
     `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
@@ -112,6 +113,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
     include_in_joint_renewable_target parameter, to be
     produced by the technologies tagged with the include_in_joint_renewable_target parameter,
     summed across regions within a region group.
+    See RegionGroup documentation for a detailed description of how region groups can be
+    used.
     Optional parameter, defaults to `None`.
 
     ## Examples

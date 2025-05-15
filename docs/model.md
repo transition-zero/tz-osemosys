@@ -17,6 +17,10 @@ temporal data related to the model. Required parameter.
 `regions` `(List[Region])` - List of Region instances to contain region names.
 Required parameter.
 
+`regionsgroup` `(List[RegionGroup])` - List of Region Group instances to contain region group
+names. See RegionGroup documentation for a detailed description of how region groups can be used.
+Optional parameter, defaults to `None`.
+
 `commodities` `(List[Commodity])` - List of Commodity instances to contain all data related to
 commodities (OSeMOSYS FUEL).
 Required parameter.
@@ -66,6 +70,16 @@ Optional parameter, defaults to 1.
 Minimum ratio of all renewable commodities tagged in the
 include_in_joint_renewable_target parameter, to be
 produced by the technologies tagged with the include_in_joint_renewable_target parameter.
+Optional parameter, defaults to `None`.
+
+`region_group_renewable_production_target` `({regiongroup:{year:float}})` -
+OSeMOSYS style name RegionGroupREMinProductionTarget.
+Minimum ratio of all renewable commodities tagged in the
+include_in_joint_renewable_target parameter, to be
+produced by the technologies tagged with the include_in_joint_renewable_target parameter,
+summed across regions within a region group.
+See RegionGroup documentation for a detailed description of how region groups can be
+used.
 Optional parameter, defaults to `None`.
 
 ## Loading/constructing a model
