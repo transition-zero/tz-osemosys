@@ -10,7 +10,7 @@ def test_otoole_roundtrip():
     comparison_root = "./tests/otoole_compare/"
 
     for path in OTOOLE_SAMPLE_PATHS:
-        
+
         comparison_model = Path(path).name
         output_directory = Path(comparison_root + comparison_model)
         output_directory.mkdir(parents=True, exist_ok=True)

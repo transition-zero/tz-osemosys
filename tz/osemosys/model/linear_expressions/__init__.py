@@ -7,10 +7,10 @@ from tz.osemosys.model.linear_expressions.activity import add_lex_activity
 from tz.osemosys.model.linear_expressions.capacity import add_lex_capacity
 from tz.osemosys.model.linear_expressions.discounting import add_lex_discounting
 from tz.osemosys.model.linear_expressions.emissions import add_lex_emissions
-from tz.osemosys.model.linear_expressions.regiongroup import add_lex_regiongroup
 from tz.osemosys.model.linear_expressions.financials import add_lex_financials
 from tz.osemosys.model.linear_expressions.production import add_lex_quantities
 from tz.osemosys.model.linear_expressions.re_production import add_lex_re_production
+from tz.osemosys.model.linear_expressions.regiongroup import add_lex_regiongroup
 from tz.osemosys.model.linear_expressions.reserve_margin import add_lex_reserve_margin
 from tz.osemosys.model.linear_expressions.storage import add_lex_storage
 from tz.osemosys.model.linear_expressions.trade import add_lex_trade

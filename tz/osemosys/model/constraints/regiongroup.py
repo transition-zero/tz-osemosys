@@ -4,11 +4,13 @@ import xarray as xr
 from linopy import LinearExpression, Model
 
 
-def add_regiongroup_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]) -> Model:
+def add_regiongroup_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
 
-    con = lex["AnnualEmissionsRegionGroup"].fillna(0) <= ds[
-        "AnnualEmissionLimitRegionGroup"
-    ] - ds["AnnualExogenousEmissionRegionGroup"].fillna(0)
+    con = lex["AnnualEmissionsRegionGroup"].fillna(0) <= ds["AnnualEmissionLimitRegionGroup"] - ds[
+        "AnnualExogenousEmissionRegionGroup"
+    ].fillna(0)
     mask = (ds["AnnualEmissionLimitRegionGroup"] != -1) & (
         ds["AnnualEmissionLimitRegionGroup"].notnull()
     )

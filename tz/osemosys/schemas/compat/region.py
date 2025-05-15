@@ -128,7 +128,6 @@ class OtooleRegionGroup(BaseModel):
             except FileNotFoundError:
                 otoole_cfg.empty_dfs.append(key)
 
-
         try:
             df_regionsgroup = pd.read_csv(os.path.join(root_dir, "REGIONGROUP.csv"))
         except FileNotFoundError:
@@ -151,20 +150,21 @@ class OtooleRegionGroup(BaseModel):
         for df in dfs.keys():
             for region_group in dfs[df]["REGIONGROUP"].unique():
                 if region_group not in list(df_regionsgroup["VALUE"]):
-                    raise ValueError(f"{region_group} given in {df}.csv but not in REGIONGROUP.csv") 
+                    raise ValueError(f"{region_group} given in {df}.csv but not in REGIONGROUP.csv")
 
         region_group_instances = []
 
         for region_group in df_regionsgroup["VALUE"].values.tolist():
             include_in_region_group = OSeMOSYSData.RY.Bool(
                 group_to_json(
-                    g=dfs["RegionGroupTagRegion"].loc[dfs["RegionGroupTagRegion"]["REGIONGROUP"] == region_group],
+                    g=dfs["RegionGroupTagRegion"].loc[
+                        dfs["RegionGroupTagRegion"]["REGIONGROUP"] == region_group
+                    ],
                     root_column="REGIONGROUP",
                     data_columns=["REGION", "YEAR"],
                     target_column="VALUE",
                 )
             )
-
 
             region_group_instances.append(
                 cls(
