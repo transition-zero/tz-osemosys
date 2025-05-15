@@ -4,8 +4,10 @@ from tz.osemosys import Commodity, Model, OperatingMode, Region, RegionGroup, Te
 
 
 def test_region_grouping_include():
-
-    # in this test both regions are assigned to the region group and an RE target added
+    """
+    In this test 2 regions are assigned to a region group and an RE target of 50% added for the 
+    defined region group.
+    """
 
     time_definition = TimeDefinition(
         id="years-only",
@@ -78,8 +80,11 @@ def test_region_grouping_include():
 
 
 def test_region_grouping_exclude():
-
-    # in this test both regions are assigned to the region group and an RE target added
+    """
+    In this test neither regions are assigned to the region group with the RE target.
+    Thus the model is less restricted and the objective value is lower than the test with region 
+    groups included.
+    """
 
     time_definition = TimeDefinition(
         id="years-only",
