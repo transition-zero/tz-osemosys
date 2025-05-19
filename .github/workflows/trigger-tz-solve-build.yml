@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - main
-      - staging
     paths:
       - tz/osemosys/**
       - pyproject.toml
       - .github/workflows/trigger-tz-solve-build.yml
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   trigger-tz-solve-build:

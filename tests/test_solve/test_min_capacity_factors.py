@@ -47,7 +47,7 @@ def test_min_capacity_factors():
         technologies=technologies,
     )
 
-    model.solve(solver="highs")
+    model.solve(solver_name="highs")
 
     assert (
         model.solution["TotalTechnologyAnnualActivity"].sel(YEAR=2025, TECHNOLOGY="unmet-demand")

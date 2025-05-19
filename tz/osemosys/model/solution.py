@@ -10,10 +10,12 @@ SOLUTION_KEYS = [
     "CapitalInvestment",
     "CapitalInvestmentStorage",
     "DemandNeedingReserveMargin",
+    "DiscountedFixedOperatingCost",
     "DiscountedCapitalInvestment",
     "DiscountedCapitalInvestmentStorage",
     "DiscountedOperatingCost",
     "DiscountedSalvageValue",
+    "DiscountedVariableOperatingCost",
     "GrossStorageCapacity",
     "GrossCapacity",
     "NetCharge",
@@ -53,7 +55,7 @@ SOLUTION_KEYS = [
 
 def build_solution(
     m: Model, lex: Dict[str, LinearExpression], solution_vars: list[str] | str | None = None
-):
+) -> xr.Dataset:
 
     # construct duals separately
     duals = xr.Dataset(
@@ -126,17 +128,13 @@ def build_solution(
         )
 
     if solution_vars is None:
-        return xr.Dataset(
-            {
-                k: solution_base[k]
-                for k in sorted(list(solution_base.keys()))
-                if (k in SOLUTION_KEYS) and (k in solution_base.keys())
-            }
-        )
+        return solution_base[sorted(set(SOLUTION_KEYS) & set(solution_base.data_vars))]
     elif solution_vars == "all":
-        return xr.Dataset({k: solution_base[k] for k in sorted(list(solution_base.keys()))})
+        return solution_base[sorted(solution_base.data_vars)]
     else:
+        if isinstance(solution_vars, str):
+            solution_vars = [solution_vars]
         # ensure TotalDiscountedCost is always included
         if "TotalDiscountedCost" not in solution_vars:
             solution_vars.append("TotalDiscountedCost")
-        return xr.Dataset({k: solution_base[k] for k in solution_vars})
+        return solution_base[sorted(set(solution_vars) & set(solution_base.data_vars))]

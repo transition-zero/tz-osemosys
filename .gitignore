@@ -167,3 +167,6 @@ cython_debug/
 
 # Results folder for tests
 notebooks/*.ipynb
+
+# Test artefacts
+tests/otoole_compare/
