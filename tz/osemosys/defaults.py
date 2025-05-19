@@ -44,7 +44,6 @@ class DefaultsLinopy(BaseSettings):
             "DiscountRate": 0.1,
             "ResidualCapacity": 0,
             "SpecifiedAnnualDemand": 0,
-            "TradeRoute": False,
             "RegionGroupTagRegion": False,
             "TradeRoute": int(False),  # boolean is invalid netcdf
         }
