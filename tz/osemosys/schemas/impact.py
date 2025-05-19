@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, model_validator
 from tz.osemosys.schemas.base import OSeMOSYSBase, OSeMOSYSData, cast_osemosysdata_value
 from tz.osemosys.schemas.compat.impact import OtooleImpact
 from tz.osemosys.schemas.validation.impact_validation import (
+    exogenous_annual_region_group_within_constraint,
     exogenous_annual_within_constraint,
     exogenous_total_within_constraint,
 )
@@ -25,11 +26,23 @@ class Impact(OSeMOSYSBase, OtooleImpact):
     `constraint_annual` `({region:{year:float}})` - OSeMOSYS AnnualEmissionLimit.
       Annual impact constraint. Optional, defaults to `None`.
 
+    `constraint_annual_region_group` `({regiongroup:{year:float}})` -
+      OSeMOSYS style name AnnualEmissionLimitRegionGroup.
+      Annual total impact (emission) constraint per region group.
+      See RegionGroup documentation for a detailed description of how region groups can be used.
+      Optional, defaults to `None`.
+
     `constraint_total` `({region:float})` - OSeMOSYS ModelPeriodEmissionLimit.
       Total modelling period impact constraint. Optional, defaults to `None`.
 
     `exogenous_annual` `({region:{year:float}})` - OSeMOSYS AnnualExogenousEmission.
       Annual exogenous impact. Optional, defaults to `None`.
+
+    `exogenous_annual_region_group` `({regiongroup:{year:float}})` -
+      OSeMOSYS style name AnnualExogenousEmissionRegionGroup.
+      Annual total exogenous impact (emission) per region group.
+      See RegionGroup documentation for a detailed description of how region groups can be used.
+      Optional, defaults to `None`.
 
     `exogenous_total` `({region:float})` - OSeMOSYS ModelPeriodExogenousEmission.
       Total modelling period exogenous impact. Optional, defaults to `None`.
@@ -83,11 +96,16 @@ class Impact(OSeMOSYSBase, OtooleImpact):
 
     # Annual emissions constraint per region, year, and emission type
     constraint_annual: OSeMOSYSData.RY | None = Field(None)
+    # Annual emissions constraint per region group, year, and emission type
+    constraint_annual_region_group: OSeMOSYSData.GY | None = Field(None)
     # Total modelled period emissions constraint per region and emission type
     constraint_total: OSeMOSYSData.R | None = Field(None)
     # Annual exogenous emission per region, year, and emission type
     # I.e. emissions from non-modelled sources
     exogenous_annual: OSeMOSYSData.RY | None = Field(None)
+    # Total modelled period exogenous emission per region group and emission type
+    # I.e. emissions from non-modelled sources
+    exogenous_annual_region_group: OSeMOSYSData.GY | None = Field(None)
     # Total modelled period exogenous emission per region and emission type
     # I.e. emissions from non-modelled sources
     exogenous_total: OSeMOSYSData.R | None = Field(None)
@@ -110,6 +128,13 @@ class Impact(OSeMOSYSBase, OtooleImpact):
         if self.constraint_annual is not None and self.exogenous_annual is not None:
             exogenous_annual_within_constraint(
                 self.id, self.constraint_annual, self.exogenous_annual
+            )
+        if (
+            self.constraint_annual_region_group is not None
+            and self.exogenous_annual_region_group is not None
+        ):
+            exogenous_annual_region_group_within_constraint(
+                self.id, self.constraint_annual_region_group, self.exogenous_annual_region_group
             )
         if self.constraint_total is not None and self.exogenous_total is not None:
             exogenous_total_within_constraint(self.id, self.constraint_total, self.exogenous_total)

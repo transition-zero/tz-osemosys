@@ -10,6 +10,7 @@ from tz.osemosys.model.linear_expressions.emissions import add_lex_emissions
 from tz.osemosys.model.linear_expressions.financials import add_lex_financials
 from tz.osemosys.model.linear_expressions.production import add_lex_quantities
 from tz.osemosys.model.linear_expressions.re_production import add_lex_re_production
+from tz.osemosys.model.linear_expressions.regiongroup import add_lex_regiongroup
 from tz.osemosys.model.linear_expressions.reserve_margin import add_lex_reserve_margin
 from tz.osemosys.model.linear_expressions.storage import add_lex_storage
 from tz.osemosys.model.linear_expressions.trade import add_lex_trade
@@ -23,6 +24,8 @@ def add_linear_expressions(ds: xr.Dataset, m: Model) -> Dict[str, LinearExpressi
     add_lex_capacity(ds, m, lex)
     if ds["EMISSION"].size > 0:
         add_lex_emissions(ds, m, lex)
+    if ds["REGIONGROUP"].size > 0:
+        add_lex_regiongroup(ds, m, lex)
     if ds["STORAGE"].size > 0:
         add_lex_storage(ds, m, lex)
     if (ds["TradeRoute"] == 1).any():

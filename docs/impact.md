@@ -11,11 +11,23 @@ impact.
 `constraint_annual` `({region:{year:float}})` - OSeMOSYS AnnualEmissionLimit.
     Annual impact constraint. Optional, defaults to `None`.
 
+`constraint_annual_region_group` `({regiongroup:{year:float}})` -
+    OSeMOSYS style name AnnualEmissionLimitRegionGroup.
+    Annual total impact (emission) constraint per region group.
+    See RegionGroup documentation for a detailed description of how region groups can be used.
+    Optional, defaults to `None`.
+
 `constraint_total` `({region:float})` - OSeMOSYS ModelPeriodEmissionLimit.
     Total modelling period impact constraint. Optional, defaults to `None`.
 
 `exogenous_annual` `({region:{year:float}})` - OSeMOSYS AnnualExogenousEmission.
     Annual exogenous impact. Optional, defaults to `None`.
+
+`exogenous_annual_region_group` `({regiongroup:{year:float}})` -
+    OSeMOSYS style name AnnualExogenousEmissionRegionGroup.
+    Annual total exogenous impact (emission) per region group.
+    See RegionGroup documentation for a detailed description of how region groups can be used.
+    Optional, defaults to `None`.
 
 `exogenous_total` `({region:float})` - OSeMOSYS ModelPeriodExogenousEmission.
     Total modelling period exogenous impact. Optional, defaults to `None`.
