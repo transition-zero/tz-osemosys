@@ -97,7 +97,7 @@ def build_solution(
             )
         )
     )
-    if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals and "E10_AnnualEmmissionsLimitRegionGroup in duals":
+    if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals and "E10_AnnualEmmissionsLimitRegionGroup" in duals:
         duals = duals.rename(
             dict(
                 zip(
@@ -109,7 +109,7 @@ def build_solution(
                     [
                         "marginal_cost_of_emissions_annual",
                         "marginal_cost_of_emissions_total",
-                        "marginal_cost_of_emissions_annual_region_group"
+                        "marginal_cost_of_emissions_annual_region_group",
                     ],
                 )
             )
