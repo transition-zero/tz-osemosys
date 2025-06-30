@@ -18,9 +18,9 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
 
     PVAnnuity = (
-        (1 - (1 + ds["DiscountRateIdv"]) ** (-(ds["OperationalLife"])))
-        * (1 + ds["DiscountRateIdv"])
-        / ds["DiscountRateIdv"]
+        (1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLife"])))
+        * (1 + ds["DiscountRate"])
+        / ds["DiscountRate"]
     )
 
     CapitalRecoveryFactor = (1 - (1 + ds["DiscountRateIdv"]) ** (-1)) / (
