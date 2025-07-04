@@ -50,7 +50,7 @@ SOLUTION_KEYS = [
     "marginal_cost_of_demand_annual",
     "marginal_cost_of_emissions_total",
     "marginal_cost_of_emissions_annual",
-    "marginal_cost_of_emissions_annual_regiongroup"
+    "marginal_cost_of_emissions_annual_regiongroup",
 ]
 
 
@@ -76,7 +76,7 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
-                    "E10_AnnualEmmissionsLimitRegionGroup"
+                    "E10_AnnualEmmissionsLimitRegionGroup",
                 ]
                 if hasattr(m.constraints, key)
             }
@@ -124,7 +124,7 @@ def build_solution(
                     ],
                 )
             )
-        )        
+        )
 
     # also merge on StorageLevel after unstacking
     solution_base = m.solution.merge(
