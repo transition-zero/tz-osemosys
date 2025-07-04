@@ -126,7 +126,7 @@ def build_solution(
             dict(
                 zip(
                     [
-                        "E10_AnnualEmmissionsLimitRegionGroup",
+                        "E10_AnnualEmissionsLimitRegionGroup",
                     ],
                     [
                         "marginal_cost_of_emissions_annual_regiongroup",
