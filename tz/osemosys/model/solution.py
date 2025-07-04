@@ -50,6 +50,7 @@ SOLUTION_KEYS = [
     "marginal_cost_of_demand_annual",
     "marginal_cost_of_emissions_total",
     "marginal_cost_of_emissions_annual",
+    "marginal_cost_of_emissions_annual_regiongroup",
 ]
 
 
@@ -81,6 +82,16 @@ def build_solution(
         )
     )
 
+    duals = duals.merge(
+        xr.Dataset(
+            {
+                key: getattr(m.constraints, key).dual
+                for key in ["E10_AnnualEmmissionsLimitRegionGroup"]
+                if hasattr(m.constraints, key)
+            }
+        )
+    )
+
     duals = duals.rename(
         dict(
             zip(
@@ -106,6 +117,19 @@ def build_solution(
                     [
                         "marginal_cost_of_emissions_annual",
                         "marginal_cost_of_emissions_total",
+                    ],
+                )
+            )
+        )
+    if "E10_AnnualEmissionsLimitRegionGroup" in duals:
+        duals = duals.rename(
+            dict(
+                zip(
+                    [
+                        "E10_AnnualEmissionsLimitRegionGroup",
+                    ],
+                    [
+                        "marginal_cost_of_emissions_annual_regiongroup",
                     ],
                 )
             )
