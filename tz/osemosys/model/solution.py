@@ -76,18 +76,11 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
+                    "E10_AnnualEmmissionsLimitRegionGroup",
                 ]
                 if hasattr(m.constraints, key)
             }
         )
-    )
-
-    duals = xr.Dataset(
-        {
-            key: getattr(m.constraints, key).dual
-            for key in ["E10_AnnualEmmissionsLimitRegionGroup"]
-            if hasattr(m.constraints, key)
-        }
     )
 
     duals = duals.rename(
