@@ -82,15 +82,13 @@ def build_solution(
         )
     )
 
-    duals = duals.merge(
-        xr.Dataset(
+    duals = xr.Dataset(
             {
                 key: getattr(m.constraints, key).dual
                 for key in ["E10_AnnualEmmissionsLimitRegionGroup"]
                 if hasattr(m.constraints, key)
             }
         )
-    )
 
     duals = duals.rename(
         dict(
