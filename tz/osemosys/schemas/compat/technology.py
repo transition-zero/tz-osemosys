@@ -106,6 +106,14 @@ class OtooleTechnology(BaseModel):
             "attribute": "activity_total_min",
             "columns": ["REGION", "TECHNOLOGY", "VALUE"],
         },
+        "TechnologyMinProductionTarget": {
+            "attribute": "production_target_min",
+            "columns": ["REGION", "TECHNOLOGY", "FUEL", "YEAR", "VALUE"],
+        },
+        "TechnologyMaxProductionTarget": {
+            "attribute": "production_target_max",
+            "columns": ["REGION", "TECHNOLOGY", "FUEL", "YEAR", "VALUE"],
+        },
         "EmissionActivityRatio": {
             "attribute": "emission_activity_ratio",
             "columns": [

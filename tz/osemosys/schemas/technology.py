@@ -325,6 +325,10 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
     include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
+    # production targets
+    production_target_min: OSeMOSYSData.RCY | None = Field(None)
+    production_target_max: OSeMOSYSData.RCY | None = Field(None)
+
     def compose(self, **sets):
         # compose root OSeMOSYSData
         for field, _info in self.model_fields.items():

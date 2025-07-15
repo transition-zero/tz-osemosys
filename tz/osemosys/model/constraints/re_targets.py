@@ -58,3 +58,23 @@ def add_re_targets_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearEx
     m.add_constraints(con, name="RE1_RenewableProduction_MinConstraint", mask=mask)
 
     return m
+
+
+def add_production_target_constraints(
+    ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
+) -> Model:
+    if (mask := ds["TechnologyMinProductionTarget"].notnull()).any():
+        con = (
+            lex["ProductionByTechnology"].sum(dims="TIMESLICE")
+            >= lex["ProductionAnnual"] * ds["TechnologyMinProductionTarget"]
+        )
+        m.add_constraints(con, name="RE2_TechnologyProduction_MinConstraint", mask=mask)
+
+    if (mask := ds["TechnologyMaxProductionTarget"].notnull()).any():
+        con = (
+            lex["ProductionByTechnology"].sum(dims="TIMESLICE")
+            <= lex["ProductionAnnual"] * ds["TechnologyMaxProductionTarget"]
+        )
+        m.add_constraints(con, name="RE2_TechnologyProduction_MaxConstraint", mask=mask)
+
+    return m
