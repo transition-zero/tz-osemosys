@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from tz.osemosys.schemas.validation.validation_utils import check_min_vals_lower_max
@@ -119,3 +120,22 @@ def validate_technology_production_target_commodities(technology: "Technology") 
                         f"Technology '{technology.id}' has a production target defined for "
                         f"commodity '{commodity}', but it does not produce this commodity."
                     )
+
+
+def validate_technologies_production_targets_values(
+    technologies: list["Technology"],
+) -> None:
+    # sum of all minimum production targets at each node for each commodity in each year
+    # should be less than or equal to 1.0
+    totals = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+    for technology in technologies:
+        if technology.production_target_min is not None:
+            for node, commodities in technology.production_target_min.data.items():
+                for commodity, years in commodities.items():
+                    for year, value in years.items():
+                        totals[node][commodity][year] += value
+                        if totals[node][commodity][year] > 1.0:
+                            raise ValueError(
+                                f"Total minimum production target for {node, commodity, year} "
+                                f"exceeds 1.0."
+                            )
