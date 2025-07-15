@@ -26,7 +26,10 @@ from tz.osemosys.schemas.validation.model_composition import (
     discount_rate_as_decimals,
     reserve_margin_fully_defined,
 )
-from tz.osemosys.schemas.validation.technology_validation import validate_min_lt_max
+from tz.osemosys.schemas.validation.technology_validation import (
+    validate_min_lt_max,
+    validate_technology_production_target_commodities,
+)
 from tz.osemosys.utils import merge, recursive_keys
 
 # filter this pandas-3 dep warning for now
@@ -405,6 +408,8 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
         # Technology validation post composition (broadcasting)
         validate_min_lt_max(self.technologies)
+        for technology in self.technologies:
+            validate_technology_production_target_commodities(technology)
 
         return self
 
