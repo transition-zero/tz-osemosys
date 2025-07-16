@@ -64,17 +64,25 @@ def add_production_target_constraints(
     ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
 ) -> Model:
     if (mask := ds["TechnologyMinProductionTarget"].notnull()).any():
-        con = (
-            lex["ProductionByTechnology"].sum(dims="TIMESLICE")
-            >= lex["ProductionAnnual"] * ds["TechnologyMinProductionTarget"]
+        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dims="TIMESLICE")
+        rhs = lex["ProductionAnnual"].reindex(lhs.coords) * ds["TechnologyMinProductionTarget"].sel(
+            lhs.coords
         )
-        m.add_constraints(con, name="RE2_TechnologyProduction_MinConstraint", mask=mask)
+        m.add_constraints(
+            lhs >= rhs,
+            name="RE2_TechnologyProduction_MinConstraint",
+            mask=mask.sel(lhs.coords),
+        )
 
     if (mask := ds["TechnologyMaxProductionTarget"].notnull()).any():
-        con = (
-            lex["ProductionByTechnology"].sum(dims="TIMESLICE")
-            <= lex["ProductionAnnual"] * ds["TechnologyMaxProductionTarget"]
+        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dims="TIMESLICE")
+        rhs = lex["ProductionAnnual"].reindex(lhs.coords) * ds["TechnologyMaxProductionTarget"].sel(
+            lhs.coords
         )
-        m.add_constraints(con, name="RE2_TechnologyProduction_MaxConstraint", mask=mask)
+        m.add_constraints(
+            lhs <= rhs,
+            name="RE2_TechnologyProduction_MaxConstraint",
+            mask=mask.sel(lhs.coords),
+        )
 
     return m
