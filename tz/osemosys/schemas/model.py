@@ -409,9 +409,9 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
 
         # Technology validation post composition (broadcasting)
         validate_min_lt_max(self.technologies)
-        validate_technologies_production_targets_values(self.technologies)
         for technology in self.technologies:
             validate_technology_production_target_commodities(technology)
+        validate_technologies_production_targets_values(self.technologies)
 
         return self
 

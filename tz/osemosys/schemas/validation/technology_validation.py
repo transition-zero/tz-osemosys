@@ -100,7 +100,7 @@ def validate_technology_production_target_commodities(technology: "Technology") 
     ):
         raise ValueError(
             f"Technology '{technology.id}' does not produce any commodities, but it "
-            "has one or more a production target defined."
+            "has one or more production target defined."
         )
 
     if technology.production_target_max is not None:

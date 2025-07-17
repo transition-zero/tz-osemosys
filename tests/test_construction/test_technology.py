@@ -1,8 +1,10 @@
 import json
 from tempfile import NamedTemporaryFile
+from unittest.mock import patch
 
 import pytest
 
+from tz.osemosys import Model
 from tz.osemosys.schemas.technology import Technology
 
 PASSING_TECH_DEFINITIONS = dict(
@@ -85,3 +87,85 @@ def test_technology_roundtrip():
         json.dump(tech.model_dump(), open(tmp.name, "w"))
         tech_recovered = Technology(**json.load(open(tmp.name)))
         assert tech == tech_recovered
+
+
+MODEL = {
+    "id": "test",
+    "time_definition": {"id": "time", "years": [0]},
+    "regions": [{"id": "region"}],
+    "commodities": [
+        {"id": "foo", "demand_annual": 1.0},
+        {"id": "bar", "demand_annual": 1.0},
+    ],
+    "technologies": [
+        {
+            "id": "foobar",
+            "operating_modes": [
+                {
+                    "id": "foobar",
+                    "output_activity_ratio": {"foo": 1.0, "bar": 1.0},
+                }
+            ],
+        },
+        {
+            "id": "foo",
+            "operating_modes": [
+                {
+                    "id": "foo",
+                    "output_activity_ratio": {"foo": 1.0},
+                }
+            ],
+        },
+    ],
+    "impacts": [],
+}
+
+
+def test_technology_doesnt_produce_target_commodity():
+    with patch.dict(
+        MODEL["technologies"][1],
+        {"production_target_max": {"region": {"bar": {"0": 0.6}}}},
+    ):
+        with pytest.raises(ValueError) as exc:
+            Model(**MODEL)
+        assert (
+            "Technology 'foo' has a production target defined for commodity 'bar', "
+            "but it does not produce this commodity" in str(exc.value)
+        )
+
+
+def test_technology_doesnt_produce_any_commodity():
+    with (
+        patch.dict(
+            MODEL["technologies"][1]["operating_modes"][0],
+            {"output_activity_ratio": None},
+        ),
+        patch.dict(
+            MODEL["technologies"][1],
+            {"production_target_max": {"region": {"foo": {"0": 0.6}}}},
+        ),
+    ):
+        with pytest.raises(ValueError) as exc:
+            Model(**MODEL)
+        assert (
+            "Technology 'foo' does not produce any commodities, but it has one or "
+            "more production target defined" in str(exc.value)
+        )
+
+
+def test_technology_total_production_target_min_exceeds_one():
+    with (
+        patch.dict(
+            MODEL["technologies"][0],
+            {"production_target_min": {"region": {"foo": {"0": 0.6}}}},
+        ),
+        patch.dict(
+            MODEL["technologies"][1],
+            {"production_target_min": {"region": {"foo": {"0": 0.6}}}},
+        ),
+    ):
+        with pytest.raises(ValueError) as exc:
+            Model(**MODEL)
+        assert "Total minimum production target for ('region', 'foo', '0') exceeds 1.0" in str(
+            exc.value
+        )
