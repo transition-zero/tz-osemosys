@@ -89,6 +89,9 @@ def validate_min_lt_max(technologies):
 
 
 def validate_technology_production_target_commodities(technology: "Technology") -> None:
+    """Check that the commodities defined in the technology's production targets
+    are actually produced by the technology.
+    """
     commodities = set()
     for mode in technology.operating_modes:
         if mode.output_activity_ratio is not None:
@@ -125,8 +128,9 @@ def validate_technology_production_target_commodities(technology: "Technology") 
 def validate_technologies_production_targets_values(
     technologies: list["Technology"],
 ) -> None:
-    # sum of all minimum production targets at each node for each commodity in each year
-    # should be less than or equal to 1.0
+    """Check that the sum of all minimum production targets at each node for each commodity
+    in each year is less than or equal to 1.0.
+    """
     totals = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
     for technology in technologies:
         if technology.production_target_min is not None:
