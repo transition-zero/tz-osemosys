@@ -89,83 +89,85 @@ def test_technology_roundtrip():
         assert tech == tech_recovered
 
 
-MODEL = {
-    "id": "test",
-    "time_definition": {"id": "time", "years": [0]},
-    "regions": [{"id": "region"}],
-    "commodities": [
-        {"id": "foo", "demand_annual": 1.0},
-        {"id": "bar", "demand_annual": 1.0},
-    ],
-    "technologies": [
-        {
-            "id": "foobar",
-            "operating_modes": [
-                {
-                    "id": "foobar",
-                    "output_activity_ratio": {"foo": 1.0, "bar": 1.0},
-                }
-            ],
-        },
-        {
-            "id": "foo",
-            "operating_modes": [
-                {
-                    "id": "foo",
-                    "output_activity_ratio": {"foo": 1.0},
-                }
-            ],
-        },
-    ],
-    "impacts": [],
-}
+@pytest.fixture
+def base_model():
+    return {
+        "id": "test",
+        "time_definition": {"id": "time", "years": [0]},
+        "regions": [{"id": "region"}],
+        "commodities": [
+            {"id": "foo", "demand_annual": 1.0},
+            {"id": "bar", "demand_annual": 1.0},
+        ],
+        "technologies": [
+            {
+                "id": "foobar",
+                "operating_modes": [
+                    {
+                        "id": "foobar",
+                        "output_activity_ratio": {"foo": 1.0, "bar": 1.0},
+                    }
+                ],
+            },
+            {
+                "id": "foo",
+                "operating_modes": [
+                    {
+                        "id": "foo",
+                        "output_activity_ratio": {"foo": 1.0},
+                    }
+                ],
+            },
+        ],
+        "impacts": [],
+    }
 
 
-def test_technology_doesnt_produce_target_commodity():
+def test_technology_doesnt_produce_target_commodity(base_model):
     with patch.dict(
-        MODEL["technologies"][1],
+        base_model["technologies"][1],
         {"production_target_max": {"region": {"bar": {"0": 0.6}}}},
     ):
         with pytest.raises(ValueError) as exc:
-            Model(**MODEL)
+            Model(**base_model)
         assert (
             "Technology 'foo' has a production target defined for commodity 'bar', "
             "but it does not produce this commodity" in str(exc.value)
         )
 
 
-def test_technology_doesnt_produce_any_commodity():
+def test_technology_doesnt_produce_any_commodity(base_model):
     with (
         patch.dict(
-            MODEL["technologies"][1]["operating_modes"][0],
+            base_model["technologies"][1]["operating_modes"][0],
             {"output_activity_ratio": None},
         ),
         patch.dict(
-            MODEL["technologies"][1],
+            base_model["technologies"][1],
             {"production_target_max": {"region": {"foo": {"0": 0.6}}}},
         ),
     ):
         with pytest.raises(ValueError) as exc:
-            Model(**MODEL)
+            Model(**base_model)
         assert (
             "Technology 'foo' does not produce any commodities, but it has one or "
             "more production target defined" in str(exc.value)
         )
 
 
-def test_technology_total_production_target_min_exceeds_one():
+def test_technology_total_production_target_min_exceeds_one(base_model):
     with (
         patch.dict(
-            MODEL["technologies"][0],
+            base_model["technologies"][0],
             {"production_target_min": {"region": {"foo": {"0": 0.6}}}},
         ),
         patch.dict(
-            MODEL["technologies"][1],
+            base_model["technologies"][1],
             {"production_target_min": {"region": {"foo": {"0": 0.6}}}},
         ),
     ):
         with pytest.raises(ValueError) as exc:
-            Model(**MODEL)
+            Model(**base_model)
         assert "Total minimum production target for ('region', 'foo', '0') exceeds 1.0" in str(
             exc.value
         )
