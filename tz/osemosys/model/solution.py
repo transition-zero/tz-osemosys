@@ -141,9 +141,7 @@ def build_solution(
             {
                 k: v.solution
                 for k, v in lex.items()
-                if (
-                    (k not in m.solution) and (hasattr(v, "solution")) and ("YRTS" not in v.coords)
-                )
+                if ((k not in m.solution) and (hasattr(v, "solution")) and ("YRTS" not in v.coords))
             }
         )
     ).merge(duals)
