@@ -76,7 +76,18 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
-                    "E10_AnnualEmmissionsLimitRegionGroup",
+                ]
+                if hasattr(m.constraints, key)
+            }
+        )
+    )
+
+    duals = duals.merge(
+        xr.Dataset(
+            {
+                key: getattr(m.constraints, key).dual
+                for key in [
+                    "E10_AnnualEmmissionsLimitRegionGroup"
                 ]
                 if hasattr(m.constraints, key)
             }
@@ -132,7 +143,7 @@ def build_solution(
             {
                 k: v.solution
                 for k, v in lex.items()
-                if ((k not in m.solution) and (hasattr(v, "solution")) and ("YRTS" not in v.coords))
+                if ((k not in m.solution) and (hasattr(v, "solution")) and ("YGRTS" not in v.coords) )
             }
         )
     ).merge(duals)
