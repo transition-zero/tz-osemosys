@@ -210,7 +210,7 @@ class OtooleTimeDefinition(BaseModel):
         elif stem == "SEASON":
             return pd.DataFrame(data={"VALUE": self.seasons or []}, columns=["VALUE"])
         elif stem == "TIMESLICE":
-            return pd.DataFrame(data={"VALUE": sorted(self.timeslices)}, columns=["VALUE"])
+            return pd.DataFrame(data={"VALUE": self.timeslices}, columns=["VALUE"])
         elif stem == "DAILYTIMEBRACKET":
             return pd.DataFrame(data={"VALUE": self.daily_time_brackets or []}, columns=["VALUE"])
         elif stem == "DAYTYPE":

@@ -230,6 +230,17 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     Total minimum level of activity allowed for a technology in the entire modelled period.
     Optional, defaults to `None`.
 
+    `production_target_min` `({region:{commodity:{year:float}}})` - New parameter, OSeMOSYS style
+    name TechnologyMinProductionTarget. Minimum production of a commodity by a technology in a
+    specified year across a specified region, expressed as a ratio of total production of that
+    commodity in that year across that region.
+    Optional, defaults to `None`.
+
+    `production_target_max` `({region:{commodity:{year:float}}})` - New parameter, OSeMOSYS style
+    name TechnologyMaxProductionTarget. Maximum production of a commodity by a technology in a
+    specified year across a specified region, expressed as a ratio of total production of that
+    commodity in that year across that region.
+    Optional, defaults to `None`.
 
     ## Examples
 
@@ -324,6 +335,10 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # include this technology in joint reserve margin and renewables targets
     include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
     include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
+
+    # production targets
+    production_target_min: OSeMOSYSData.RCY | None = Field(None)
+    production_target_max: OSeMOSYSData.RCY | None = Field(None)
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
