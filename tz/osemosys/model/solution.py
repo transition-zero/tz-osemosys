@@ -82,15 +82,12 @@ def build_solution(
         )
     )
 
-    duals = duals.merge(
-        xr.Dataset(
+    duals = xr.Dataset(
             {
                 key: getattr(m.constraints, key).dual
                 for key in ["E10_AnnualEmmissionsLimitRegionGroup"]
-                if hasattr(m.constraints, key)
             }
         )
-    )
 
     duals = duals.rename(
         dict(
@@ -121,19 +118,18 @@ def build_solution(
                 )
             )
         )
-    if "E10_AnnualEmissionsLimitRegionGroup" in duals:
-        duals = duals.rename(
-            dict(
-                zip(
-                    [
-                        "E10_AnnualEmissionsLimitRegionGroup",
-                    ],
-                    [
-                        "marginal_cost_of_emissions_annual_regiongroup",
-                    ],
-                )
+    duals = duals.rename(
+        dict(
+            zip(
+                [
+                    "E10_AnnualEmissionsLimitRegionGroup",
+                ],
+                [
+                    "marginal_cost_of_emissions_annual_regiongroup",
+                ],
             )
         )
+    )
 
     # also merge on StorageLevel after unstacking
     solution_base = m.solution.merge(
