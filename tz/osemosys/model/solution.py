@@ -100,7 +100,6 @@ def build_solution(
     if (
         "E8_AnnualEmissionsLimit" in duals
         and "E9_ModelPeriodEmissionsLimit" in duals
-        and "E10_AnnualEmmissionsLimitRegionGroup" in duals
     ):
         duals = duals.rename(
             dict(
@@ -108,17 +107,27 @@ def build_solution(
                     [
                         "E8_AnnualEmissionsLimit",
                         "E9_ModelPeriodEmissionsLimit",
-                        "E10_AnnualEmmissionsLimitRegionGroup",
                     ],
                     [
                         "marginal_cost_of_emissions_annual",
                         "marginal_cost_of_emissions_total",
-                        "marginal_cost_of_emissions_annual_rg",
                     ],
                 )
             )
         )
-
+    elif "E10_AnnualEmmissionsLimitRegionGroup" in duals:
+        duals = duals.rename(
+            dict(
+                zip(
+                    [
+                        "E10_AnnualEmmissionsLimitRegionGroup",
+                    ],
+                    [
+                        "marginal_cost_of_emissions_annual_rg",
+                    ],
+                )
+            )
+        )      
     # also merge on StorageLevel after unstacking
     solution_base = m.solution.merge(
         xr.Dataset(
