@@ -92,10 +92,13 @@ def build_solution(
                 [
                     "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
+                    "E10_AnnualEmissionsLimitRegionGroup",
                 ],
                 [
                     "marginal_cost_of_demand",
                     "marginal_cost_of_demand_annual",
+                    "marginal_cost_of_emissions_annual_regiongroup"
+
                 ],
             )
         )
@@ -115,18 +118,6 @@ def build_solution(
                 )
             )
         )
-    duals = duals.rename(
-        dict(
-            zip(
-                [
-                    "E10_AnnualEmissionsLimitRegionGroup",
-                ],
-                [
-                    "marginal_cost_of_emissions_annual_regiongroup",
-                ],
-            )
-        )
-    )
 
     # also merge on StorageLevel after unstacking
     solution_base = m.solution.merge(
