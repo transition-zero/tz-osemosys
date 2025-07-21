@@ -97,8 +97,7 @@ def build_solution(
                 [
                     "marginal_cost_of_demand",
                     "marginal_cost_of_demand_annual",
-                    "marginal_cost_of_emissions_annual_regiongroup"
-
+                    "marginal_cost_of_emissions_annual_regiongroup",
                 ],
             )
         )
