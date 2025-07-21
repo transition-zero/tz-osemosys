@@ -50,7 +50,7 @@ SOLUTION_KEYS = [
     "marginal_cost_of_demand_annual",
     "marginal_cost_of_emissions_total",
     "marginal_cost_of_emissions_annual",
-    "marginal_cost_of_emissions_annual_regiongroup",
+    "marginal_cost_of_emissions_annual_rg",
 ]
 
 
@@ -76,14 +76,11 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
+                    "E10_AnnualEmmissionsLimitRegionGroup",
                 ]
                 if hasattr(m.constraints, key)
             }
         )
-    )
-
-    duals = xr.Dataset(
-        {key: getattr(m.constraints, key).dual for key in ["E10_AnnualEmmissionsLimitRegionGroup"]}
     )
 
     duals = duals.rename(
@@ -92,27 +89,27 @@ def build_solution(
                 [
                     "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
-                    "E10_AnnualEmissionsLimitRegionGroup",
                 ],
                 [
                     "marginal_cost_of_demand",
                     "marginal_cost_of_demand_annual",
-                    "marginal_cost_of_emissions_annual_regiongroup",
                 ],
             )
         )
     )
-    if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals:
+    if "E8_AnnualEmissionsLimit" in duals and "E9_ModelPeriodEmissionsLimit" in duals and "E10_AnnualEmmissionsLimitRegionGroup" in duals:
         duals = duals.rename(
             dict(
                 zip(
                     [
                         "E8_AnnualEmissionsLimit",
                         "E9_ModelPeriodEmissionsLimit",
+                        "E10_AnnualEmmissionsLimitRegionGroup"
                     ],
                     [
                         "marginal_cost_of_emissions_annual",
                         "marginal_cost_of_emissions_total",
+                        "marginal_cost_of_emissions_annual_rg"
                     ],
                 )
             )
