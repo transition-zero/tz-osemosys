@@ -65,6 +65,7 @@ def build_solution(
             for key in [
                 "EBa11_EnergyBalanceEachTS5_trn",
                 "EBb4_EnergyBalanceEachYear4",
+                "E10_AnnualEmmissionsLimitRegionGroup",
             ]
         }
     )
@@ -76,7 +77,7 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
-                    "E10_AnnualEmmissionsLimitRegionGroup",
+                    #"E10_AnnualEmmissionsLimitRegionGroup",
                 ]
                 if hasattr(m.constraints, key)
             }
@@ -89,10 +90,12 @@ def build_solution(
                 [
                     "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
+                    "E10_AnnualEmmissionsLimitRegionGroup"
                 ],
                 [
                     "marginal_cost_of_demand",
                     "marginal_cost_of_demand_annual",
+                    "marginal_cost_of_emissions_annual_rg"
                 ],
             )
         )
@@ -112,19 +115,19 @@ def build_solution(
                 )
             )
         )
-    elif "E10_AnnualEmmissionsLimitRegionGroup" in duals:
-        duals = duals.rename(
-            dict(
-                zip(
-                    [
-                        "E10_AnnualEmmissionsLimitRegionGroup",
-                    ],
-                    [
-                        "marginal_cost_of_emissions_annual_rg",
-                    ],
-                )
-            )
-        )
+    # elif "E10_AnnualEmmissionsLimitRegionGroup" in duals:
+    #     duals = duals.rename(
+    #         dict(
+    #             zip(
+    #                 [
+    #                     "E10_AnnualEmmissionsLimitRegionGroup",
+    #                 ],
+    #                 [
+    #                     "marginal_cost_of_emissions_annual_rg",
+    #                 ],
+    #             )
+    #         )
+    #     )
     # also merge on StorageLevel after unstacking
     solution_base = m.solution.merge(
         xr.Dataset(
