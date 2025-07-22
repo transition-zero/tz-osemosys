@@ -99,8 +99,8 @@ def build_solution(
     )
     if (
         "E8_AnnualEmissionsLimit" in duals
-        or "E9_ModelPeriodEmissionsLimit" in duals
-        or "E10_AnnualEmmissionsLimitRegionGroup" in duals
+        and "E9_ModelPeriodEmissionsLimit" in duals
+        and "E10_AnnualEmmissionsLimitRegionGroup" in duals
     ):
         duals = duals.rename(
             dict(
