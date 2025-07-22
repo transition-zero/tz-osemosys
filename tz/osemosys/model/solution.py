@@ -77,7 +77,7 @@ def build_solution(
                 for key in [
                     "E8_AnnualEmissionsLimit",
                     "E9_ModelPeriodEmissionsLimit",
-                    #"E10_AnnualEmmissionsLimitRegionGroup",
+                    # "E10_AnnualEmmissionsLimitRegionGroup",
                 ]
                 if hasattr(m.constraints, key)
             }
@@ -90,12 +90,12 @@ def build_solution(
                 [
                     "EBa11_EnergyBalanceEachTS5_trn",
                     "EBb4_EnergyBalanceEachYear4",
-                    "E10_AnnualEmmissionsLimitRegionGroup"
+                    "E10_AnnualEmmissionsLimitRegionGroup",
                 ],
                 [
                     "marginal_cost_of_demand",
                     "marginal_cost_of_demand_annual",
-                    "marginal_cost_of_emissions_annual_rg"
+                    "marginal_cost_of_emissions_annual_rg",
                 ],
             )
         )
