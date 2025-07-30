@@ -53,6 +53,22 @@ class OtooleTrade(BaseModel):
             "attribute": "capacity_activity_unit_ratio",
             "columns": ["REGION", "_REGION", "FUEL", "VALUE"],
         },
+        "TotalTradeAnnualActivityUpperLimit": {
+            "attribute": "activity_annual_max",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "TotalTradeAnnualActivityLowerLimit": {
+            "attribute": "activity_annual_min",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "AvailabilityFactorTrade": {
+            "attribute": "availability_factor",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "AvailabilityFactorTradeMin": {
+            "attribute": "availability_factor_min",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
     }
 
     @classmethod
@@ -222,6 +238,10 @@ class OtooleTrade(BaseModel):
         operating_life_dfs = []
         cost_of_capital_dfs = []
         capacity_activity_unit_ratio_dfs = []
+        activity_annual_max_dfs = []
+        activity_annual_min_dfs = []
+        availability_factor_dfs = []
+        availability_factor_min_dfs = []
 
         for trade_commodity in trade:
 
@@ -312,6 +332,43 @@ class OtooleTrade(BaseModel):
                     df["FUEL"] = trade_commodity.commodity
                     capacity_activity_unit_ratio_dfs.append(df)
 
+            if trade_commodity.activity_annual_max is not None:
+                df = pd.json_normalize(trade_commodity.activity_annual_max.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                activity_annual_max_dfs.append(df)
+            if trade_commodity.activity_annual_min is not None:
+                df = pd.json_normalize(trade_commodity.activity_annual_min.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                activity_annual_min_dfs.append(df)
+            if trade_commodity.availability_factor is not None:
+                df = pd.json_normalize(trade_commodity.availability_factor.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                availability_factor_dfs.append(df)
+            if trade_commodity.availability_factor_min is not None:
+                df = pd.json_normalize(trade_commodity.availability_factor_min.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                availability_factor_min_dfs.append(df)
+
         dfs["TradeRoute"] = (
             pd.concat(trade_routes_dfs)
             if trade_routes_dfs
@@ -361,6 +418,30 @@ class OtooleTrade(BaseModel):
                 for _r in t.trade_routes.data[r]
             ],
             columns=["REGION", "_REGION", "FUEL", "VALUE"],
+        )
+        dfs["TotalTradeAnnualActivityUpperLimit"] = (
+            pd.concat(activity_annual_max_dfs)
+            if activity_annual_max_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalTradeAnnualActivityUpperLimit"]["columns"]
+            )
+        )
+        dfs["TotalTradeAnnualActivityLowerLimit"] = (
+            pd.concat(activity_annual_min_dfs)
+            if activity_annual_min_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalTradeAnnualActivityLowerLimit"]["columns"]
+            )
+        )
+        dfs["AvailabilityFactorTrade"] = (
+            pd.concat(availability_factor_dfs)
+            if availability_factor_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["AvailabilityFactorTrade"]["columns"])
+        )
+        dfs["AvailabilityFactorTradeMin"] = (
+            pd.concat(availability_factor_min_dfs)
+            if availability_factor_min_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["AvailabilityFactorTradeMin"]["columns"])
         )
 
         return dfs

@@ -103,6 +103,10 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     capacity_activity_unit_ratio: OSeMOSYSData.RR = Field(
         OSeMOSYSData.RR(defaults.trade_capacity_activity_unit_ratio)
     )
+    activity_annual_max: OSeMOSYSData.RRY | None = Field(default=None)
+    activity_annual_min: OSeMOSYSData.RRY | None = Field(default=None)
+    availability_factor: OSeMOSYSData.RRY | None = Field(default=None)
+    availability_factor_min: OSeMOSYSData.RRY | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod

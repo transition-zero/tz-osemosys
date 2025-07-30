@@ -218,6 +218,9 @@ def test_simple_trade():
     Trade capacity additions are limited so that R2 imports as much energy as it can from R1, and
     then installs its own generating capacity to make up any shortfall.
 
+    A maximum availability_factor of 80% is set, so installed trade capacity can only be used for
+    80% of the time.
+
     Pseudo units and a capacity_activity_unit_ratio of 2 is used.
     """
     model = Model(
@@ -237,6 +240,11 @@ def test_simple_trade():
                 cost_of_capital={"R1": {"R2": 0.1}},
                 construct_region_pairs=True,
                 capacity_activity_unit_ratio=2,
+                # the R2:R1 constraint below should not have any effect as only R1:R2 route is used
+                availability_factor={"R1": {"R2": {"*": 0.8}}, "R2": {"R1": {"*": 0.1}}},
+                availability_factor_min={"R1": {"R2": {"*": 0.5}}},
+                activity_annual_max={"R1": {"R2": {"*": 24}}},
+                activity_annual_min={"R1": {"R2": {"*": 2}}},
             )
         ],
         commodities=[dict(id="electricity", demand_annual=50)],
@@ -260,8 +268,8 @@ def test_simple_trade():
 
     model.solve(solver_name="highs")
 
-    assert model.solution["NetTrade"].values[0][2][0] == 30
-    assert np.round(model._m.objective.value) == 30387.0
+    assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 24
+    assert np.round(model._m.objective.value) == 34828.0
 
 
 def test_simple_re_target():
