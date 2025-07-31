@@ -207,6 +207,71 @@ class OtooleTrade(BaseModel):
                     else None
                 )
                 otoole_cfg = otoole_cfg
+                capacity_activity_unit_ratio = (
+                    OSeMOSYSData.RR(
+                        group_to_json(
+                            g=dfs["TradeCapacityToActivityUnit"].loc[
+                                dfs["TradeCapacityToActivityUnit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TradeCapacityToActivityUnit" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RR(defaults.trade_capacity_activity_unit_ratio)
+                )
+                activity_annual_max = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalTradeAnnualActivityUpperLimit"].loc[
+                                dfs["TotalTradeAnnualActivityUpperLimit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TotalTradeAnnualActivityUpperLimit" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                activity_annual_min = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalTradeAnnualActivityLowerLimit"].loc[
+                                dfs["TotalTradeAnnualActivityLowerLimit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TotalTradeAnnualActivityLowerLimit" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                availability_factor = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["AvailabilityFactorTrade"].loc[
+                                dfs["AvailabilityFactorTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "AvailabilityFactorTrade" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                availability_factor_min = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["AvailabilityFactorTradeMin"].loc[
+                                dfs["AvailabilityFactorTradeMin"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "AvailabilityFactorTradeMin" not in otoole_cfg.empty_dfs
+                    else None
+                )
 
                 trade_instances.append(
                     cls(
@@ -220,6 +285,11 @@ class OtooleTrade(BaseModel):
                         capacity_additional_max=capacity_additional_max,
                         operating_life=operating_life,
                         cost_of_capital=cost_of_capital,
+                        capacity_activity_unit_ratio=capacity_activity_unit_ratio,
+                        activity_annual_max=activity_annual_max,
+                        activity_annual_min=activity_annual_min,
+                        availability_factor=availability_factor,
+                        availability_factor_min=availability_factor_min,
                     )
                 )
 
