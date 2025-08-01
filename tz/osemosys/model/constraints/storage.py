@@ -272,10 +272,19 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             con = lex["RateOfStorageCharge"] <= ds["StorageMaxChargeRate"]
             m.add_constraints(con, name="SC5_MaxChargeConstraint")
 
-        # # storage discharge rate may not exceed max discharge rate
+        # storage discharge rate may not exceed max discharge rate
         if "StorageMaxDischargeRate" in ds.data_vars:
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
+
+        # Fix the maximum rate of charge/discharge using the max_hours parameter
+        # max_hours is the number of hours it takes to fully charge or discharge the storage
+        if "StorageMaxHours" in ds.data_vars:
+            con = (
+                lex["RateOfStorageCharge"]
+                <= (lex["GrossStorageCapacity"] / ds["StorageMaxHours"]) * 8760
+            )
+            m.add_constraints(con, name="StorageMaxHoursConstraint")
 
         if "StorageBalanceDay" in ds.data_vars:
             # Require NetChargeWithinDay to be zero
