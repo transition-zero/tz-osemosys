@@ -102,6 +102,8 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     storage_balance_day: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R.Bool(False))
     storage_balance_year: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R.Bool(False))
 
+    max_hours: OSeMOSYSData.R | None = Field(None)
+
     @model_validator(mode="before")
     @classmethod
     def cast_values(cls, values: Any) -> Any:
