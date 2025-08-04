@@ -242,9 +242,7 @@ def test_simple_trade():
                 capacity_activity_unit_ratio=2,
                 # the R2:R1 constraint below should not have any effect as only R1:R2 route is used
                 availability_factor={"R1": {"R2": {"*": 0.8}}, "R2": {"R1": {"*": 0.1}}},
-                availability_factor_min={"R1": {"R2": {"*": 0.5}}},
                 activity_annual_max={"R1": {"R2": {"*": 24}}},
-                activity_annual_min={"R1": {"R2": {"*": 2}}},
             )
         ],
         commodities=[dict(id="electricity", demand_annual=50)],
