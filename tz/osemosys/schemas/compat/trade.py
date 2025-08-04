@@ -65,8 +65,8 @@ class OtooleTrade(BaseModel):
             "attribute": "availability_factor",
             "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
-        "AvailabilityFactorTradeMin": {
-            "attribute": "availability_factor_min",
+        "TotalAnnualMinCapacityFactorTrade": {
+            "attribute": "capacity_factor_annual_min",
             "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
         },
     }
@@ -259,17 +259,17 @@ class OtooleTrade(BaseModel):
                     if "AvailabilityFactorTrade" not in otoole_cfg.empty_dfs
                     else None
                 )
-                availability_factor_min = (
+                capacity_factor_annual_min = (
                     OSeMOSYSData.RRY(
                         group_to_json(
-                            g=dfs["AvailabilityFactorTradeMin"].loc[
-                                dfs["AvailabilityFactorTradeMin"]["FUEL"] == commodity
+                            g=dfs["TotalAnnualMinCapacityFactorTrade"].loc[
+                                dfs["TotalAnnualMinCapacityFactorTrade"]["FUEL"] == commodity
                             ],
                             data_columns=["REGION", "LINKED_REGION", "YEAR"],
                             target_column="VALUE",
                         )
                     )
-                    if "AvailabilityFactorTradeMin" not in otoole_cfg.empty_dfs
+                    if "TotalAnnualMinCapacityFactorTrade" not in otoole_cfg.empty_dfs
                     else None
                 )
 
@@ -289,7 +289,7 @@ class OtooleTrade(BaseModel):
                         activity_annual_max=activity_annual_max,
                         activity_annual_min=activity_annual_min,
                         availability_factor=availability_factor,
-                        availability_factor_min=availability_factor_min,
+                        capacity_factor_annual_min=capacity_factor_annual_min,
                     )
                 )
 
@@ -311,7 +311,7 @@ class OtooleTrade(BaseModel):
         activity_annual_max_dfs = []
         activity_annual_min_dfs = []
         availability_factor_dfs = []
-        availability_factor_min_dfs = []
+        capacity_factor_annual_min_dfs = []
 
         for trade_commodity in trade:
 
@@ -429,15 +429,15 @@ class OtooleTrade(BaseModel):
                 )
                 df["FUEL"] = trade_commodity.commodity
                 availability_factor_dfs.append(df)
-            if trade_commodity.availability_factor_min is not None:
-                df = pd.json_normalize(trade_commodity.availability_factor_min.data).T.rename(
+            if trade_commodity.capacity_factor_annual_min is not None:
+                df = pd.json_normalize(trade_commodity.capacity_factor_annual_min.data).T.rename(
                     columns={0: "VALUE"}
                 )
                 df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
                     df.index.str.split(".").to_list(), index=df.index
                 )
                 df["FUEL"] = trade_commodity.commodity
-                availability_factor_min_dfs.append(df)
+                capacity_factor_annual_min_dfs.append(df)
 
         dfs["TradeRoute"] = (
             pd.concat(trade_routes_dfs)
@@ -508,10 +508,12 @@ class OtooleTrade(BaseModel):
             if availability_factor_dfs
             else pd.DataFrame(columns=cls.otoole_stems["AvailabilityFactorTrade"]["columns"])
         )
-        dfs["AvailabilityFactorTradeMin"] = (
-            pd.concat(availability_factor_min_dfs)
-            if availability_factor_min_dfs
-            else pd.DataFrame(columns=cls.otoole_stems["AvailabilityFactorTradeMin"]["columns"])
+        dfs["TotalAnnualMinCapacityFactorTrade"] = (
+            pd.concat(capacity_factor_annual_min_dfs)
+            if capacity_factor_annual_min_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalAnnualMinCapacityFactorTrade"]["columns"]
+            )
         )
 
         return dfs

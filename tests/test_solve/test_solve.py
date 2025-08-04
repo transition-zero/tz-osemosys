@@ -279,7 +279,7 @@ def test_simple_trade_forced_min_activity():
     Trade capacity additions are forced so that R2 must import energy R1, and then installs its own
     generating capacity to make up any shortfall.
 
-    A minimum availability_factor of 50% is set, so installed trade capacity must be used for
+    A minimum annual capacity factor of 50% is set, so installed trade capacity must be used for
     50% of the time.
 
     Pseudo units and a capacity_activity_unit_ratio of 2 is used.
@@ -300,7 +300,7 @@ def test_simple_trade_forced_min_activity():
                 capacity_additional_max={"R1": {"R2": {"*": 5}}},
                 cost_of_capital={"R1": {"R2": 0.1}},
                 capacity_activity_unit_ratio=2,
-                availability_factor_min={"R1": {"R2": {"*": 0.5}}},
+                capacity_factor_annual_min={"R1": {"R2": {"*": 0.5}}},
                 activity_annual_min={"R1": {"R2": {"*": 5}}},
             )
         ],

@@ -97,10 +97,10 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
             lex["NetTradeAnnual"]
             >= lex["GrossTradeCapacity"]
             * ds["TradeRoute"]
-            * ds["AvailabilityFactorTradeMin"]
+            * ds["TotalAnnualMinCapacityFactorTrade"]
             * ds["TradeCapacityToActivityUnit"]
         )
-        mask = ds["AvailabilityFactorTradeMin"].notnull()
+        mask = ds["TotalAnnualMinCapacityFactorTrade"].notnull()
         m.add_constraints(con, name="TradeConstraint_AvailabilityFactorMin", mask=mask)
 
     return m

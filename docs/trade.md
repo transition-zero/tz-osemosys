@@ -62,9 +62,9 @@ fraction of the year that the trade route is available for use. Akin to availabi
 generation technologies.
 Optional, defaults to `None`.
 
-`availability_factor_min` `({region:{region:{year:float}}})` - Minimum availability factor for
-the trade route, percentage given as a decimal ranging from 0 to 1 for one trade direction. I.e.
-the minimum fraction of the year that the trade route must operate for.
+`capacity_factor_annual_min` `({region:{region:{year:float}}})` - Minimum annual capacity factor
+for the trade route, percentage given as a decimal ranging from 0 to 1 for one trade direction.
+I.e. the minimum fraction of the year that the trade route must operate for.
 Optional, defaults to `None`.
 
 `construct_region_pairs` `(bool)` - Boolean parameter which, is set as True, will take the given

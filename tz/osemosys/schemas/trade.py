@@ -72,9 +72,9 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     generation technologies.
     Optional, defaults to `None`.
 
-    `availability_factor_min` `({region:{region:{year:float}}})` - Minimum availability factor for
-    the trade route, percentage given as a decimal ranging from 0 to 1 for one trade direction. I.e.
-      the minimum fraction of the year that the trade route must operate for.
+    `capacity_factor_annual_min` `({region:{region:{year:float}}})` - Minimum annual capacity factor
+    for the trade route, percentage given as a decimal ranging from 0 to 1 for one trade direction.
+    I.e. the minimum fraction of the year that the trade route must operate for.
       Optional, defaults to `None`.
 
     `construct_region_pairs` `(bool)` - Boolean parameter which, is set as True, will take the given
@@ -127,7 +127,7 @@ class Trade(OSeMOSYSBase, OtooleTrade):
     activity_annual_max: OSeMOSYSData.RRY | None = Field(default=None)
     activity_annual_min: OSeMOSYSData.RRY | None = Field(default=None)
     availability_factor: OSeMOSYSData.RRY | None = Field(default=None)
-    availability_factor_min: OSeMOSYSData.RRY | None = Field(default=None)
+    capacity_factor_annual_min: OSeMOSYSData.RRY | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod
