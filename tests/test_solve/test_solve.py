@@ -218,6 +218,9 @@ def test_simple_trade():
     Trade capacity additions are limited so that R2 imports as much energy as it can from R1, and
     then installs its own generating capacity to make up any shortfall.
 
+    A maximum availability_factor of 80% is set, so installed trade capacity can only be used for
+    80% of the time.
+
     Pseudo units and a capacity_activity_unit_ratio of 2 is used.
     """
     model = Model(
@@ -237,6 +240,9 @@ def test_simple_trade():
                 cost_of_capital={"R1": {"R2": 0.1}},
                 construct_region_pairs=True,
                 capacity_activity_unit_ratio=2,
+                # the R2:R1 constraint below should not have any effect as only R1:R2 route is used
+                availability_factor={"R1": {"R2": {"*": 0.8}}, "R2": {"R1": {"*": 0.1}}},
+                activity_annual_max={"R1": {"R2": {"*": 24}}},
             )
         ],
         commodities=[dict(id="electricity", demand_annual=50)],
@@ -260,8 +266,67 @@ def test_simple_trade():
 
     model.solve(solver_name="highs")
 
-    assert model.solution["NetTrade"].values[0][2][0] == 30
-    assert np.round(model._m.objective.value) == 30387.0
+    assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 24
+    assert np.round(model._m.objective.value) == 34828.0
+
+
+def test_simple_trade_forced_min_activity():
+    """
+    2 region model, both regions have electricity demand and are able to trade with each other, but
+    generating capacity can be constructed with non-zero capex in the first region (R1), and 0 cost
+    in the second region (R2).
+
+    Trade capacity additions are forced so that R2 must import energy R1, and then installs its own
+    generating capacity to make up any shortfall.
+
+    A minimum annual capacity factor of 50% is set, so installed trade capacity must be used for
+    50% of the time.
+
+    Pseudo units and a capacity_activity_unit_ratio of 2 is used.
+    """
+    model = Model(
+        id="test-trade",
+        time_definition=dict(id="years-only", years=range(2020, 2031)),
+        regions=[dict(id="R1"), dict(id="R2")],
+        trade=[
+            dict(
+                id="electricity transmission",
+                commodity="electricity",
+                trade_routes={"R1": {"R2": {"*": True}}},
+                capex={"R1": {"R2": {"*": 100}}},
+                operating_life={"R1": {"R2": {"*": 2}}},
+                trade_loss={"*": {"*": {"*": 0.1}}},
+                residual_capacity={"R1": {"R2": {"*": 5}}},
+                capacity_additional_max={"R1": {"R2": {"*": 5}}},
+                cost_of_capital={"R1": {"R2": 0.1}},
+                capacity_activity_unit_ratio=2,
+                capacity_factor_annual_min={"R1": {"R2": {"*": 0.5}}},
+                activity_annual_min={"R1": {"R2": {"*": 5}}},
+            )
+        ],
+        commodities=[dict(id="electricity", demand_annual=50)],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=2,
+                capex={"R1": {"*": 400}, "R2": {"*": 0}},
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+                capacity_activity_unit_ratio=2,
+            )
+        ],
+    )
+
+    model.solve(solver_name="highs")
+
+    assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 5
+    assert np.round(model._m.objective.value) == 53417.0
 
 
 def test_simple_re_target():

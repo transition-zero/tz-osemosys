@@ -53,6 +53,22 @@ class OtooleTrade(BaseModel):
             "attribute": "capacity_activity_unit_ratio",
             "columns": ["REGION", "_REGION", "FUEL", "VALUE"],
         },
+        "TotalTradeAnnualActivityUpperLimit": {
+            "attribute": "activity_annual_max",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "TotalTradeAnnualActivityLowerLimit": {
+            "attribute": "activity_annual_min",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "AvailabilityFactorTrade": {
+            "attribute": "availability_factor",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
+        "TotalAnnualMinCapacityFactorTrade": {
+            "attribute": "capacity_factor_annual_min",
+            "columns": ["REGION", "_REGION", "FUEL", "YEAR", "VALUE"],
+        },
     }
 
     @classmethod
@@ -191,6 +207,71 @@ class OtooleTrade(BaseModel):
                     else None
                 )
                 otoole_cfg = otoole_cfg
+                capacity_activity_unit_ratio = (
+                    OSeMOSYSData.RR(
+                        group_to_json(
+                            g=dfs["TradeCapacityToActivityUnit"].loc[
+                                dfs["TradeCapacityToActivityUnit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TradeCapacityToActivityUnit" not in otoole_cfg.empty_dfs
+                    else OSeMOSYSData.RR(defaults.trade_capacity_activity_unit_ratio)
+                )
+                activity_annual_max = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalTradeAnnualActivityUpperLimit"].loc[
+                                dfs["TotalTradeAnnualActivityUpperLimit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TotalTradeAnnualActivityUpperLimit" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                activity_annual_min = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalTradeAnnualActivityLowerLimit"].loc[
+                                dfs["TotalTradeAnnualActivityLowerLimit"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TotalTradeAnnualActivityLowerLimit" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                availability_factor = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["AvailabilityFactorTrade"].loc[
+                                dfs["AvailabilityFactorTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "AvailabilityFactorTrade" not in otoole_cfg.empty_dfs
+                    else None
+                )
+                capacity_factor_annual_min = (
+                    OSeMOSYSData.RRY(
+                        group_to_json(
+                            g=dfs["TotalAnnualMinCapacityFactorTrade"].loc[
+                                dfs["TotalAnnualMinCapacityFactorTrade"]["FUEL"] == commodity
+                            ],
+                            data_columns=["REGION", "LINKED_REGION", "YEAR"],
+                            target_column="VALUE",
+                        )
+                    )
+                    if "TotalAnnualMinCapacityFactorTrade" not in otoole_cfg.empty_dfs
+                    else None
+                )
 
                 trade_instances.append(
                     cls(
@@ -204,6 +285,11 @@ class OtooleTrade(BaseModel):
                         capacity_additional_max=capacity_additional_max,
                         operating_life=operating_life,
                         cost_of_capital=cost_of_capital,
+                        capacity_activity_unit_ratio=capacity_activity_unit_ratio,
+                        activity_annual_max=activity_annual_max,
+                        activity_annual_min=activity_annual_min,
+                        availability_factor=availability_factor,
+                        capacity_factor_annual_min=capacity_factor_annual_min,
                     )
                 )
 
@@ -222,6 +308,10 @@ class OtooleTrade(BaseModel):
         operating_life_dfs = []
         cost_of_capital_dfs = []
         capacity_activity_unit_ratio_dfs = []
+        activity_annual_max_dfs = []
+        activity_annual_min_dfs = []
+        availability_factor_dfs = []
+        capacity_factor_annual_min_dfs = []
 
         for trade_commodity in trade:
 
@@ -312,6 +402,43 @@ class OtooleTrade(BaseModel):
                     df["FUEL"] = trade_commodity.commodity
                     capacity_activity_unit_ratio_dfs.append(df)
 
+            if trade_commodity.activity_annual_max is not None:
+                df = pd.json_normalize(trade_commodity.activity_annual_max.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                activity_annual_max_dfs.append(df)
+            if trade_commodity.activity_annual_min is not None:
+                df = pd.json_normalize(trade_commodity.activity_annual_min.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                activity_annual_min_dfs.append(df)
+            if trade_commodity.availability_factor is not None:
+                df = pd.json_normalize(trade_commodity.availability_factor.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                availability_factor_dfs.append(df)
+            if trade_commodity.capacity_factor_annual_min is not None:
+                df = pd.json_normalize(trade_commodity.capacity_factor_annual_min.data).T.rename(
+                    columns={0: "VALUE"}
+                )
+                df[["REGION", "_REGION", "YEAR"]] = pd.DataFrame(
+                    df.index.str.split(".").to_list(), index=df.index
+                )
+                df["FUEL"] = trade_commodity.commodity
+                capacity_factor_annual_min_dfs.append(df)
+
         dfs["TradeRoute"] = (
             pd.concat(trade_routes_dfs)
             if trade_routes_dfs
@@ -361,6 +488,32 @@ class OtooleTrade(BaseModel):
                 for _r in t.trade_routes.data[r]
             ],
             columns=["REGION", "_REGION", "FUEL", "VALUE"],
+        )
+        dfs["TotalTradeAnnualActivityUpperLimit"] = (
+            pd.concat(activity_annual_max_dfs)
+            if activity_annual_max_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalTradeAnnualActivityUpperLimit"]["columns"]
+            )
+        )
+        dfs["TotalTradeAnnualActivityLowerLimit"] = (
+            pd.concat(activity_annual_min_dfs)
+            if activity_annual_min_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalTradeAnnualActivityLowerLimit"]["columns"]
+            )
+        )
+        dfs["AvailabilityFactorTrade"] = (
+            pd.concat(availability_factor_dfs)
+            if availability_factor_dfs
+            else pd.DataFrame(columns=cls.otoole_stems["AvailabilityFactorTrade"]["columns"])
+        )
+        dfs["TotalAnnualMinCapacityFactorTrade"] = (
+            pd.concat(capacity_factor_annual_min_dfs)
+            if capacity_factor_annual_min_dfs
+            else pd.DataFrame(
+                columns=cls.otoole_stems["TotalAnnualMinCapacityFactorTrade"]["columns"]
+            )
         )
 
         return dfs

@@ -46,6 +46,27 @@ given trade route. Optional, defaults to 0.1.
 Conversion factor relating the energy that would be traded when one unit of capacity is
 fully used in one year. Optional, defaults to 1.
 
+`activity_annual_max` `({region:{region:{year:float}}})` - Maximum amount of a commodity that
+can be traded in a year, in commodity units and for one direction (e.g. R1 to R2). This
+constraint applies to commodities being exported, so does not account for trade losses.
+Optional, defaults to `None`.
+
+`activity_annual_min` `({region:{region:{year:float}}})` - Minimum amount of a commodity that
+must be traded in a year, in commodity units and for one direction (e.g. R1 to R2). This
+constraint applies to commodities being exported, so does not account for trade losses.
+Optional, defaults to `None`.
+
+`availability_factor` `({region:{region:{year:float}}})` - Availability factor for the trade
+route, percentage given as a decimal ranging from 0 to 1 for one trade direction. I.e. the
+fraction of the year that the trade route is available for use. Akin to availability_factor of
+generation technologies.
+Optional, defaults to `None`.
+
+`capacity_factor_annual_min` `({region:{region:{year:float}}})` - Minimum annual capacity factor
+for the trade route, percentage given as a decimal ranging from 0 to 1 for one trade direction.
+I.e. the minimum fraction of the year that the trade route must operate for.
+Optional, defaults to `None`.
+
 `construct_region_pairs` `(bool)` - Boolean parameter which, is set as True, will take the given
     input data and duplicate it for the opposite region:region direction if not already provided.
     E.g. providing trade_routes = {"R1": {"R2": {"COMMODITY": {"2020": True}}}} and setting the
