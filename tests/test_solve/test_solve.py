@@ -209,6 +209,175 @@ def test_simple_storage():
     assert np.round(model.objective) == 8905.0
 
 
+def test_simple_storage_max_hours():
+    """
+    This model tests the funcationality of max_hours in storage, which limits the ratio of storage
+    capacity (in energy units) to maximum charge/discharge rate (in power units). Pseudo units and
+    a capacity_activity_unit_ratio of 31.536 are used.
+
+    The model includes 2 seasons and 4 daily time brackets of unequal length. The modelled hours
+    are:
+    - S1T1: 0-3
+    - S1T2: 3-6
+    - S1T3: 6-15
+    - S1T4: 15-24
+
+    Only one generator is available to meet demand, but is only available for the first 2 timeslices
+    (S1T1 and S1T2), so that storage must be used to meet demand in the other timeslices.
+
+    The demand in timeslices S1T3 and S1T4 is 0.1875. If storage where able to charge and discharge
+    freely, it would only require 0.375 capacity to meet the combined demand of these timeslices.
+
+    However, a max_hours of 12 is set, which means that for a given storage capacity, the fastest
+    rate at which it can discharge or charge fully is 12 hours. Given for each day, storage is only
+    able to charge for 6 hours, if the capacity were 0.375, over the first 2 timeslices it would
+    only be able to charge 0.1875, which is not enough to meet the demand in S1T3 and S1T4. Hence
+    the storage capacity must be at least 0.75 to meet the demand in S1T3 and S1T4.
+
+    storage_balance_day cannot be set as true here as the model must charge for 6 hours and
+    discharge for 18 hours, hence charge cannot equal discharge.
+    """
+    time_definition = TimeDefinition(
+        id="years-only",
+        years=range(2020, 2030),
+        seasons=[1, 2],
+        day_types=[1],
+        daily_time_steps=[1, 2, 3, 4],  # 0-3, 3-6, 6-15, 15-24
+        timeslices=["S1T1", "S1T2", "S1T3", "S1T4", "S2T1", "S2T2", "S2T3", "S2T4"],
+        timeslice_in_season={
+            "S1T1": 1,
+            "S1T2": 1,
+            "S1T3": 1,
+            "S1T4": 1,
+            "S2T1": 2,
+            "S2T2": 2,
+            "S2T3": 2,
+            "S2T4": 2,
+        },
+        timeslice_in_daytype={
+            "S1T1": 1,
+            "S1T2": 1,
+            "S1T3": 1,
+            "S1T4": 1,
+            "S2T1": 1,
+            "S2T2": 1,
+            "S2T3": 1,
+            "S2T4": 1,
+        },
+        timeslice_in_timebracket={
+            "S1T1": 1,
+            "S1T2": 2,
+            "S1T3": 3,
+            "S1T4": 4,
+            "S2T1": 1,
+            "S2T2": 2,
+            "S2T3": 3,
+            "S2T4": 4,
+        },
+        year_split={
+            "S1T1": 0.0625,
+            "S1T2": 0.0625,
+            "S1T3": 0.1875,
+            "S1T4": 0.1875,
+            "S2T1": 0.0625,
+            "S2T2": 0.0625,
+            "S2T3": 0.1875,
+            "S2T4": 0.1875,
+        },
+    )
+    regions = [Region(id="single-region")]
+    commodities = [
+        Commodity(
+            id="electricity",
+            demand_annual=1,
+            demand_profile={
+                "S1T1": 0.0625,
+                "S1T2": 0.0625,
+                "S1T3": 0.1875,
+                "S1T4": 0.1875,
+                "S2T1": 0.0625,
+                "S2T2": 0.0625,
+                "S2T3": 0.1875,
+                "S2T4": 0.1875,
+            },
+        )
+    ]
+    impacts = []
+    technologies = [
+        Technology(
+            id="solar-pv",
+            operating_life=2,  # years
+            capex=10,
+            capacity_activity_unit_ratio=31.536,
+            capacity_factor={
+                "S1T1": 1,
+                "S1T2": 1,
+                "S1T3": 0,
+                "S1T4": 0,
+                "S2T1": 1,
+                "S2T2": 1,
+                "S2T3": 0,
+                "S2T4": 0,
+            },
+            operating_modes=[
+                OperatingMode(
+                    id="generation",
+                    opex_variable={
+                        "*": {
+                            "*": 0,
+                        }
+                    },
+                    output_activity_ratio={"electricity": 1.0},
+                )
+            ],
+        ),
+        Technology(
+            id="bat-tech",
+            operating_life=3,
+            capex=20,
+            operating_modes=[
+                OperatingMode(
+                    id="charge",
+                    opex_variable=0,
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge",
+                    opex_variable=0,
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage": True}},
+                ),
+            ],
+        ),
+    ]
+    storage = [
+        Storage(
+            id="bat-storage",
+            capex=0.01,
+            operating_life=100,
+            residual_capacity=0,
+            max_hours=12,
+            # storage_balance_day=True, # cannot be set as True here due to unequal year_splits
+        ),
+    ]
+    model = Model(
+        id="simple-storage-max-hours",
+        time_definition=time_definition,
+        regions=regions,
+        commodities=commodities,
+        impacts=impacts,
+        storage=storage,
+        technologies=technologies,
+    )
+    model.solve(solver_name="highs")
+
+    assert model.solution.NewStorageCapacity.values[0][0][0] == 0.75  # 2020, bat-storage capacity
+    assert model.solution.NetCharge.values[0][0][0][0] == 0.1875  # 2020, S1T1 net charge
+    assert model.solution.NetCharge.values[0][0][0][2] == -0.1875  # 2020, S1T3 net charge
+    assert np.round(model.objective) == 175.0
+
+
 def test_simple_trade():
     """
     2 region model, both regions have electricity demand and are able to trade with each other, but

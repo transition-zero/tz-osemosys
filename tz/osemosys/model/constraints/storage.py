@@ -282,9 +282,23 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         if "StorageMaxHours" in ds.data_vars:
             con = (
                 lex["RateOfStorageCharge"]
-                <= (lex["GrossStorageCapacity"] / ds["StorageMaxHours"]) * 8760
+                <= (lex["GrossStorageCapacity"] / (ds["StorageMaxHours"] * 365))
+                * 8760
+                * ds["SEASON"].size
+                * ds["DAYTYPE"].size
             )
-            m.add_constraints(con, name="StorageMaxHoursConstraint")
+            mask = ds["StorageMaxHours"].notnull()
+            m.add_constraints(con, name="StorageMaxHoursConstraintCharge", mask=mask)
+
+            con = (
+                lex["RateOfStorageDischarge"]
+                <= (lex["GrossStorageCapacity"] / (ds["StorageMaxHours"] * 365))
+                * 8760
+                * ds["SEASON"].size
+                * ds["DAYTYPE"].size
+            )
+            mask = ds["StorageMaxHours"].notnull()
+            m.add_constraints(con, name="StorageMaxHoursConstraintDischarge", mask=mask)
 
         if "StorageBalanceDay" in ds.data_vars:
             # Require NetChargeWithinDay to be zero
