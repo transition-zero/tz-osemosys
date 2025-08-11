@@ -765,6 +765,11 @@ Optional, defaults to `None`.
 Maximum charging rate for the storage, in units of activity per year.
 Optional, defaults to `None`.
 
+`max_hours` `({region:float})` - OSeMOSYS style name StorageMaxHours. Maximum number of hours
+that the storage can be charged or discharged in a single time slice. It is suggested to not set
+max_hours to greater than 24 as, given time representation in OSeMOSYS, each day is actually a
+combination of multiple days. Optional, defaults to `None`.
+
 `storage_balance_day` `({region:bool})` - OSeMOSYS style name StorageBalanceDay.
 Boolean parameter tagging storage technologies which must balance daily, i.e. charge must equal
     discharge over each day, using daily time brackets.

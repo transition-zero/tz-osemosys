@@ -58,6 +58,11 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     equal discharge over each year.
     Optional, defaults to `False`.
 
+    `max_hours` `({region:float})` - OSeMOSYS style name StorageMaxHours. Maximum number of hours
+    that the storage can be charged or discharged in a single time slice. It is suggested to not set
+    max_hours to greater than 24 as, given time representation in OSeMOSYS, each day is actually a
+    combination of multiple days. Optional, defaults to `None`.
+
 
     ## Examples
 
