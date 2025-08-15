@@ -17,6 +17,7 @@ class Defaults(BaseSettings):
     technology_opex_variable_cost: float = Field(0.00001)
     technology_opex_fixed_cost: float = Field(0.0)
     technology_operating_life: int = Field(1)
+    technology_capacity_additional_max_floor: float = Field(0.0)
     depreciation_method: str = "sinking-fund"
     discount_rate: float = Field(0.05)
     reserve_margin: float = Field(1.0)

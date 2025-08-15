@@ -317,7 +317,9 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     capacity_additional_max_growth_rate: OSeMOSYSData.RY | None = Field(None)
     # upper bound floor: if used with growth_rate,
     # limits capacity growth to the floor or growth-rate, whichever is greater
-    capacity_additional_max_floor: OSeMOSYSData.RY | None = Field(None)
+    capacity_additional_max_floor: OSeMOSYSData.RY | None = Field(
+        OSeMOSYSData.RY(defaults.technology_capacity_additional_max_floor)
+    )
 
     # lower bound on capacity utilisation
     capacity_factor_annual_min: OSeMOSYSData.RY | None = Field(None)

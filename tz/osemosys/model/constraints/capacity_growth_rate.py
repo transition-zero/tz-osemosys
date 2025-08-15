@@ -41,29 +41,15 @@ def add_capacity_growthrate_constraints(
         TotalTechnologyAnnualActivity[r,t,y] >= TotalTechnologyAnnualActivityLowerLimit[r,t,y] ;
     ```
     """
-    if (
-        ds["CapacityAdditionalMaxFloor"].notnull().any()
-        and ds["CapacityAdditionalMaxGrowthRate"].notnull().any()
-    ):
-        mask = (
-            ds["CapacityAdditionalMaxFloor"].notnull()
-            & ds["CapacityAdditionalMaxGrowthRate"].notnull()
-        )
+
+    if ds["CapacityAdditionalMaxGrowthRate"].notnull().any():
+        mask = ds["CapacityAdditionalMaxGrowthRate"].notnull()
         con = (
             m["NewCapacity"]
             <= lex["GrossCapacity"].shift(YEAR=1) * ds["CapacityAdditionalMaxGrowthRate"]
             + ds["CapacityAdditionalMaxFloor"]
         )
         m.add_constraints(con, name="GrowthRateFloorMax", mask=mask)
-
-    elif ds["CapacityAdditionalMaxGrowthRate"].notnull().any():
-        # we just have a growth rate constraint by itself
-        con = (
-            m["NewCapacity"]
-            <= lex["GrossCapacity"].shift(YEAR=1) * ds["CapacityAdditionalMaxGrowthRate"]
-        )
-        mask = ds["CapacityAdditionalMaxGrowthRate"].notnull()
-        m.add_constraints(con, name="GrowthRateMax", mask=mask)
 
     if ds["CapacityAdditionalMinGrowthRate"].notnull().any():
         con = (
