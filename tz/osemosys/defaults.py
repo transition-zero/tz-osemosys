@@ -5,6 +5,11 @@ from pydantic_settings import BaseSettings
 
 
 class Defaults(BaseSettings):
+    """
+    Class to contain default values used for when constructing a model directly with tz-osemosys,
+    rather than through the otoole compatibility route.
+    """
+
     equals_one_tolerance: float = Field(0.01)
     technology_capacity_activity_unit_ratio: float = Field(1.0)
     technology_capacity_factor: float = Field(1.0)
@@ -31,7 +36,10 @@ class Defaults(BaseSettings):
 
 class DefaultsLinopy(BaseSettings):
     """
-    Class to contain hard coded default values, for use with xarray/Linopy
+    Class to contain hard coded default values, for use with xarray/Linopy.
+
+    These will be included in the constructed linopy model regardless of how the tz-osemosys model
+    was constructed (either in tz-osemosys directly or through otoole compatibility).
     """
 
     otoole_name_defaults: Dict = Field(
@@ -46,6 +54,7 @@ class DefaultsLinopy(BaseSettings):
             "SpecifiedAnnualDemand": 0,
             "RegionGroupTagRegion": int(False),  # boolean is invalid netcdf
             "TradeRoute": int(False),  # boolean is invalid netcdf
+            "CapacityAdditionalMaxFloor": 0,
         }
     )
 
