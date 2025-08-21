@@ -302,6 +302,10 @@ class OSeMOSYSData(BaseModel):
                     "If initialising via a dict keyed by 'data', 'data' must be the only key."
                 )
             elif "data" in data.keys():
+                if data["data"] == {}:
+                    raise ValueError(
+                        "Data must not be an empty dict for any instance of the OSeMOSYSData class."
+                    )
                 if isinstance(data["data"], dict):
                     if "data" in data["data"].keys():
                         super().__init__(**data["data"])
