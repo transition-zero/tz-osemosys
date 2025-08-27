@@ -96,7 +96,6 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     lex.update(
         {
-            "NewTradeCapacity": NewTradeCapacity,
             "AccumulatedNewTradeCapacity": AccumulatedNewTradeCapacity,
             "GrossTradeCapacity": GrossTradeCapacity,
             "NetTrade": NetTrade,
