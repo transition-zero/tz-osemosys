@@ -17,7 +17,6 @@ def add_lex_capacity(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression])
 
     lex.update(
         {
-            "NewCapacity": NewCapacity,
             "AccumulatedNewCapacity": AccumulatedNewCapacity,
             "GrossCapacity": GrossCapacity,
         }
