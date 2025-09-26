@@ -28,6 +28,8 @@ def add_capacity_variables(ds: xr.Dataset, m: Model) -> Model:
         lower=0, upper=inf, coords=RTeY, name="NumberOfNewTechnologyUnits", integer=True, mask=mask
     )
     m.add_variables(lower=0, upper=inf, coords=RTeY, name="NewCapacity", integer=False)
-    m.add_variables(lower=0, upper=inf, coords=RRFY, name="NewTradeCapacity", integer=False)
+
+    mask = ds["TradeRoute"] == 1
+    m.add_variables(lower=0, upper=inf, coords=RRFY, name="NewTradeCapacity", integer=False, mask=mask)
 
     return m
