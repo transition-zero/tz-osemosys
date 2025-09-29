@@ -44,7 +44,15 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
         lower=0, upper=inf, coords=RTeMYTi, name="RateOfActivity", integer=False, mask=mask
     )
 
-    m.add_variables(lower=0, upper=inf, coords=RRTiFY, name="Export", integer=False)
-    m.add_variables(lower=0, upper=inf, coords=RRTiFY, name="Import", integer=False)
+    mask = ds["TradeRoute"] == 1
+    m.add_variables(lower=0, upper=inf, coords=RRTiFY, name="Export", integer=False, mask=mask)
+    m.add_variables(
+        lower=0,
+        upper=inf,
+        coords=RRTiFY,
+        name="Import",
+        integer=False,
+        mask=mask.rename({"REGION": "_REGION", "_REGION": "REGION"}),
+    )
 
     return m
