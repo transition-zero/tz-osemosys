@@ -329,6 +329,48 @@ def test_simple_trade_forced_min_activity():
     assert np.round(model._m.objective.value) == 53417.0
 
 
+def test_trade_masking():
+    model = Model(
+        id="test-trade-masking",
+        time_definition=dict(id="years-only", years=range(2020, 2022)),
+        regions=[dict(id="R1"), dict(id="R2")],
+        impacts=[],
+        commodities=[dict(id="electricity", demand_annual=1.0)],
+        technologies=[
+            dict(
+                id="gen",
+                operating_modes=[dict(id="generation", output_activity_ratio={"electricity": 1})],
+            )
+        ],
+        trade=[
+            dict(
+                id="electricity transmission",
+                commodity="electricity",
+                trade_routes={
+                    "R1": {"R2": {2020: True}},
+                    "R2": {"R1": {2021: True}},
+                },
+            )
+        ],
+    )
+
+    model._build()
+    # There should be no self-trade
+    assert not model._m.variables["Import"].mask.sel(REGION="R1", _REGION="R1").any()
+    assert not model._m.variables["Export"].mask.sel(REGION="R2", _REGION="R2").any()
+    # Import mask should be transpose of Export mask in (REGION, _REGION) dims
+    assert (
+        model._m.variables["Export"].mask.sel(REGION="R1").to_numpy()
+        == model._m.variables["Import"].mask.sel(_REGION="R1").to_numpy()
+    ).all()
+    assert (
+        model._m.variables["Export"].mask.sel(REGION="R2").to_numpy()
+        == model._m.variables["Import"].mask.sel(_REGION="R2").to_numpy()
+    ).all()
+    # Masking should also be applied on constraints
+    assert model._m.constraints["EBa10_EnergyBalanceEachTS4_trn"].mask is not None
+
+
 def test_simple_re_target():
     """
     This model has 2 generators, solar and coal, with identical parameters except for solar having
