@@ -10,7 +10,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
             ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"] * lex["GrossCapacity"]
         ).where(
             (ds["ReserveMargin"] > 0)
-            & (ds["ReserveMarginTagTechnology"] == 1)
+            & (ds["ReserveMarginTagTechnology"] > 0)
             & (ds["ReserveMarginTagTechnology"] * ds["CapacityToActivityUnit"]).notnull(),
             drop=False,
         )
@@ -22,7 +22,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
         (ds["OutputActivityRatio"].notnull())
         & (ds["ReserveMargin"] > 0)
         & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1),
+        & (ds["ReserveMarginTagTechnology"] > 0),
         drop=False,
     )
 
@@ -31,7 +31,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
             (ds["OutputActivityRatio"].notnull())
             & (ds["ReserveMargin"] > 0)
             & (ds["ReserveMarginTagFuel"] == 1)
-            & (ds["ReserveMarginTagTechnology"] == 1),
+            & (ds["ReserveMarginTagTechnology"] > 0),
             drop=False,
         ).sum(dims="MODE_OF_OPERATION")
     )
@@ -40,7 +40,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
         (ds["OutputActivityRatio"].notnull())
         & (ds["ReserveMargin"] > 0)
         & (ds["ReserveMarginTagFuel"] == 1)
-        & (ds["ReserveMarginTagTechnology"] == 1),
+        & (ds["ReserveMarginTagTechnology"] > 0),
         drop=False,
     ).sum(dims="TECHNOLOGY")
 

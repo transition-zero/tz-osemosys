@@ -423,3 +423,64 @@ def test_simple_re_target():
     assert model._m.termination_condition == "optimal"
     assert np.round(model._m.objective.value) == 54671.0
     assert model._m.solution["NewCapacity"][0][1][0] == 5  # i.e. solar new capacity
+
+
+def test_simple_reserve_margin():
+    """
+    This model has a reserve margin requirement of 20%, with only one technology able to provide
+    capacity towards the reserve margin (derated so that only 50% of the capacity contributes).
+    The model checks that sufficient capacity is built to meet both demand and the reserve margin
+    requirement.
+
+    40 units of tech-with-reserve-margin are built and 60 units of tech-without-reserve-margin are
+    built. 50% of 40 is 20, which meets the 20% reserve margin requirement on the 100 units of
+    demand.
+    """
+    model = Model(
+        id="test-reserve-margin",
+        reserve_margin=0.2,
+        time_definition=dict(id="years-only", years=range(2020, 2031)),
+        regions=[dict(id="single-region")],
+        commodities=[
+            dict(id="electricity", demand_annual=100, include_in_joint_reserve_margin=True)
+        ],
+        impacts=[],
+        technologies=[
+            dict(
+                id="tech-with-reserve-margin",
+                operating_life=5,
+                capex=300,
+                include_in_joint_reserve_margin=0.5,
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+            ),
+            dict(
+                id="tech-without-reserve-margin",
+                operating_life=5,
+                capex=200,
+                include_in_joint_reserve_margin=0,
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+            ),
+        ],
+    )
+
+    model._build()
+
+    model._m.solve(solver_name="highs")
+
+    assert model._m.termination_condition == "optimal"
+    assert (
+        model._m.solution["NewCapacity"]
+        .sel(YEAR=2020, TECHNOLOGY="tech-with-reserve-margin")
+        .item()
+        == 40
+    )

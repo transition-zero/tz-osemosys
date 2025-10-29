@@ -333,7 +333,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     activity_total_min: OSeMOSYSData.R | None = Field(None)
 
     # include this technology in joint reserve margin and renewables targets
-    include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_reserve_margin: OSeMOSYSData.RY | None = Field(None)
     include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # production targets

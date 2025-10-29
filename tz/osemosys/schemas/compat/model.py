@@ -318,9 +318,7 @@ class RunSpecOtoole(BaseModel):
                     )
 
         if "ReserveMarginTagTechnology" not in otoole_cfg.empty_dfs:
-            dfs["ReserveMarginTagTechnology"]["VALUE"] = dfs["ReserveMarginTagTechnology"][
-                "VALUE"
-            ].map({0: False, 1: True})
+            dfs["ReserveMarginTagTechnology"]["VALUE"] = dfs["ReserveMarginTagTechnology"]["VALUE"]
             reserve_margin_technology_data = group_to_json(
                 g=dfs["ReserveMarginTagTechnology"],
                 root_column=None,
@@ -329,7 +327,7 @@ class RunSpecOtoole(BaseModel):
             )
             for technology in technologies:
                 if technology.id in reserve_margin_technology_data.keys():
-                    technology.include_in_joint_reserve_margin = OSeMOSYSData.RY.Bool(
+                    technology.include_in_joint_reserve_margin = OSeMOSYSData.RY(
                         reserve_margin_technology_data[technology.id]
                     )
 
@@ -404,7 +402,7 @@ class RunSpecOtoole(BaseModel):
                     df[["REGION", "YEAR"]] = pd.DataFrame(
                         df.index.str.split(".").to_list(), index=df.index
                     )
-                    df["VALUE"] = df["VALUE"].astype(int)
+                    df["VALUE"] = df["VALUE"].astype(float)
                     dfs_tag_technology.append(df)
 
             dfs_tag_fuel = []
