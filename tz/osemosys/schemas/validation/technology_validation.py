@@ -143,3 +143,16 @@ def validate_technologies_production_targets_values(
                                 f"Total minimum production target for {node, commodity, year} "
                                 f"exceeds 1.0."
                             )
+
+
+def validate_technologies_reserve_margin_tag(technologies: list["Technology"]) -> None:
+    """Check that if include_in_joint_reserve_margin is defined, it takes values between 0 and 1."""
+    for technology in technologies:
+        if technology.include_in_joint_reserve_margin is not None:
+            for region_values in technology.include_in_joint_reserve_margin.data.values():
+                for value in region_values.values():
+                    if not (0.0 <= value <= 1.0):
+                        raise ValueError(
+                            f"include_in_joint_reserve_margin for technology '{technology.id}' "
+                            f"must be between 0 and 1 inclusive."
+                        )
