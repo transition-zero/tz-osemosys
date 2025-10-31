@@ -58,10 +58,12 @@ Boolean tagging the renewable technologies that must contribute to reaching the 
 minimum renewable production target. It has value True for the technologies contributing,
 False otherwise. Optional, defaults to `None`.
 
-`include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
-ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
-    indicated reserve margin. It has value True for the technologies contributing, False otherwise.
-    Optional, defaults to `None`.
+`include_in_joint_reserve_margin` `({region:{year:float}})` - OSeMOSYS
+ReserveMarginTagTechnology. Percentage of the technology's capacity that can contribute to reaching
+the indicated reserve margin. E.g. for a value of 0.2 only 20% of the given technology's capacity
+will count towards the reserve margin. Boolean values can also be passed with True being assigned
+the value of 1, and False the value of 0.
+Optional, defaults to `None`.
 
 `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
 Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology
