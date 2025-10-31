@@ -432,25 +432,35 @@ def test_simple_reserve_margin():
     The model checks that sufficient capacity is built to meet both demand and the reserve margin
     requirement.
 
-    40 units of tech-with-reserve-margin are built and 60 units of tech-without-reserve-margin are
-    built. 50% of 40 is 20, which meets the 20% reserve margin requirement on the 100 units of
-    demand.
+    40 units of expensive-tech-with-reserve-margin are built and 60 units of
+    cheap-tech-without-reserve-margin are built. 50% of 40 is 20, which meets the 20% reserve margin
+    requirement on the 100 units of demand.
     """
+
+    EXPENSIVE_TECH_WITH_RESERVE_MARGIN_CAPEX = 300
+    EXPENSIVE_TECH_RESERVE_MARGIN_FACTOR = 0.5
+    CHEAP_TECH_WITHOUT_RESERVE_MARGIN_CAPEX = 200
+
+    RESERVE_MARGIN = 0.2
+    DEMAND_ANNUAL = 100
+
     model = Model(
         id="test-reserve-margin",
-        reserve_margin=0.2,
+        reserve_margin=RESERVE_MARGIN,
         time_definition=dict(id="years-only", years=range(2020, 2031)),
         regions=[dict(id="single-region")],
         commodities=[
-            dict(id="electricity", demand_annual=100, include_in_joint_reserve_margin=True)
+            dict(
+                id="electricity", demand_annual=DEMAND_ANNUAL, include_in_joint_reserve_margin=True
+            )
         ],
         impacts=[],
         technologies=[
             dict(
-                id="tech-with-reserve-margin",
+                id="expensive-tech-with-reserve-margin",
                 operating_life=5,
-                capex=300,
-                include_in_joint_reserve_margin=0.5,
+                capex=EXPENSIVE_TECH_WITH_RESERVE_MARGIN_CAPEX,
+                include_in_joint_reserve_margin=EXPENSIVE_TECH_RESERVE_MARGIN_FACTOR,
                 operating_modes=[
                     dict(
                         id="generation",
@@ -459,9 +469,9 @@ def test_simple_reserve_margin():
                 ],
             ),
             dict(
-                id="tech-without-reserve-margin",
+                id="cheap-tech-without-reserve-margin",
                 operating_life=5,
-                capex=200,
+                capex=CHEAP_TECH_WITHOUT_RESERVE_MARGIN_CAPEX,
                 include_in_joint_reserve_margin=0,
                 operating_modes=[
                     dict(
@@ -480,7 +490,8 @@ def test_simple_reserve_margin():
     assert model._m.termination_condition == "optimal"
     assert (
         model._m.solution["NewCapacity"]
-        .sel(YEAR=2020, TECHNOLOGY="tech-with-reserve-margin")
+        .sel(YEAR=2020, TECHNOLOGY="expensive-tech-with-reserve-margin")
         .item()
-        == 40
+        * EXPENSIVE_TECH_RESERVE_MARGIN_FACTOR
+        == DEMAND_ANNUAL * RESERVE_MARGIN
     )
