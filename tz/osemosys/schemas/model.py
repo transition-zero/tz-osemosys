@@ -29,6 +29,7 @@ from tz.osemosys.schemas.validation.model_composition import (
 from tz.osemosys.schemas.validation.technology_validation import (
     validate_min_lt_max,
     validate_technologies_production_targets_values,
+    validate_technologies_reserve_margin_tag,
     validate_technology_production_target_commodities,
 )
 from tz.osemosys.utils import merge, recursive_keys
@@ -412,6 +413,7 @@ class RunSpec(OSeMOSYSBase, RunSpecOtoole):
         for technology in self.technologies:
             validate_technology_production_target_commodities(technology)
         validate_technologies_production_targets_values(self.technologies)
+        validate_technologies_reserve_margin_tag(self.technologies)
 
         return self
 

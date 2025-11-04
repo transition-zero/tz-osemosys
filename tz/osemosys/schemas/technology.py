@@ -175,10 +175,12 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     minimum renewable production target. It has value True for the technologies contributing,
     False otherwise. Optional, defaults to `None`.
 
-    `include_in_joint_reserve_margin` `({region:{year:bool}})` - OSeMOSYS
-    ReserveMarginTagTechnology. Boolean tagging the technologies that can contribute to reaching the
-     indicated reserve margin. It has value True for the technologies contributing, False otherwise.
-     Optional, defaults to `None`.
+    `include_in_joint_reserve_margin` `({region:{year:float}})` - OSeMOSYS
+    ReserveMarginTagTechnology. Percentage of the technology's capacity that can contribute to
+    reaching the indicated reserve margin. E.g. for a value of 0.2 only 20% of the given
+    technology's capacity will count towards the reserve margin. Boolean values can also be passed
+    with True being assigned the value of 1, and False the value of 0.
+    Optional, defaults to `None`.
 
     `capacity_gross_max` `({region:{year:float}})` - OSeMOSYS TotalAnnualMaxCapacity.
     Total maximum existing (residual plus cumulatively installed) capacity allowed for a technology
@@ -304,7 +306,6 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     # NON-REQUIRED PARAMETERS
 
     capacity_one_tech_unit: OSeMOSYSData.RY | None = Field(None)
-    include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # NON-REQUIRED CONSTRAINTS
     # -----
@@ -333,7 +334,7 @@ class Technology(OSeMOSYSBase, OtooleTechnology):
     activity_total_min: OSeMOSYSData.R | None = Field(None)
 
     # include this technology in joint reserve margin and renewables targets
-    include_in_joint_reserve_margin: OSeMOSYSData.RY.Bool | None = Field(None)
+    include_in_joint_reserve_margin: OSeMOSYSData.RY | None = Field(None)
     include_in_joint_renewable_target: OSeMOSYSData.RY.Bool | None = Field(None)
 
     # production targets

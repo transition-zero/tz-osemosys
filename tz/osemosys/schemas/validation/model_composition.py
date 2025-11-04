@@ -101,14 +101,27 @@ def reserve_margin_fully_defined(values):
             technology.include_in_joint_reserve_margin is None for technology in values.technologies
         ):
             raise ValueError(
-                "If defining reserve_margin, reserve_margin_tag_technology must be defined on at "
+                "If defining reserve_margin, include_in_joint_reserve_margin must be defined on at "
                 "least one technology"
             )
+        total = sum(
+            v
+            for technology in values.technologies
+            if technology.include_in_joint_reserve_margin is not None
+            for region in technology.include_in_joint_reserve_margin.data.values()
+            for v in region.values()
+        )
+        if total == 0:
+            raise ValueError(
+                "If defining reserve_margin, include_in_joint_reserve_margin must be > 0 for at"
+                " least one technology"
+            )
+
         if all(
             commodity.include_in_joint_reserve_margin is None for commodity in values.commodities
         ):
             raise ValueError(
-                "If defining reserve_margin, reserve_margin_tag_commodity must be defined on at "
+                "If defining reserve_margin, include_in_joint_reserve_margin must be defined on at "
                 "least one commodity"
             )
 
