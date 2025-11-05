@@ -227,11 +227,14 @@ def test_simple_storage():
 
 def test_simple_storage_seasonal_balancing():
     """
-    Model to test the functionality of the storage_balance_season tag
+    Model to test the functionality of the storage_balance_season tag.
+
+    There are 2 seasons, one in which electricity is cheap to produce for one for one of the
+    daytypes, and another season in which only expensive generation is available.
 
     Electricity is cheap to produce in daytype 1 (weekend) and more expensive in daytype 2 (weekday)
-
-    Hence the model is encouraged to utilise storage to shift power from the weekdays to the weekend.
+    hence the model is encouraged to use storage to shift power from the weekdays to the weekend.
+    (see the capacity factor on the "cheap-gen" technology).
     """
     time_definition = TimeDefinition(
         id="years-only",
@@ -257,17 +260,18 @@ def test_simple_storage_seasonal_balancing():
             demand_profile={"S1D1": 0.143, "S1D2": 0.357, "S2D1": 0.143, "S2D2": 0.357},
         )
     ]
+    impacts = []
     technologies = [
         Technology(
             id="expensive-gen",
             operating_life=1,  # years
-            capex=1000,
+            capex=100,
             operating_modes=[
                 OperatingMode(
                     id="generation",
                     opex_variable={
                         "*": {
-                            "*": 1000,
+                            "*": 100,
                         }
                     },
                     output_activity_ratio={"electricity": 1.0},
@@ -275,36 +279,29 @@ def test_simple_storage_seasonal_balancing():
             ],
         ),
         Technology(
-            id="solar-pv",
-            operating_life=2,  # years
-            capex=10,
+            id="cheap-gen",
+            operating_life=10,
+            capex=0.01,
             capacity_factor={"S1D1": 1.0, "S1D2": 0.0, "S2D1": 0.0, "S2D2": 0.0},
             operating_modes=[
                 OperatingMode(
                     id="generation",
-                    opex_variable={
-                        "*": {
-                            "*": 0,
-                        }
-                    },
                     output_activity_ratio={"electricity": 1.0},
                 )
             ],
         ),
         Technology(
             id="bat-tech",
-            operating_life=3,
-            capex=20,
+            operating_life=10,
+            capex=0.01,
             operating_modes=[
                 OperatingMode(
                     id="charge",
-                    opex_variable=0,
                     input_activity_ratio={"electricity": 1.0},
                     to_storage={"*": {"bat-storage": True}},
                 ),
                 OperatingMode(
                     id="discharge",
-                    opex_variable=0,
                     output_activity_ratio={"electricity": 1.0},
                     from_storage={"*": {"bat-storage": True}},
                 ),
@@ -314,10 +311,11 @@ def test_simple_storage_seasonal_balancing():
     storage = [
         Storage(
             id="bat-storage",
-            capex=0.1,
-            operating_life=100,
+            capex=10,
+            operating_life=10,
             residual_capacity=0,
             storage_balance_season=True,
+            initial_level=0,
         ),
     ]
     model = Model(
@@ -325,6 +323,7 @@ def test_simple_storage_seasonal_balancing():
         time_definition=time_definition,
         regions=regions,
         commodities=commodities,
+        impacts=impacts,
         storage=storage,
         technologies=technologies,
     )
@@ -334,21 +333,21 @@ def test_simple_storage_seasonal_balancing():
 
     assert (
         model.solution.NewStorageCapacity.sel(
-            YEAR=2020, REGION="single-region", STORAGE="bat-storage-daily"
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage"
         ).item()
-        == 12.5
+        == 8.925
+    )
+    assert (
+        model.solution.NewStorageCapacity.sel(
+            YEAR=2021, REGION="single-region", STORAGE="bat-storage"
+        ).item()
+        == 0.0
     )
     assert (
         model.solution.NetCharge.sel(
-            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="D"
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="S1D2"
         )
-        == 75
-    )
-    assert (
-        model.solution.NetCharge.sel(
-            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="N"
-        )
-        == 0
+        == -8.925
     )
 
 

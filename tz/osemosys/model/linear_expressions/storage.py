@@ -35,13 +35,13 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     StorageChargeSeasonally = (
         (
-            ds["DaySplit"]
+            ds["YearSplit"]
             * ds["TechnologyToStorage"]
             * (
                 ds["Conversionlh"].fillna(0)
                 * ds["Conversionls"].fillna(0)
                 * ds["Conversionld"].fillna(0)
-            ).sum(dim=["DAILYTIMEBRACKET", "DAYTYPE"])
+            ).sum(dim="DAYTYPE")
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyToStorage"].notnull())
@@ -78,13 +78,13 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     StorageDischargeSeasonally = (
         (
-            ds["DaySplit"]
+            ds["YearSplit"]
             * ds["TechnologyFromStorage"]
             * (
                 ds["Conversionlh"].fillna(0)
                 * ds["Conversionls"].fillna(0)
                 * ds["Conversionld"].fillna(0)
-            ).sum(dim=["DAILYTIMEBRACKET", "DAYTYPE"])
+            ).sum(dim="DAYTYPE")
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyFromStorage"].notnull())
