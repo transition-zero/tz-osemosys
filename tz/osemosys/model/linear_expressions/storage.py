@@ -50,7 +50,6 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             drop=False,
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
-    # import pdb; pdb.set_trace()
 
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
