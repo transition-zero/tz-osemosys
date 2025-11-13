@@ -1,14 +1,14 @@
 [project]
 name = "tz-osemosys"  # Required
 dynamic = ["version"]
-description = "An OSeMOSYS implementation for the Future Energy Outlook by TransitionZero"  # Optional
+description = "An OSeMOSYS implementation for Scenario Builder by TransitionZero"  # Optional
 readme = "README.md" # Optional
 requires-python = ">=3.11"
 license = {file = "LICENSE.txt"}
 keywords = ["energy", "milp", "climate"]  # Optional
 authors = [
   {name = "Lucas Kruitwagen", email = "lucas.kruitwagen@gmail.com" },
-  {name = "Ed Gill", email = "edwardxtg@gmail.com" },
+  {name = "Edward Terpilowski-Gill", email = "edwardxtg@gmail.com" },
   {name = "Abhishek Shivakumar", email = "abhishek0208@gmail.com" },
 ]
 
