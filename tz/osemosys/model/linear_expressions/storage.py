@@ -33,6 +33,24 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         )
     ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
+    StorageChargeSeasonally = (
+        (
+            ds["YearSplit"]
+            * ds["TechnologyToStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAYTYPE")
+            * m["RateOfActivity"]
+        ).where(
+            (ds["TechnologyToStorage"].notnull())
+            & (ds["StorageBalanceSeason"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
             (ds["TechnologyFromStorage"].notnull()) & (ds["TechnologyFromStorage"] != 0), drop=True
@@ -52,6 +70,24 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ).where(
             (ds["TechnologyFromStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
+            & (ds["Conversionls"] != 0),
+            drop=False,
+        )
+    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+
+    StorageDischargeSeasonally = (
+        (
+            ds["YearSplit"]
+            * ds["TechnologyFromStorage"]
+            * (
+                ds["Conversionlh"].fillna(0)
+                * ds["Conversionls"].fillna(0)
+                * ds["Conversionld"].fillna(0)
+            ).sum(dim="DAYTYPE")
+            * m["RateOfActivity"]
+        ).where(
+            (ds["TechnologyFromStorage"].notnull())
+            & (ds["StorageBalanceSeason"] != 0)
             & (ds["Conversionls"] != 0),
             drop=False,
         )
@@ -100,6 +136,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "RateOfStorageDischarge": RateOfStorageDischarge,
             "StorageChargeDaily": StorageChargeDaily,
             "StorageDischargeDaily": StorageDischargeDaily,
+            "StorageChargeSeasonally": StorageChargeSeasonally,
+            "StorageDischargeSeasonally": StorageDischargeSeasonally,
             "NetCharge": NetCharge,
             "StorageLevel": StorageLevel,
             "AccumulatedNewStorageCapacity": AccumulatedNewStorageCapacity,

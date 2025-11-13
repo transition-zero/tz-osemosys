@@ -306,6 +306,12 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             mask = ds["StorageBalanceDay"] == 1
             m.add_constraints(con, name="SC9_BalanceDailyConstraint", mask=mask)
 
+        if "StorageBalanceSeason" in ds.data_vars:
+            # Require NetChargeWithinSeason to be zero
+            con = (lex["StorageChargeSeasonally"] - lex["StorageDischargeSeasonally"]) == 0
+            mask = ds["StorageBalanceSeason"] == 1
+            m.add_constraints(con, name="SC11_BalanceSeasonalConstraint", mask=mask)
+
         if "StorageBalanceYear" in ds.data_vars:
             con = (
                 (lex["RateOfStorageCharge"] - lex["RateOfStorageDischarge"]) * ds["YearSplit"]

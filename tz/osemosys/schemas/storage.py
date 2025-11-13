@@ -53,6 +53,11 @@ class Storage(OSeMOSYSBase, OtooleStorage):
      discharge over each day, using daily time brackets.
     Optional, defaults to `False`.
 
+    `storage_balance_season` `({region:bool})` - OSeMOSYS style name StorageBalanceSeason.
+    Boolean parameter tagging storage technologies which must balance seasonally, i.e. charge must
+    equal discharge over each season.
+    Optional, defaults to `False`.
+
     `storage_balance_year` `({region:bool})` - OSeMOSYS style name StorageBalanceYear.
     Boolean parameter tagging storage technologies which must balance anually, i.e. charge must
     equal discharge over each year.
@@ -105,6 +110,7 @@ class Storage(OSeMOSYSBase, OtooleStorage):
     max_charge_rate: OSeMOSYSData.R | None = Field(None)
 
     storage_balance_day: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R.Bool(False))
+    storage_balance_season: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R.Bool(False))
     storage_balance_year: OSeMOSYSData.R.Bool | None = Field(OSeMOSYSData.R.Bool(False))
 
     max_hours: OSeMOSYSData.R | None = Field(None)

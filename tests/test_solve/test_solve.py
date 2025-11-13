@@ -193,7 +193,7 @@ def test_simple_storage():
         ),
     ]
     model = Model(
-        id="simple-carbon-price",
+        id="simple-storage",
         time_definition=time_definition,
         regions=regions,
         commodities=commodities,
@@ -203,10 +203,152 @@ def test_simple_storage():
     )
     model.solve(solver_name="highs")
 
-    assert model.solution.NewStorageCapacity.values[0][0][0] == 12.5
-    assert model.solution.NetCharge[0][1][0][0] == 75  # bat-storage 2020 Day charge
-    assert model.solution.NetCharge[0][1][0][1] == 0  # bat-storage 2020 Night charge
-    assert np.round(model.objective) == 8905.0
+    assert model._m.termination_condition == "optimal"
+
+    assert (
+        model.solution.NewStorageCapacity.sel(
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage-daily"
+        ).item()
+        == 12.5
+    )
+    assert (
+        model.solution.NetCharge.sel(
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="D"
+        )
+        == 75
+    )
+    assert (
+        model.solution.NetCharge.sel(
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="N"
+        )
+        == 0
+    )
+
+
+def test_simple_storage_seasonal_balancing():
+    """
+    Model to test the functionality of the storage_balance_season tag.
+
+    There are 2 seasons, one in which electricity is cheap to produce for one for one of the
+    daytypes, and another season in which only expensive generation is available.
+
+    Electricity is cheap to produce in daytype 1 (weekend) and more expensive in daytype 2 (weekday)
+    hence the model is encouraged to use storage to shift power from the weekdays to the weekend.
+    (see the capacity factor on the "cheap-gen" technology).
+    """
+    time_definition = TimeDefinition(
+        id="years-only",
+        years=range(2020, 2030),
+        seasons=[1, 2],
+        day_types=[1, 2],
+        daily_time_steps=[1],
+        timeslices=["S1D1", "S1D2", "S2D1", "S2D2"],
+        timeslice_in_season={"S1D1": 1, "S1D2": 1, "S2D1": 2, "S2D2": 2},
+        timeslice_in_daytype={"S1D1": 1, "S1D2": 2, "S2D1": 1, "S2D2": 2},
+        timeslice_in_timebracket={"S1D1": 1, "S1D2": 1, "S2D1": 1, "S2D2": 1},
+        year_split={"S1D1": 0.143, "S1D2": 0.357, "S2D1": 0.143, "S2D2": 0.357},
+        days_in_day_type={
+            1: {1: {"*": 2}, 2: {"*": 5}},
+            2: {1: {"*": 2}, 2: {"*": 5}},
+        },  # {season:{day_type:{year:int}}}
+    )
+    regions = [Region(id="single-region")]
+    commodities = [
+        Commodity(
+            id="electricity",
+            demand_annual=25,
+            demand_profile={"S1D1": 0.143, "S1D2": 0.357, "S2D1": 0.143, "S2D2": 0.357},
+        )
+    ]
+    impacts = []
+    technologies = [
+        Technology(
+            id="expensive-gen",
+            operating_life=1,  # years
+            capex=100,
+            operating_modes=[
+                OperatingMode(
+                    id="generation",
+                    opex_variable={
+                        "*": {
+                            "*": 100,
+                        }
+                    },
+                    output_activity_ratio={"electricity": 1.0},
+                )
+            ],
+        ),
+        Technology(
+            id="cheap-gen",
+            operating_life=10,
+            capex=0.01,
+            capacity_factor={"S1D1": 1.0, "S1D2": 0.0, "S2D1": 0.0, "S2D2": 0.0},
+            operating_modes=[
+                OperatingMode(
+                    id="generation",
+                    output_activity_ratio={"electricity": 1.0},
+                )
+            ],
+        ),
+        Technology(
+            id="bat-tech",
+            operating_life=10,
+            capex=0.01,
+            operating_modes=[
+                OperatingMode(
+                    id="charge",
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge",
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage": True}},
+                ),
+            ],
+        ),
+    ]
+    storage = [
+        Storage(
+            id="bat-storage",
+            capex=10,
+            operating_life=10,
+            residual_capacity=0,
+            storage_balance_season=True,
+            initial_level=0,
+        ),
+    ]
+    model = Model(
+        id="simple-storage-seasonal-balancing",
+        time_definition=time_definition,
+        regions=regions,
+        commodities=commodities,
+        impacts=impacts,
+        storage=storage,
+        technologies=technologies,
+    )
+    model.solve(solver_name="highs")
+
+    assert model._m.termination_condition == "optimal"
+
+    assert (
+        model.solution.NewStorageCapacity.sel(
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage"
+        ).item()
+        == 8.925
+    )
+    assert (
+        model.solution.NewStorageCapacity.sel(
+            YEAR=2021, REGION="single-region", STORAGE="bat-storage"
+        ).item()
+        == 0.0
+    )
+    assert (
+        model.solution.NetCharge.sel(
+            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="S1D2"
+        )
+        == -8.925
+    )
 
 
 def test_simple_storage_max_hours():

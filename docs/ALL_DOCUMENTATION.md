@@ -777,6 +777,11 @@ Boolean parameter tagging storage technologies which must balance daily, i.e. ch
     discharge over each day, using daily time brackets.
 Optional, defaults to `False`.
 
+`storage_balance_season` `({region:bool})` - OSeMOSYS style name StorageBalanceSeason.
+Boolean parameter tagging storage technologies which must balance seasonally, i.e. charge must
+equal discharge over each season.
+Optional, defaults to `False`.
+
 `storage_balance_year` `({region:bool})` - OSeMOSYS style name StorageBalanceYear.
 Boolean parameter tagging storage technologies which must balance anually, i.e. charge must
 equal discharge over each year.
