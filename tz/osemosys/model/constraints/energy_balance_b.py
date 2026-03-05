@@ -57,12 +57,9 @@ def add_energy_balance_b_constraints(
 
     # With trade
     if (ds["TradeRoute"] == 1).any():
-        con = (
-            lex["ProductionAnnual"]
-            - lex["UseAnnual"]
-            - lex["NetTradeAnnual"].sum("_REGION")
-            >= ds["AccumulatedAnnualDemand"].fillna(0)
-        )
+        con = lex["ProductionAnnual"] - lex["UseAnnual"] - lex["NetTradeAnnual"].sum(
+            "_REGION"
+        ) >= ds["AccumulatedAnnualDemand"].fillna(0)
     # Without trade
     else:
         con = lex["ProductionAnnual"] - lex["UseAnnual"] >= ds["AccumulatedAnnualDemand"].fillna(0)
