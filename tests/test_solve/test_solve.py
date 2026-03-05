@@ -577,7 +577,10 @@ def test_simple_trade():
 
     model.solve(solver_name="highs")
 
-    assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 24
+    net_trade_annual_r1_to_r2 = model.solution["NetTradeAnnual"].sel(
+        REGION="R1", _REGION="R2", YEAR=2022
+    )
+    assert np.round(net_trade_annual_r1_to_r2.values.item(), 10) == 24
     assert np.round(model._m.objective.value) == 34828.0
 
 
@@ -636,7 +639,10 @@ def test_simple_trade_forced_min_activity():
 
     model.solve(solver_name="highs")
 
-    assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 5
+    net_trade_annual_r1_to_r2 = model.solution["NetTradeAnnual"].sel(
+        REGION="R1", _REGION="R2", YEAR=2020
+    )
+    assert np.round(net_trade_annual_r1_to_r2.values.item(), 10) == 5
     assert np.round(model._m.objective.value) == 53417.0
 
 

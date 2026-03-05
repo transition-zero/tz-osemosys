@@ -17,7 +17,6 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     NetTrade = (
         ((m["Export"] / (1 - ds["TradeLossBetweenRegions"])) - m["Import"])
         .where(ds["TradeRoute"].notnull(), drop=False)
-        .sum("_REGION")
         .fillna(0)
     )
     NetTradeAnnual = NetTrade.sum("TIMESLICE")

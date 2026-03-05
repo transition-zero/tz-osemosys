@@ -119,7 +119,7 @@ def add_energy_balance_a_constraints(
             lex["Production"]
             - (ds["SpecifiedAnnualDemand"] * ds["SpecifiedDemandProfile"])
             - lex["Use"]
-            - lex["NetTrade"]
+            - lex["NetTrade"].sum("_REGION")
         ) >= 0
     # Without trade
     else:
