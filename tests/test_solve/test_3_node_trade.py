@@ -9,8 +9,8 @@ def test_3_node_trade_export():
     surplus of 10 and no new capacity is allowed for trade or generation, so total
     export is capped at 10. Variable costs differ by region (R1=5, R2=10, R3=0; R3
     cheapest, R2 most expensive). Without a minimum per link then R1 would send
-    all 10 on the expensive R2 and 0 on the cheaper R3. A min capacity factor of
-    0.5 on each link requires at least 5 on each, so both links are used and the
+    all 10 to the expensive R2 and 0 to the cheaper R3. A min capacity factor of
+    0.5 for each link requires at least 5 to each, so both links are used and the
     solution is 5+5. The test asserts Export 5 and 5 on the two links, confirming
     that the minimum-flow constraints are applied correctly.
 
