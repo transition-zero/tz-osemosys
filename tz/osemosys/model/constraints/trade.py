@@ -76,27 +76,32 @@ def add_trade_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
         m.add_constraints(con, name="TC4_TradeConstraint", mask=mask)
 
         # Activity constraints
-        # absolute annual activity constraints:
-        con = lex["NetTradeAnnual"] <= ds["TotalTradeAnnualActivityUpperLimit"] * ds["TradeRoute"]
+        con = lex["ExportAnnual"] <= ds["TotalTradeAnnualActivityUpperLimit"] * ds["TradeRoute"] * (
+            1 - ds["TradeLossBetweenRegions"]
+        )
         mask = mask_ & ds["TotalTradeAnnualActivityUpperLimit"].notnull()
         m.add_constraints(con, name="TradeConstraint_TotalTradeAnnualActivityUpperLimit", mask=mask)
-        con = lex["NetTradeAnnual"] >= ds["TotalTradeAnnualActivityLowerLimit"] * ds["TradeRoute"]
+        con = lex["ExportAnnual"] >= ds["TotalTradeAnnualActivityLowerLimit"] * ds["TradeRoute"] * (
+            1 - ds["TradeLossBetweenRegions"]
+        )
         mask = mask_ & ds["TotalTradeAnnualActivityLowerLimit"].notnull()
         m.add_constraints(con, name="TradeConstraint_TotalTradeAnnualActivityLowerLimit", mask=mask)
         # availability factor constraints:
         con = (
-            lex["NetTradeAnnual"]
+            lex["ExportAnnual"]
             <= lex["GrossTradeCapacity"]
             * ds["TradeRoute"]
+            * (1 - ds["TradeLossBetweenRegions"])
             * ds["AvailabilityFactorTrade"]
             * ds["TradeCapacityToActivityUnit"]
         )
         mask = mask_ & ds["AvailabilityFactorTrade"].notnull()
         m.add_constraints(con, name="TradeConstraint_AvailabilityFactor", mask=mask)
         con = (
-            lex["NetTradeAnnual"]
+            lex["ExportAnnual"]
             >= lex["GrossTradeCapacity"]
             * ds["TradeRoute"]
+            * (1 - ds["TradeLossBetweenRegions"])
             * ds["TotalAnnualMinCapacityFactorTrade"]
             * ds["TradeCapacityToActivityUnit"]
         )

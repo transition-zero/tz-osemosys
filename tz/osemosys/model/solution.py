@@ -38,6 +38,7 @@ SOLUTION_KEYS = [
     "NetTradeAnnual",
     "Import",
     "Export",
+    "ExportAnnual",
     "NewTradeCapacity",
     "GrossTradeCapacity",
     "SalvageValueTrade",
