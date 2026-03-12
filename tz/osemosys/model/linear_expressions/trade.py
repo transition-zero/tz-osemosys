@@ -21,6 +21,7 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         .fillna(0)
     )
     NetTradeAnnual = NetTrade.sum("TIMESLICE")
+    ExportAnnual = m["Export"].sum("TIMESLICE")
 
     # Discounting #
     DiscountFactorTrade = (1 + ds["DiscountRateTrade"]) ** (
@@ -100,6 +101,7 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             "GrossTradeCapacity": GrossTradeCapacity,
             "NetTrade": NetTrade,
             "NetTradeAnnual": NetTradeAnnual,
+            "ExportAnnual": ExportAnnual,
             "SV1NumeratorTrade": SV1NumeratorTrade,
             "SV1DenominatorTrade": SV1DenominatorTrade,
             "SV2NumeratorTrade": SV2NumeratorTrade,
