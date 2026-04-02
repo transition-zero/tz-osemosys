@@ -13,7 +13,7 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
         ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
     )
 
-    DiscountFactorSalvage = (1 + ds["DiscountRateIdv"]) ** (
+    DiscountFactorSalvage = (1 + ds["DiscountRate"]) ** (
         1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
     )
 
