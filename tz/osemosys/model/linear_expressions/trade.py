@@ -78,11 +78,15 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     # salvage value factors (trade)
     SV1CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV1NumeratorTrade / SV1DenominatorTrade)
+        CapitalRecoveryFactorTrade * 
+        PVAnnuityTrade * 
+        (1 - (SV1NumeratorTrade / SV1DenominatorTrade))
     )
 
     SV2CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV2NumeratorTrade / SV2DenominatorTrade)
+        CapitalRecoveryFactorTrade * 
+        PVAnnuityTrade * 
+        (1 - (SV2NumeratorTrade / SV2DenominatorTrade))
     )
 
     # salvage value (trade)
@@ -93,7 +97,7 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     DiscountedSalvageValueTrade = SalvageValueTrade / DiscountFactorSalvageTrade
 
-    TotalDiscountedCostTrade = DiscountedCapitalInvestmentTrade + DiscountedSalvageValueTrade
+    TotalDiscountedCostTrade = DiscountedCapitalInvestmentTrade - DiscountedSalvageValueTrade
 
     lex.update(
         {

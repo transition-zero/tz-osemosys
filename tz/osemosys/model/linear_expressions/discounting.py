@@ -13,7 +13,7 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
         ds.coords["YEAR"] - min(ds.coords["YEAR"]) + 0.5
     )
 
-    DiscountFactorSalvage = (1 + ds["DiscountRateIdv"]) ** (
+    DiscountFactorSalvage = (1 + ds["DiscountRate"]) ** (
         1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
     )
 
@@ -28,11 +28,11 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
 
     # salvage value
-    SV1Numerator = (1 + ds["DiscountRateIdv"]) ** (
+    SV1Numerator = (1 + ds["DiscountRate"]) ** (
         max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
     ) - 1
 
-    SV1Denominator = (1 + ds["DiscountRateIdv"]) ** ds["OperationalLife"] - 1
+    SV1Denominator = (1 + ds["DiscountRate"]) ** ds["OperationalLife"] - 1
 
     SV2Numerator = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
 
@@ -41,12 +41,12 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     sv1_mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] > 0)
+        & (ds["DiscountRate"] > 0)
     )
     sv2_mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateIdv"] == 0)
+        & (ds["DiscountRate"] == 0)
     ) | (
         (ds["DepreciationMethod"] == 2)
         & ((ds.coords["YEAR"] + ds["OperationalLife"] - 1) > max(ds.coords["YEAR"]))
