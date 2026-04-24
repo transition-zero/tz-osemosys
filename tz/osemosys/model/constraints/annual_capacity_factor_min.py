@@ -34,7 +34,7 @@ def add_annual_capacity_factor_min_constraints(
     ```
     """
     con = lex["TotalTechnologyAnnualActivity"] >= ds["TotalAnnualMinCapacityFactor"] * (
-        lex["GrossCapacity"] * ds["AvailabilityFactor"] * ds["CapacityToActivityUnit"]
+        lex["GrossCapacity"] * ds["CapacityToActivityUnit"]
     )
 
     m.add_constraints(con, name="ACF1_TotalAnnualMinCapacityFactor")
