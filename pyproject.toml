@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "An OSeMOSYS implementation for Scenario Builder by TransitionZero"  # Optional
 readme = "README.md" # Optional
 requires-python = ">=3.11"
-license = {file = "LICENSE.txt"}
+license = {file = "LICENSE"}
 keywords = ["energy", "milp", "climate"]  # Optional
 authors = [
   {name = "Lucas Kruitwagen", email = "lucas.kruitwagen@gmail.com" },
