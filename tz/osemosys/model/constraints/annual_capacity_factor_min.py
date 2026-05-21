@@ -29,7 +29,7 @@ def add_annual_capacity_factor_min_constraints(
     s.t ACF1_TotalAnnualMinCapacityFactor{
         r in REGION, t in TECHNOLOGY, y in YEAR: TotalAnnualMinCapacityFactor[r,t,y] > 0}:
         TotalTechnologyAnnualActivity[r,t,y] >=
-        (GrossCapacity[r,t,y] * AvailabilityFactor[r,t,y] * CapacityToActivityUnit[r,t])
+        (GrossCapacity[r,t,y] * CapacityToActivityUnit[r,t])
         * TotalAnnualMinCapacityFactor[r,t,y];
     ```
     """
