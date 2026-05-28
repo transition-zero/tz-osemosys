@@ -38,6 +38,8 @@ jobs:
       image: ghcr.io/transition-zero/tz-highs/highs-python:latest
     steps:
     - uses: actions/checkout@v3
+    - name: Mark repo as safe for git
+      run: git config --global --add safe.directory /__w/tz-osemosys/tz-osemosys
     - name: Install jq
       uses: dcarbone/install-jq-action@v2.1.0
     - name: Install dependencies
