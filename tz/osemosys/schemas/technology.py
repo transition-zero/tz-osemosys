@@ -67,21 +67,19 @@ class OperatingMode(OSeMOSYSBase):
     ```
     """
 
-    @field_serializer
-    def osemosysdata_serializer(cls, value: Any, serializer_field):
-        if isinstance(value, serializer_field.type_):
-            return value.data
-        else:
-            return value
-
     model_config = ConfigDict(extra="forbid")
 
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
     )
-    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(
-        None, serializer=osemosysdata_serializer
-    )
+    emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
+
+    @field_serializer("emission_activity_ratio")
+    def osemosysdata_serializer(self, value: Any) -> Any:
+        if isinstance(value, OSeMOSYSData):
+            return value.data
+        return value
+
     input_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     output_activity_ratio: OSeMOSYSData.RCY | None = Field(None)
     to_storage: OSeMOSYSData.RO.Bool | None = Field(None)
