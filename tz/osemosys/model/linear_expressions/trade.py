@@ -25,9 +25,7 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     # Discounting #
     # Use social DiscountRate for capital discounting so trade costs are in the same
     # present-value basis as technology costs in the objective function.
-    DiscountFactorTrade = (1 + ds["DiscountRate"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"])
-    )
+    DiscountFactorTrade = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
 
     DiscountFactorSalvageTrade = (1 + ds["DiscountRate"]) ** (
         1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
@@ -81,15 +79,15 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     # salvage value factors (trade)
     SV1CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        CapitalRecoveryFactorTrade * 
-        PVAnnuityTrade * 
-        (1 - (SV1NumeratorTrade / SV1DenominatorTrade))
+        CapitalRecoveryFactorTrade
+        * PVAnnuityTrade
+        * (1 - (SV1NumeratorTrade / SV1DenominatorTrade))
     )
 
     SV2CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        CapitalRecoveryFactorTrade * 
-        PVAnnuityTrade * 
-        (1 - (SV2NumeratorTrade / SV2DenominatorTrade))
+        CapitalRecoveryFactorTrade
+        * PVAnnuityTrade
+        * (1 - (SV2NumeratorTrade / SV2DenominatorTrade))
     )
 
     # salvage value (trade)
