@@ -28,6 +28,10 @@ def add_lex_discounting(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
 
     # salvage value
+    # SV1/SV2 fractions use DiscountRate (social) so the salvage fraction is consistent
+    # with PVAnnuity(DiscountRate) used in CapitalInvestment. When DiscountRateIdv != DiscountRate,
+    # using the social rate ensures the remaining-value fraction reflects the same discount
+    # basis as the full capital cost, avoiding end-of-horizon distortions.
     SV1Numerator = (1 + ds["DiscountRate"]) ** (
         max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
     ) - 1
