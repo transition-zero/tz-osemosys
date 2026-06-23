@@ -258,10 +258,11 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         # storage level may not exceed gross capacity
         # refactor previous dense cumsum constraint to sparse recursion constraint
 
-        # stack lex["StorageLevel"] and lex["NetCharge"] to be used in constraints
+        # stack StorageLevel and NetCharge to be used in constraints
         level = m["StorageLevel"].stack(YRTS=["YEAR", "TIMESLICE"])
         net = lex["NetCharge"].stack(YRTS=["YEAR", "TIMESLICE"])
-
+        level, net = xr.align(level, net, join="left")
+        net = net.fillna(0)
         # mask to filter out first timeslice
         not_first = xr.DataArray(
             np.arange(level.indexes["YRTS"].size) >= 1,
