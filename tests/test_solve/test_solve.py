@@ -227,7 +227,7 @@ def test_simple_storage():
     net = model.solution.NetCharge.stack(YRTS=["YEAR", "TIMESLICE"])
     level = model.solution.StorageLevel.stack(YRTS=["YEAR", "TIMESLICE"])
     xr.testing.assert_allclose(level, net.cumsum("YRTS").rename("StorageLevel"))
-    
+
     # test storage level bounds
     assert (model.solution.StorageLevel >= -1e-6).all()
     assert (model.solution.StorageLevel <= model.solution.GrossStorageCapacity + 1e-6).all()
