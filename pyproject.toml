@@ -28,10 +28,10 @@ classifiers = [  # Optional
 
 dependencies = [
   "pandas<3",
-  "pydantic>2",
+  "pydantic>2,<2.13",
   "pydantic-settings",
   "h5py",
-  "xarray",
+  "xarray<2026",
   "orjson",
   "linopy==0.5.5",
   "h5netcdf",
@@ -57,6 +57,7 @@ dev = [
   "tox",
   "coverage",
   "highspy",
+  "ipykernel>=7.3.0",
 ]
 cloudpath=[
   "cloudpathlib[all]",
@@ -90,4 +91,5 @@ find = { include = ["tz.*"] }
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
 requires = ["setuptools>=43.0.0","setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+
 [tool.setuptools_scm]
