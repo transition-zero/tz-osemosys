@@ -586,7 +586,7 @@ def test_simple_trade():
     model.solve(solver_name="highs")
 
     assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 24
-    assert np.round(model._m.objective.value) == 35375.0
+    assert np.round(model._m.objective.value) == 35471.0
 
 
 def test_simple_trade_forced_min_activity():
@@ -646,6 +646,115 @@ def test_simple_trade_forced_min_activity():
 
     assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 5
     assert np.round(model._m.objective.value) == 53417.0
+
+
+def test_capital_cost_discounting_no_salvage():
+    """Technology and trade capital cost discounting with zero salvage.
+
+    operating_life equals the horizon, so both coal-gen and trade capacity are built once
+    in 2020 and retire at the horizon end with no salvage. The technology financing rate
+    (DiscountRateIdv 0.15) and route rate (0.2) both differ from the social rate (0.05),
+    leaving an active CRF*PVAnnuity financing wedge in each capital term, isolating the
+    capital-discounting behaviour from any salvage effect.
+    """
+    model = Model(
+        id="test-capital-disc",
+        time_definition=dict(id="years-only", years=range(2020, 2025)),
+        regions=[dict(id="R1"), dict(id="R2")],
+        cost_of_capital={"R1": {"coal-gen": 0.15}, "R2": {"coal-gen": 0.15}},
+        trade=[
+            dict(
+                id="electricity transmission",
+                commodity="electricity",
+                trade_routes={"R1": {"R2": {"*": True}}},
+                capex={"R1": {"R2": {"*": 100}}},
+                operating_life={"R1": {"R2": {"*": 5}}},
+                trade_loss={"*": {"*": {"*": 0.1}}},
+                residual_capacity={"R1": {"R2": {"*": 0}}},
+                capacity_additional_max={"R1": {"R2": {"*": 50}}},
+                cost_of_capital={"R1": {"R2": 0.2}},
+                construct_region_pairs=True,
+                capacity_activity_unit_ratio=2,
+            )
+        ],
+        commodities=[dict(id="electricity", demand_annual=50)],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=5,
+                capex={"R1": {"*": 100}, "R2": {"*": 400}},
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+                capacity_activity_unit_ratio=2,
+            )
+        ],
+    )
+
+    model.solve(solver_name="highs")
+
+    # single 2020 builds => no salvage on either the technology or trade capital
+    ntc = model.solution["NewTradeCapacity"].sel(REGION="R1", _REGION="R2", FUEL="electricity")
+    assert round(float(ntc.sel(YEAR=2020)), 4) == 27.7778
+    assert float(ntc.sel(YEAR=slice(2021, 2024)).sum()) == 0
+
+    nc = model.solution["NewCapacity"].sel(REGION="R1", TECHNOLOGY="coal-gen")
+    assert round(float(nc.sel(YEAR=2020)), 4) == 52.7778
+    assert round(float(nc.sel(YEAR=slice(2021, 2024)).sum()), 6) == 0
+
+    assert np.round(model._m.objective.value) == 12084.0
+
+
+def test_technology_salvage_value_discounting():
+    """Technology salvage value with a financing rate different from the social rate.
+
+    coal-gen has operating_life 10 but the horizon is 5 years, so the single 2020 build
+    spills 5 years past the horizon and earns a sinking-fund salvage credit. cost_of_capital
+    (DiscountRateIdv 0.15) differs from the social rate (0.05), so the CRF*PVAnnuity financing
+    wedge feeds the salvage term while the SV1 fraction stays on the social rate. The locked
+    DiscountedSalvageValue matches the closed-form sinking-fund value, so a change to either
+    rate basis in the salvage path breaks this test.
+    """
+    model = Model(
+        id="test-salvage-disc",
+        time_definition=dict(id="years-only", years=range(2020, 2025)),
+        regions=[dict(id="R1")],
+        cost_of_capital={"R1": {"coal-gen": 0.15}},
+        commodities=[dict(id="electricity", demand_annual=50)],
+        impacts=[],
+        technologies=[
+            dict(
+                id="coal-gen",
+                operating_life=10,
+                capex={"R1": {"*": 100}},
+                operating_modes=[
+                    dict(
+                        id="generation",
+                        opex_variable=5,
+                        output_activity_ratio={"electricity": 1},
+                    )
+                ],
+                capacity_activity_unit_ratio=2,
+            )
+        ],
+    )
+
+    model.solve(solver_name="highs", solution_vars="all")
+
+    # single 2020 build, life spills past horizon => one clean salvage credit
+    nc = model.solution["NewCapacity"].sel(REGION="R1", TECHNOLOGY="coal-gen")
+    assert round(float(nc.sel(YEAR=2020)), 4) == 25.0
+    assert round(float(nc.sel(YEAR=slice(2021, 2024)).sum()), 6) == 0
+
+    # closed-form sinking-fund salvage: 25 * 100 * CRF(0.15) * PVAnnuity(0.05)
+    #   * (1 - (1.05**5 - 1)/(1.05**10 - 1)) / 1.05**5
+    assert round(float(model.solution["DiscountedSalvageValue"].sum()), 4) == 1542.8482
+    assert round(float(model.solution["TotalDiscountedCost"].sum()), 4) == 3078.2071
 
 
 def test_trade_masking():
