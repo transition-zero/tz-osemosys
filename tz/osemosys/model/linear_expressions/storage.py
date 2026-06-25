@@ -97,9 +97,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     NetCharge = ds["YearSplit"] * (RateOfStorageCharge - RateOfStorageDischarge)
 
-    NetChargeReshape = NetCharge.stack(YRTS=["YEAR", "TIMESLICE"])
-
-    StorageLevel = NetChargeReshape.cumsum("YRTS") + ds.get("StorageLevelStart", 0.0)
+    # Explicit storage level (state of charge) per timeslice
+    StorageLevel = m["StorageLevel"]
 
     NewStorageCapacity = m["NewStorageCapacity"].rename(YEAR="BUILDYEAR")
 

@@ -38,6 +38,7 @@ SOLUTION_KEYS = [
     "NetTradeAnnual",
     "Import",
     "Export",
+    "ExportAnnual",
     "NewTradeCapacity",
     "GrossTradeCapacity",
     "SalvageValueTrade",
@@ -111,7 +112,8 @@ def build_solution(
             )
         )
 
-    # also merge on StorageLevel after unstacking
+    # StorageLevel is now a first-class decision variable (see add_storage_variables), so it
+    # already arrives in m.solution.
     solution_base = m.solution.merge(
         xr.Dataset(
             {
@@ -121,11 +123,6 @@ def build_solution(
             }
         )
     ).merge(duals)
-
-    if "StorageLevel" in lex:
-        solution_base = solution_base.merge(
-            lex["StorageLevel"].solution.unstack("YRTS").rename("StorageLevel")
-        )
 
     if solution_vars is None:
         return solution_base[sorted(set(SOLUTION_KEYS) & set(solution_base.data_vars))]
