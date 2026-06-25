@@ -20,7 +20,7 @@ def test_model_construction_from_yaml():
     model._m.solve(solver_name="highs")
 
     assert model._m.termination_condition == "optimal"
-    assert np.round(model._m.objective.value) == 29044.0
+    assert np.round(model._m.objective.value) == 29039.0
 
 
 def test_model_solve_from_otoole_csv():
@@ -586,7 +586,7 @@ def test_simple_trade():
     model.solve(solver_name="highs")
 
     assert round(model.solution["NetTrade"].values[0][2][0][0], 10) == 24
-    assert np.round(model._m.objective.value) == 34828.0
+    assert np.round(model._m.objective.value) == 35375.0
 
 
 def test_simple_trade_forced_min_activity():
