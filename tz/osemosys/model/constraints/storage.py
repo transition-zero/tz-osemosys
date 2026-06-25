@@ -1,5 +1,6 @@
 from typing import Dict
 
+import numpy as np
 import xarray as xr
 from linopy import LinearExpression, Model
 
@@ -255,16 +256,42 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
     """
     if ds["STORAGE"].size > 0:
         # storage level may not exceed gross capacity
-        con = lex["StorageLevel"] <= lex["GrossStorageCapacity"].expand_dims(
-            {"TIMESLICE": ds["TIMESLICE"]}
-        ).stack(YRTS=["YEAR", "TIMESLICE"])
-        m.add_constraints(con, name="StorageGrossCapacitySufficiency")
+        # refactor previous dense cumsum constraint to sparse recursion constraint
+
+        # stack StorageLevel and NetCharge to be used in constraints
+        level = m["StorageLevel"].stack(YRTS=["YEAR", "TIMESLICE"])
+        net = lex["NetCharge"].stack(YRTS=["YEAR", "TIMESLICE"])
+
+        # mask to filter out first timeslice
+        not_first = xr.DataArray(
+            np.arange(level.indexes["YRTS"].size) >= 1,
+            dims="YRTS",
+            coords={"YRTS": level.coords["YRTS"]},
+        )
+
+        # add constraints for sparse recursion
+        m.add_constraints(
+            level - level.shift(YRTS=1) == net, name="StorageLevelRecursion", mask=not_first
+        )
+
+        # add constraints for initial storage level
+        m.add_constraints(
+            level.isel(YRTS=0) == net.isel(YRTS=0) + ds.get("StorageLevelStart", 0.0),
+            name="StorageLevelStart",
+        )
+
+        # add constraints for gross storage capacity sufficiency
+        m.add_constraints(
+            lex["StorageLevel"]
+            <= lex["GrossStorageCapacity"].expand_dims({"TIMESLICE": ds["TIMESLICE"]}),
+            name="StorageGrossCapacitySufficiency",
+        )
 
         # storage level may not be less than minimum charge
         if "MinStorageCharge" in ds.data_vars:
-            con = lex["StorageLevel"].fillna(0) >= ds["MinStorageCharge"].expand_dims(
+            con = lex["StorageLevel"] >= ds["MinStorageCharge"].expand_dims(
                 {"TIMESLICE": ds["TIMESLICE"]}
-            ).stack(YRTS=["YEAR", "TIMESLICE"])
+            )
             m.add_constraints(con, name="StorageMinimumCharge")
 
         # storage charge rate may not exceed max charge rate
