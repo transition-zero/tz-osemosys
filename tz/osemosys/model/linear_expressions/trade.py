@@ -32,10 +32,11 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
     )
 
+    # PVAnnuity uses social DiscountRate (matching the technology path in discounting.py)
     PVAnnuityTrade = (
-        (1 - (1 + ds["DiscountRateTrade"]) ** (-(ds["OperationalLifeTrade"])))
-        * (1 + ds["DiscountRateTrade"])
-        / ds["DiscountRateTrade"]
+        (1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLifeTrade"])))
+        * (1 + ds["DiscountRate"])
+        / ds["DiscountRate"]
     )
 
     CapitalRecoveryFactorTrade = (1 - (1 + ds["DiscountRateTrade"]) ** (-1)) / (
