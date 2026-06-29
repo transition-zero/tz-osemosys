@@ -24,29 +24,32 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     ExportAnnual = m["Export"].sum("TIMESLICE")
 
     # Discounting #
-    DiscountFactorTrade = (1 + ds["DiscountRateTrade"]) ** (
-        ds.coords["YEAR"] - min(ds.coords["YEAR"])
-    )
+    # Use social DiscountRate for capital discounting so trade costs are in the same
+    # present-value basis as technology costs in the objective function.
+    DiscountFactorTrade = (1 + ds["DiscountRate"]) ** (ds.coords["YEAR"] - min(ds.coords["YEAR"]))
 
-    DiscountFactorSalvageTrade = (1 + ds["DiscountRateTrade"]) ** (
+    DiscountFactorSalvageTrade = (1 + ds["DiscountRate"]) ** (
         1 + max(ds.coords["YEAR"]) - min(ds.coords["YEAR"])
     )
 
+    # PVAnnuity uses social DiscountRate (matching the technology path in discounting.py)
     PVAnnuityTrade = (
-        (1 - (1 + ds["DiscountRateTrade"]) ** (-(ds["OperationalLifeTrade"])))
-        * (1 + ds["DiscountRateTrade"])
-        / ds["DiscountRateTrade"]
+        (1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLifeTrade"])))
+        * (1 + ds["DiscountRate"])
+        / ds["DiscountRate"]
     )
 
     CapitalRecoveryFactorTrade = (1 - (1 + ds["DiscountRateTrade"]) ** (-1)) / (
         1 - (1 + ds["DiscountRateTrade"]) ** (-(ds["OperationalLifeTrade"]))
     )
 
-    SV1NumeratorTrade = (1 + ds["DiscountRateTrade"]) ** (
+    # SV1 uses DiscountRate (social) so the sinking-fund fraction is consistent with the
+    # social-rate basis used for both capital discounting and DiscountFactorSalvageTrade.
+    SV1NumeratorTrade = (1 + ds["DiscountRate"]) ** (
         max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
     ) - 1
 
-    SV1DenominatorTrade = (1 + ds["DiscountRateTrade"]) ** ds["OperationalLifeTrade"] - 1
+    SV1DenominatorTrade = (1 + ds["DiscountRate"]) ** ds["OperationalLifeTrade"] - 1
 
     SV2NumeratorTrade = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
 
@@ -55,12 +58,12 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     sv1_trade_mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateTrade"] > 0)
+        & (ds["DiscountRate"] > 0)
     )
     sv2_trade_mask = (
         (ds["DepreciationMethod"] == 1)
         & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
-        & (ds["DiscountRateTrade"] == 0)
+        & (ds["DiscountRate"] == 0)
     ) | (
         (ds["DepreciationMethod"] == 2)
         & ((ds.coords["YEAR"] + ds["OperationalLifeTrade"] - 1) > max(ds.coords["YEAR"]))
@@ -78,11 +81,15 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     # salvage value factors (trade)
     SV1CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV1NumeratorTrade / SV1DenominatorTrade)
+        CapitalRecoveryFactorTrade
+        * PVAnnuityTrade
+        * (1 - (SV1NumeratorTrade / SV1DenominatorTrade))
     )
 
     SV2CostTrade = ds["CapitalCostTrade"].fillna(0) * (
-        1 - (SV2NumeratorTrade / SV2DenominatorTrade)
+        CapitalRecoveryFactorTrade
+        * PVAnnuityTrade
+        * (1 - (SV2NumeratorTrade / SV2DenominatorTrade))
     )
 
     # salvage value (trade)
@@ -93,7 +100,7 @@ def add_lex_trade(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     DiscountedSalvageValueTrade = SalvageValueTrade / DiscountFactorSalvageTrade
 
-    TotalDiscountedCostTrade = DiscountedCapitalInvestmentTrade + DiscountedSalvageValueTrade
+    TotalDiscountedCostTrade = DiscountedCapitalInvestmentTrade - DiscountedSalvageValueTrade
 
     lex.update(
         {
