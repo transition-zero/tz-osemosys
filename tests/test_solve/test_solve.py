@@ -449,8 +449,11 @@ def test_simple_storage_max_hours():
     capacity (in energy units) to maximum charge/discharge rate (in power units). Pseudo units and
     a capacity_activity_unit_ratio of 31.536 are used.
 
-    The model includes 2 seasons and 4 daily time brackets of unequal length. The modelled hours
-    are:
+    The model includes 2 seasons and 4 daily time brackets of unequal length.
+    The modelled seasons are:
+    - S1: 0.4
+    - S2: 0.6
+    The modelled hours are:
     - S1T1: 0-3
     - S1T2: 3-6
     - S1T3: 6-15
@@ -459,15 +462,11 @@ def test_simple_storage_max_hours():
     Only one generator is available to meet demand, but is only available for the first 2 timeslices
     (S1T1 and S1T2), so that storage must be used to meet demand in the other timeslices.
 
-    The demand in timeslices S1T3 and S1T4 is 0.1875. If storage where able to charge and discharge
-    freely, it would only require 0.375 capacity to meet the combined demand of these timeslices.
-
-    However, a max_hours of 12 is set, which means that for a given storage capacity, the fastest
-    rate at which it can discharge or charge fully is 12 hours. Given for each day, storage is only
-    able to charge for 6 hours, if the capacity were 0.375, over the first 2 timeslices it would
-    only be able to charge 0.1875, which is not enough to meet the demand in S1T3 and S1T4. Hence
-    the storage capacity must be at least 0.75 to meet the demand in S1T3 and S1T4.
-
+    max_hours = 12 caps the charge/discharge power at capacity / max_hours, which in annualised rate
+    terms is `rate <= capacity * 24 / (max_hours * season_share)`, where season_share is the
+    fraction of the year spanned by that timeslice's season. The binding constraint is therefore the
+    LONGER season (season 2, share 0.6):
+        capacity >= rate * max_hours * season_share / 24 = 3.0 * 12 * 0.6 / 24 = 0.9.
     storage_balance_day cannot be set as true here as the model must charge for 6 hours and
     discharge for 18 hours, hence charge cannot equal discharge.
     """
@@ -508,15 +507,16 @@ def test_simple_storage_max_hours():
             "S2T3": 3,
             "S2T4": 4,
         },
+        # season 1 spans 0.4 of the year, season 2 spans 0.6 (within-day shape 3:3:9:9 hours kept)
         year_split={
-            "S1T1": 0.0625,
-            "S1T2": 0.0625,
-            "S1T3": 0.1875,
-            "S1T4": 0.1875,
-            "S2T1": 0.0625,
-            "S2T2": 0.0625,
-            "S2T3": 0.1875,
-            "S2T4": 0.1875,
+            "S1T1": 0.05,
+            "S1T2": 0.05,
+            "S1T3": 0.15,
+            "S1T4": 0.15,
+            "S2T1": 0.075,
+            "S2T2": 0.075,
+            "S2T3": 0.225,
+            "S2T4": 0.225,
         },
     )
     regions = [Region(id="single-region")]
@@ -525,14 +525,14 @@ def test_simple_storage_max_hours():
             id="electricity",
             demand_annual=1,
             demand_profile={
-                "S1T1": 0.0625,
-                "S1T2": 0.0625,
-                "S1T3": 0.1875,
-                "S1T4": 0.1875,
-                "S2T1": 0.0625,
-                "S2T2": 0.0625,
-                "S2T3": 0.1875,
-                "S2T4": 0.1875,
+                "S1T1": 0.05,
+                "S1T2": 0.05,
+                "S1T3": 0.15,
+                "S1T4": 0.15,
+                "S2T1": 0.075,
+                "S2T2": 0.075,
+                "S2T3": 0.225,
+                "S2T4": 0.225,
             },
         )
     ]
@@ -606,9 +606,10 @@ def test_simple_storage_max_hours():
     )
     model.solve(solver_name="highs")
 
-    assert model.solution.NewStorageCapacity.values[0][0][0] == 0.75  # 2020, bat-storage capacity
-    assert model.solution.NetCharge.values[0][0][0][0] == 0.1875  # 2020, S1T1 net charge
-    assert model.solution.NetCharge.values[0][0][0][2] == -0.1875  # 2020, S1T3 net charge
+    # capacity is set by the longer season (0.6) via the per-season max_hours cap: 0.9
+    assert model.solution.NewStorageCapacity.values[0][0][0] == pytest.approx(0.9)  # bat-storage
+    assert model.solution.NetCharge.values[0][0][0][0] == pytest.approx(0.15)  # 2020, S1T1
+    assert model.solution.NetCharge.values[0][0][0][2] == pytest.approx(-0.15)  # 2020, S1T3
     assert np.round(model.objective) == 175.0
 
 
