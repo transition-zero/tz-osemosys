@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 import xarray as xr
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
@@ -233,6 +234,88 @@ def test_simple_storage():
     assert (model.solution.StorageLevel <= model.solution.GrossStorageCapacity + 1e-6).all()
 
 
+def test_simple_storage_daily_balance():
+    """Simple daily storage balance with a non-uniform DaySplit.
+
+    Two daily time brackets, D = 0.75 of the day, N = 0.25. Solar generates only in D,
+    so storage must charge in D and discharge in N to meet night demand. With
+    storage_balance_day, equal energy charged/discharged forces the discharge rate to be
+    3x the charge rate (rate_D * 0.75 == rate_N * 0.25).
+    """
+    time_definition = TimeDefinition(
+        id="t",
+        years=[2020],
+        seasons=[1],
+        day_types=[1],
+        daily_time_steps=[1, 2],
+        timeslices=["D", "N"],
+        timeslice_in_season={"D": 1, "N": 1},
+        timeslice_in_daytype={"D": 1, "N": 1},
+        timeslice_in_timebracket={"D": 1, "N": 2},
+        year_split={"D": 0.75, "N": 0.25},
+        day_split={1: 0.75, 2: 0.25},
+    )
+    commodities = [
+        Commodity(id="electricity", demand_annual=100, demand_profile={"D": 0.5, "N": 0.5})
+    ]
+    technologies = [
+        Technology(
+            id="solar-pv",
+            operating_life=1,
+            capex=1,
+            capacity_factor={"D": 1, "N": 0},
+            operating_modes=[
+                OperatingMode(id="generation", output_activity_ratio={"electricity": 1.0})
+            ],
+        ),
+        Technology(
+            id="bat-tech",
+            operating_life=1,
+            capex=1,
+            operating_modes=[
+                OperatingMode(
+                    id="charge",
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge",
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage": True}},
+                ),
+            ],
+        ),
+    ]
+    storage = [
+        Storage(
+            id="bat-storage",
+            capex=1,
+            operating_life=1,
+            residual_capacity=0,
+            storage_balance_day=True,
+            initial_level=0,
+        )
+    ]
+    model = Model(
+        id="storage-daily-nonuniform",
+        time_definition=time_definition,
+        regions=[Region(id="single-region")],
+        commodities=commodities,
+        impacts=[],
+        storage=storage,
+        technologies=technologies,
+    )
+    model.solve(solver_name="highs")
+    assert model._m.termination_condition == "optimal"
+
+    # storage charges in D exactly the energy it discharges in N, so the day nets to zero
+    # (the daily balance). A wrong formulation would leave a non-zero net charge.
+    net = model.solution.NetCharge.sel(REGION="single-region", YEAR=2020, STORAGE="bat-storage")
+    assert net.sel(TIMESLICE="D").item() == pytest.approx(50, rel=1e-4)
+    assert net.sel(TIMESLICE="N").item() == pytest.approx(-50, rel=1e-4)
+    assert net.sel(TIMESLICE=["D", "N"]).sum().item() == pytest.approx(0, abs=1e-6)
+
+
 def test_simple_storage_seasonal_balancing():
     """
     Model to test the functionality of the storage_balance_season tag.
@@ -351,12 +434,13 @@ def test_simple_storage_seasonal_balancing():
         ).item()
         == 0.0
     )
-    assert (
-        model.solution.NetCharge.sel(
-            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="S1D2"
-        )
-        == -8.925
-    )
+    # storage charges in the cheap weekend daytype (S1D1) and discharges the same energy in
+    # the expensive weekday daytype (S1D2), so the season nets to zero (the seasonal balance).
+    # A wrong formulation would leave a non-zero net charge.
+    net = model.solution.NetCharge.sel(REGION="single-region", YEAR=2020, STORAGE="bat-storage")
+    assert net.sel(TIMESLICE="S1D1").item() == pytest.approx(8.925, rel=1e-4)
+    assert net.sel(TIMESLICE="S1D2").item() == pytest.approx(-8.925, rel=1e-4)
+    assert net.sel(TIMESLICE=["S1D1", "S1D2"]).sum().item() == pytest.approx(0, abs=1e-6)
 
 
 def test_simple_storage_max_hours():

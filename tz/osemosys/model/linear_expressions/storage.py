@@ -17,39 +17,41 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     StorageChargeDaily = (
         (
-            ds["DaySplit"]
-            * ds["TechnologyToStorage"]
+            ds["TechnologyToStorage"]
             * (
-                ds["Conversionlh"].fillna(0)
-                * ds["Conversionls"].fillna(0)
-                * ds["Conversionld"].fillna(0)
-            ).sum(dim="DAILYTIMEBRACKET")
+                # DaySplit is the term that maps timeslices to the assigned number of hours in the day,
+                # essentially converting from power to energy volume.
+                ds["DaySplit"] # dimension: DAILYTIMEBRACKET, YEAR
+                * ds["Conversionlh"].fillna(0) # dimension: DAILYTIMEBRACKET, TIMESLICE
+                * ds["Conversionls"].fillna(0) # dimension: SEASON, TIMESLICE
+                * ds["Conversionld"].fillna(0) # dimension: DAYTYPE, TIMESLICE
+            ).sum(dim="DAILYTIMEBRACKET"))
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyToStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
             & (ds["Conversionls"] != 0),
             drop=False,
-        )
-    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     StorageChargeSeasonally = (
         (
-            ds["YearSplit"]
-            * ds["TechnologyToStorage"]
+            ds["TechnologyToStorage"]
             * (
-                ds["Conversionlh"].fillna(0)
-                * ds["Conversionls"].fillna(0)
-                * ds["Conversionld"].fillna(0)
-            ).sum(dim="DAYTYPE")
+                # YearSplit is the term that maps timeslices to the assigned number of hours in the year,
+                # essentially converting from power to energy volume.
+                ds["YearSplit"] # dimension: TIMESLICE, YEAR
+                * ds["Conversionlh"].fillna(0) # dimension: DAILYTIMEBRACKET, TIMESLICE
+                * ds["Conversionls"].fillna(0) # dimension: SEASON, TIMESLICE
+                * ds["Conversionld"].fillna(0) # dimension: DAYTYPE, TIMESLICE
+            ).sum(dim=["DAYTYPE", "DAILYTIMEBRACKET"]))
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyToStorage"].notnull())
             & (ds["StorageBalanceSeason"] != 0)
             & (ds["Conversionls"] != 0),
             drop=False,
-        )
-    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     RateOfStorageDischarge = (
         (ds["TechnologyFromStorage"] * m["RateOfActivity"]).where(
@@ -59,39 +61,41 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
 
     StorageDischargeDaily = (
         (
-            ds["DaySplit"]
-            * ds["TechnologyFromStorage"]
+            ds["TechnologyFromStorage"]
             * (
-                ds["Conversionlh"].fillna(0)
-                * ds["Conversionls"].fillna(0)
-                * ds["Conversionld"].fillna(0)
-            ).sum(dim="DAILYTIMEBRACKET")
+                # DaySplit is the term that maps timeslices to the assigned number of hours in the day,
+                # essentially converting from power to energy volume.
+                ds["DaySplit"] # dimension: DAILYTIMEBRACKET, YEAR
+                * ds["Conversionlh"].fillna(0) # dimension: DAILYTIMEBRACKET, TIMESLICE
+                * ds["Conversionls"].fillna(0) # dimension: SEASON, TIMESLICE
+                * ds["Conversionld"].fillna(0) # dimension: DAYTYPE, TIMESLICE
+            ).sum(dim="DAILYTIMEBRACKET"))
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyFromStorage"].notnull())
             & (ds["StorageBalanceDay"] != 0)
             & (ds["Conversionls"] != 0),
             drop=False,
-        )
-    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     StorageDischargeSeasonally = (
         (
-            ds["YearSplit"]
-            * ds["TechnologyFromStorage"]
+            ds["TechnologyFromStorage"]
             * (
-                ds["Conversionlh"].fillna(0)
-                * ds["Conversionls"].fillna(0)
-                * ds["Conversionld"].fillna(0)
-            ).sum(dim="DAYTYPE")
+                # YearSplit is the term that maps timeslices to the assigned number of hours in the year,
+                # essentially converting from power to energy volume.
+                ds["YearSplit"] # dimension: TIMESLICE, YEAR
+                * ds["Conversionlh"].fillna(0) # dimension: DAILYTIMEBRACKET, TIMESLICE
+                * ds["Conversionls"].fillna(0) # dimension: SEASON, TIMESLICE
+                * ds["Conversionld"].fillna(0) # dimension: DAYTYPE, TIMESLICE
+            ).sum(dim=["DAYTYPE", "DAILYTIMEBRACKET"]))
             * m["RateOfActivity"]
         ).where(
             (ds["TechnologyFromStorage"].notnull())
             & (ds["StorageBalanceSeason"] != 0)
             & (ds["Conversionls"] != 0),
             drop=False,
-        )
-    ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
+        ).sum(["TECHNOLOGY", "MODE_OF_OPERATION", "TIMESLICE"])
 
     NetCharge = ds["YearSplit"] * (RateOfStorageCharge - RateOfStorageDischarge)
 
