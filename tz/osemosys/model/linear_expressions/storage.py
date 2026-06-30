@@ -20,7 +20,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             (
                 ds["TechnologyToStorage"]
                 * (
-                    # DaySplit is the term that maps timeslices to the assigned number of hours in the day,
+                    # DaySplit is the term that maps timeslices
+                    # to the assigned number of hours in the day
                     # essentially converting from power to energy volume.
                     ds["DaySplit"]  # dimension: DAILYTIMEBRACKET, YEAR
                     * ds["Conversionlh"].fillna(0)  # dimension: DAILYTIMEBRACKET, TIMESLICE
@@ -44,7 +45,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             (
                 ds["TechnologyToStorage"]
                 * (
-                    # YearSplit is the term that maps timeslices to the assigned number of hours in the year,
+                    # YearSplit is the term that maps timeslices
+                    # to the assigned number of hours in the year
                     # essentially converting from power to energy volume.
                     ds["YearSplit"]  # dimension: TIMESLICE, YEAR
                     * ds["Conversionlh"].fillna(0)  # dimension: DAILYTIMEBRACKET, TIMESLICE
@@ -74,7 +76,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             (
                 ds["TechnologyFromStorage"]
                 * (
-                    # DaySplit is the term that maps timeslices to the assigned number of hours in the day,
+                    # DaySplit is the term that maps timeslices
+                    # to the assigned number of hours in the day
                     # essentially converting from power to energy volume.
                     ds["DaySplit"]  # dimension: DAILYTIMEBRACKET, YEAR
                     * ds["Conversionlh"].fillna(0)  # dimension: DAILYTIMEBRACKET, TIMESLICE
@@ -98,7 +101,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
             (
                 ds["TechnologyFromStorage"]
                 * (
-                    # YearSplit is the term that maps timeslices to the assigned number of hours in the year,
+                    # YearSplit is the term that maps timeslices
+                    # to the assigned number of hours in the year
                     # essentially converting from power to energy volume.
                     ds["YearSplit"]  # dimension: TIMESLICE, YEAR
                     * ds["Conversionlh"].fillna(0)  # dimension: DAILYTIMEBRACKET, TIMESLICE

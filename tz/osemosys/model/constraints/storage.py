@@ -305,7 +305,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
 
         # Fix the maximum rate of charge/discharge using the max_hours parameter
-        # max_hours is the number of hours it takes to fully charge or discharge the storage using formula
+        # max_hours is the number of hours it takes to fully charge or discharge
         if "StorageMaxHours" in ds.data_vars:
             mask = ds["StorageMaxHours"].notnull()
             hours_per_day = 24
