@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 import xarray as xr
 
 from tz.osemosys import Commodity, Model, OperatingMode, Region, Storage, Technology, TimeDefinition
@@ -233,6 +234,88 @@ def test_simple_storage():
     assert (model.solution.StorageLevel <= model.solution.GrossStorageCapacity + 1e-6).all()
 
 
+def test_simple_storage_daily_balance():
+    """Simple daily storage balance with a non-uniform DaySplit.
+
+    Two daily time brackets, D = 0.75 of the day, N = 0.25. Solar generates only in D,
+    so storage must charge in D and discharge in N to meet night demand. With
+    storage_balance_day, equal energy charged/discharged forces the discharge rate to be
+    3x the charge rate (rate_D * 0.75 == rate_N * 0.25).
+    """
+    time_definition = TimeDefinition(
+        id="t",
+        years=[2020],
+        seasons=[1],
+        day_types=[1],
+        daily_time_steps=[1, 2],
+        timeslices=["D", "N"],
+        timeslice_in_season={"D": 1, "N": 1},
+        timeslice_in_daytype={"D": 1, "N": 1},
+        timeslice_in_timebracket={"D": 1, "N": 2},
+        year_split={"D": 0.75, "N": 0.25},
+        day_split={1: 0.75, 2: 0.25},
+    )
+    commodities = [
+        Commodity(id="electricity", demand_annual=100, demand_profile={"D": 0.5, "N": 0.5})
+    ]
+    technologies = [
+        Technology(
+            id="solar-pv",
+            operating_life=1,
+            capex=1,
+            capacity_factor={"D": 1, "N": 0},
+            operating_modes=[
+                OperatingMode(id="generation", output_activity_ratio={"electricity": 1.0})
+            ],
+        ),
+        Technology(
+            id="bat-tech",
+            operating_life=1,
+            capex=1,
+            operating_modes=[
+                OperatingMode(
+                    id="charge",
+                    input_activity_ratio={"electricity": 1.0},
+                    to_storage={"*": {"bat-storage": True}},
+                ),
+                OperatingMode(
+                    id="discharge",
+                    output_activity_ratio={"electricity": 1.0},
+                    from_storage={"*": {"bat-storage": True}},
+                ),
+            ],
+        ),
+    ]
+    storage = [
+        Storage(
+            id="bat-storage",
+            capex=1,
+            operating_life=1,
+            residual_capacity=0,
+            storage_balance_day=True,
+            initial_level=0,
+        )
+    ]
+    model = Model(
+        id="storage-daily-nonuniform",
+        time_definition=time_definition,
+        regions=[Region(id="single-region")],
+        commodities=commodities,
+        impacts=[],
+        storage=storage,
+        technologies=technologies,
+    )
+    model.solve(solver_name="highs")
+    assert model._m.termination_condition == "optimal"
+
+    # storage charges in D exactly the energy it discharges in N, so the day nets to zero
+    # (the daily balance). A wrong formulation would leave a non-zero net charge.
+    net = model.solution.NetCharge.sel(REGION="single-region", YEAR=2020, STORAGE="bat-storage")
+    assert net.sel(TIMESLICE="D").item() == pytest.approx(50, rel=1e-4)
+    assert net.sel(TIMESLICE="N").item() == pytest.approx(-50, rel=1e-4)
+    assert net.sel(TIMESLICE=["D", "N"]).sum().item() == pytest.approx(0, abs=1e-6)
+
+
 def test_simple_storage_seasonal_balancing():
     """
     Model to test the functionality of the storage_balance_season tag.
@@ -351,12 +434,13 @@ def test_simple_storage_seasonal_balancing():
         ).item()
         == 0.0
     )
-    assert (
-        model.solution.NetCharge.sel(
-            YEAR=2020, REGION="single-region", STORAGE="bat-storage", TIMESLICE="S1D2"
-        )
-        == -8.925
-    )
+    # storage charges in the cheap weekend daytype (S1D1) and discharges the same energy in
+    # the expensive weekday daytype (S1D2), so the season nets to zero (the seasonal balance).
+    # A wrong formulation would leave a non-zero net charge.
+    net = model.solution.NetCharge.sel(REGION="single-region", YEAR=2020, STORAGE="bat-storage")
+    assert net.sel(TIMESLICE="S1D1").item() == pytest.approx(8.925, rel=1e-4)
+    assert net.sel(TIMESLICE="S1D2").item() == pytest.approx(-8.925, rel=1e-4)
+    assert net.sel(TIMESLICE=["S1D1", "S1D2"]).sum().item() == pytest.approx(0, abs=1e-6)
 
 
 def test_simple_storage_max_hours():
@@ -365,8 +449,11 @@ def test_simple_storage_max_hours():
     capacity (in energy units) to maximum charge/discharge rate (in power units). Pseudo units and
     a capacity_activity_unit_ratio of 31.536 are used.
 
-    The model includes 2 seasons and 4 daily time brackets of unequal length. The modelled hours
-    are:
+    The model includes 2 seasons and 4 daily time brackets of unequal length.
+    The modelled seasons are:
+    - S1: 0.4
+    - S2: 0.6
+    The modelled hours are:
     - S1T1: 0-3
     - S1T2: 3-6
     - S1T3: 6-15
@@ -375,15 +462,11 @@ def test_simple_storage_max_hours():
     Only one generator is available to meet demand, but is only available for the first 2 timeslices
     (S1T1 and S1T2), so that storage must be used to meet demand in the other timeslices.
 
-    The demand in timeslices S1T3 and S1T4 is 0.1875. If storage where able to charge and discharge
-    freely, it would only require 0.375 capacity to meet the combined demand of these timeslices.
-
-    However, a max_hours of 12 is set, which means that for a given storage capacity, the fastest
-    rate at which it can discharge or charge fully is 12 hours. Given for each day, storage is only
-    able to charge for 6 hours, if the capacity were 0.375, over the first 2 timeslices it would
-    only be able to charge 0.1875, which is not enough to meet the demand in S1T3 and S1T4. Hence
-    the storage capacity must be at least 0.75 to meet the demand in S1T3 and S1T4.
-
+    max_hours = 12 caps the charge/discharge power at capacity / max_hours, which in annualised rate
+    terms is `rate <= capacity * 24 / (max_hours * season_share)`, where season_share is the
+    fraction of the year spanned by that timeslice's season. The binding constraint is therefore the
+    LONGER season (season 2, share 0.6):
+        capacity >= rate * max_hours * season_share / 24 = 3.0 * 12 * 0.6 / 24 = 0.9.
     storage_balance_day cannot be set as true here as the model must charge for 6 hours and
     discharge for 18 hours, hence charge cannot equal discharge.
     """
@@ -424,15 +507,16 @@ def test_simple_storage_max_hours():
             "S2T3": 3,
             "S2T4": 4,
         },
+        # season 1 spans 0.4 of the year, season 2 spans 0.6 (within-day shape 3:3:9:9 hours kept)
         year_split={
-            "S1T1": 0.0625,
-            "S1T2": 0.0625,
-            "S1T3": 0.1875,
-            "S1T4": 0.1875,
-            "S2T1": 0.0625,
-            "S2T2": 0.0625,
-            "S2T3": 0.1875,
-            "S2T4": 0.1875,
+            "S1T1": 0.05,
+            "S1T2": 0.05,
+            "S1T3": 0.15,
+            "S1T4": 0.15,
+            "S2T1": 0.075,
+            "S2T2": 0.075,
+            "S2T3": 0.225,
+            "S2T4": 0.225,
         },
     )
     regions = [Region(id="single-region")]
@@ -441,14 +525,14 @@ def test_simple_storage_max_hours():
             id="electricity",
             demand_annual=1,
             demand_profile={
-                "S1T1": 0.0625,
-                "S1T2": 0.0625,
-                "S1T3": 0.1875,
-                "S1T4": 0.1875,
-                "S2T1": 0.0625,
-                "S2T2": 0.0625,
-                "S2T3": 0.1875,
-                "S2T4": 0.1875,
+                "S1T1": 0.05,
+                "S1T2": 0.05,
+                "S1T3": 0.15,
+                "S1T4": 0.15,
+                "S2T1": 0.075,
+                "S2T2": 0.075,
+                "S2T3": 0.225,
+                "S2T4": 0.225,
             },
         )
     ]
@@ -522,9 +606,10 @@ def test_simple_storage_max_hours():
     )
     model.solve(solver_name="highs")
 
-    assert model.solution.NewStorageCapacity.values[0][0][0] == 0.75  # 2020, bat-storage capacity
-    assert model.solution.NetCharge.values[0][0][0][0] == 0.1875  # 2020, S1T1 net charge
-    assert model.solution.NetCharge.values[0][0][0][2] == -0.1875  # 2020, S1T3 net charge
+    # capacity is set by the longer season (0.6) via the per-season max_hours cap: 0.9
+    assert model.solution.NewStorageCapacity.values[0][0][0] == pytest.approx(0.9)  # bat-storage
+    assert model.solution.NetCharge.values[0][0][0][0] == pytest.approx(0.15)  # 2020, S1T1
+    assert model.solution.NetCharge.values[0][0][0][2] == pytest.approx(-0.15)  # 2020, S1T3
     assert np.round(model.objective) == 175.0
 
 
