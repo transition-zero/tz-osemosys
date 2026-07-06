@@ -117,7 +117,25 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         ds.coords["YEAR"] - min(ds.coords["YEAR"])
     )
 
-    CapitalInvestmentStorage = ds["CapitalCostStorage"] * m["NewStorageCapacity"]
+    # PVAnnuity uses social DiscountRate (matching the technology path in discounting.py)
+    PVAnnuityStorage = (
+        (1 - (1 + ds["DiscountRate"]) ** (-(ds["OperationalLifeStorage"])))
+        * (1 + ds["DiscountRate"])
+        / ds["DiscountRate"]
+    )
+
+    CapitalRecoveryFactorStorage = (1 - (1 + ds["DiscountRateStorage"]) ** (-1)) / (
+        1 - (1 + ds["DiscountRateStorage"]) ** (-(ds["OperationalLifeStorage"]))
+    )
+
+    # Financials updated to the same method as used for technologies (financials.py) and trades (trade.py)
+    CapitalInvestmentStorage = (
+        ds["CapitalCostStorage"].fillna(0)
+        * m["NewStorageCapacity"]
+        * CapitalRecoveryFactorStorage
+        * PVAnnuityStorage
+    )
+
     DiscountedCapitalInvestmentStorage = CapitalInvestmentStorage / DiscountFactorStorage_annual
 
     # Storage salvage value components (OSeMOSYS SI7/SI8).
@@ -130,6 +148,10 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
     ) - 1
 
     SV1DenominatorStorage = (1 + ds["DiscountRate"]) ** ds["OperationalLifeStorage"] - 1
+
+    SV2NumeratorStorage = max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1
+
+    SV2DenominatorStorage = ds["OperationalLifeStorage"]
 
     sv1_storage_mask = (
         (ds["DepreciationMethod"] == 1)
@@ -145,16 +167,24 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         & ((ds.coords["YEAR"] + ds["OperationalLifeStorage"] - 1) > max(ds.coords["YEAR"]))
     )
 
-    # Use other=0.0 to avoid NaN coefficients in the linopy expression
+    # salvage value factors (storage)
     SV1CostStorage = ds["CapitalCostStorage"].fillna(0) * (
-        1 - (SV1NumeratorStorage / SV1DenominatorStorage)
-    ).where(sv1_storage_mask, other=0.0)
+        CapitalRecoveryFactorStorage
+        * PVAnnuityStorage
+        * (1 - (SV1NumeratorStorage / SV1DenominatorStorage))
+    )
 
     SV2CostStorage = ds["CapitalCostStorage"].fillna(0) * (
-        1 - ((max(ds.coords["YEAR"]) - ds.coords["YEAR"] + 1) / ds["OperationalLifeStorage"])
-    ).where(sv2_storage_mask, other=0.0)
+        CapitalRecoveryFactorStorage
+        * PVAnnuityStorage
+        * (1 - (SV2NumeratorStorage / SV2DenominatorStorage))
+    )
 
-    SalvageValueStorage = m["NewStorageCapacity"] * (SV1CostStorage + SV2CostStorage)
+    # salvage value (storage)
+    SalvageValueStorage = (
+        m["NewStorageCapacity"] * SV1CostStorage.where(sv1_storage_mask, drop=False)
+        + m["NewStorageCapacity"] * SV2CostStorage.where(sv2_storage_mask, drop=False)
+    ).fillna(0)
 
     DiscountedSalvageValueStorage = SalvageValueStorage / DiscountFactorStorage
 
