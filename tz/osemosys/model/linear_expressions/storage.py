@@ -128,7 +128,8 @@ def add_lex_storage(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]):
         1 - (1 + ds["DiscountRateStorage"]) ** (-(ds["OperationalLifeStorage"]))
     )
 
-    # Financials updated to the same method as used for technologies (financials.py) and trades (trade.py)
+    # Financials updated to the same method
+    # as used for technologies (financials.py) and trades (trade.py)
     CapitalInvestmentStorage = (
         ds["CapitalCostStorage"].fillna(0)
         * m["NewStorageCapacity"]
