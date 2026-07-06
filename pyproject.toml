@@ -56,7 +56,7 @@ dev = [
   "mypy",
   "tox",
   "coverage",
-  "highspy",
+  "highspy==1.14.0",
   "ipykernel>=7.3.0",
 ]
 cloudpath=[
