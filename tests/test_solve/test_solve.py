@@ -445,130 +445,62 @@ def test_simple_storage_seasonal_balancing():
 
 def test_simple_storage_max_hours():
     """
-    This model tests the funcationality of max_hours in storage, which limits the ratio of storage
-    capacity (in energy units) to maximum charge/discharge rate (in power units). Pseudo units and
-    a capacity_activity_unit_ratio of 31.536 are used.
-
-    The model includes 2 seasons and 4 daily time brackets of unequal length.
-    The modelled seasons are:
-    - S1: 0.4
-    - S2: 0.6
-    The modelled hours are:
-    - S1T1: 0-3
-    - S1T2: 3-6
-    - S1T3: 6-15
-    - S1T4: 15-24
-
-    Only one generator is available to meet demand, but is only available for the first 2 timeslices
-    (S1T1 and S1T2), so that storage must be used to meet demand in the other timeslices.
-
-    max_hours = 12 caps the charge/discharge power at capacity / max_hours, which in annualised rate
-    terms is `rate <= capacity * 24 / (max_hours * season_share)`, where season_share is the
-    fraction of the year spanned by that timeslice's season. The binding constraint is therefore the
-    LONGER season (season 2, share 0.6):
-        capacity >= rate * max_hours * season_share / 24 = 3.0 * 12 * 0.6 / 24 = 0.9.
-    storage_balance_day cannot be set as true here as the model must charge for 6 hours and
-    discharge for 18 hours, hence charge cannot equal discharge.
+    max_hours is the number of clock hours to fully charge/discharge at maximum power, so the
+    max power is P_max = GrossStorageCapacity / max_hours [energy/hr].
+    RateOfStorageCharge/Discharge are annualised (PJ/yr): power = Rate / HOURS_IN_YEAR.
+    Imposing physical power <= P_max gives the binding relationship
+        RateOfStorageCharge/Discharge <= GrossStorageCapacity * HOURS_IN_YEAR / max_hours.
+    A simple model that forces the storage to charge fast so the power rating binds:
+    - 1 season, 1 daytype, 2 brackets. T1 represents just 12 clock-hours of the year
+      (year_split = 12/8760); T2 is the remaining 8748 hours.
+    - Solar (the only generator) is available ONLY in the short T1 window; all demand is in T2.
+    - The storage must therefore charge its entire energy (demand = 1) during T1, giving a
+      forced annualised charge rate of 1 / (12/8760) = 730.
+    - With max_hours = 24 the power rating binds and drives the capacity to
+        capacity = charge_rate * max_hours / HOURS_IN_YEAR = 730 * 24 / 8760 = 2.0.
+      Intuitively: a 24-hour storage that can only charge for 12 hours reaches half its rated
+      capacity, so it needs twice the capacity of the energy it must store.
     """
+    charge_window_hours = 12
+    max_hours = 24
+    year_split = {"T1": charge_window_hours / 8760, "T2": (8760 - charge_window_hours) / 8760}
+
     time_definition = TimeDefinition(
         id="years-only",
-        years=range(2020, 2030),
-        seasons=[1, 2],
+        years=range(2020, 2025),
+        seasons=[1],
         day_types=[1],
-        daily_time_steps=[1, 2, 3, 4],  # 0-3, 3-6, 6-15, 15-24
-        timeslices=["S1T1", "S1T2", "S1T3", "S1T4", "S2T1", "S2T2", "S2T3", "S2T4"],
-        timeslice_in_season={
-            "S1T1": 1,
-            "S1T2": 1,
-            "S1T3": 1,
-            "S1T4": 1,
-            "S2T1": 2,
-            "S2T2": 2,
-            "S2T3": 2,
-            "S2T4": 2,
-        },
-        timeslice_in_daytype={
-            "S1T1": 1,
-            "S1T2": 1,
-            "S1T3": 1,
-            "S1T4": 1,
-            "S2T1": 1,
-            "S2T2": 1,
-            "S2T3": 1,
-            "S2T4": 1,
-        },
-        timeslice_in_timebracket={
-            "S1T1": 1,
-            "S1T2": 2,
-            "S1T3": 3,
-            "S1T4": 4,
-            "S2T1": 1,
-            "S2T2": 2,
-            "S2T3": 3,
-            "S2T4": 4,
-        },
-        # season 1 spans 0.4 of the year, season 2 spans 0.6 (within-day shape 3:3:9:9 hours kept)
-        year_split={
-            "S1T1": 0.05,
-            "S1T2": 0.05,
-            "S1T3": 0.15,
-            "S1T4": 0.15,
-            "S2T1": 0.075,
-            "S2T2": 0.075,
-            "S2T3": 0.225,
-            "S2T4": 0.225,
-        },
+        daily_time_brackets=[1, 2],
+        timeslices=["T1", "T2"],
+        timeslice_in_season={"T1": 1, "T2": 1},
+        timeslice_in_daytype={"T1": 1, "T2": 1},
+        timeslice_in_timebracket={"T1": 1, "T2": 2},
+        year_split=year_split,
     )
     regions = [Region(id="single-region")]
     commodities = [
-        Commodity(
-            id="electricity",
-            demand_annual=1,
-            demand_profile={
-                "S1T1": 0.05,
-                "S1T2": 0.05,
-                "S1T3": 0.15,
-                "S1T4": 0.15,
-                "S2T1": 0.075,
-                "S2T2": 0.075,
-                "S2T3": 0.225,
-                "S2T4": 0.225,
-            },
-        )
+        # all demand falls in T2, when solar is unavailable
+        Commodity(id="electricity", demand_annual=1, demand_profile={"T1": 0.0, "T2": 1.0})
     ]
     impacts = []
     technologies = [
         Technology(
             id="solar-pv",
-            operating_life=2,  # years
-            capex=10,
-            capacity_activity_unit_ratio=31.536,
-            capacity_factor={
-                "S1T1": 1,
-                "S1T2": 1,
-                "S1T3": 0,
-                "S1T4": 0,
-                "S2T1": 1,
-                "S2T2": 1,
-                "S2T3": 0,
-                "S2T4": 0,
-            },
+            operating_life=100,
+            capex=1,
+            capacity_factor={"T1": 1, "T2": 0},  # solar only in the short T1 charge window
             operating_modes=[
                 OperatingMode(
                     id="generation",
-                    opex_variable={
-                        "*": {
-                            "*": 0,
-                        }
-                    },
+                    opex_variable=0,
                     output_activity_ratio={"electricity": 1.0},
                 )
             ],
         ),
         Technology(
             id="bat-tech",
-            operating_life=3,
-            capex=20,
+            operating_life=100,
+            capex=0.01,
             operating_modes=[
                 OperatingMode(
                     id="charge",
@@ -591,8 +523,7 @@ def test_simple_storage_max_hours():
             capex=0.01,
             operating_life=100,
             residual_capacity=0,
-            max_hours=12,
-            # storage_balance_day=True, # cannot be set as True here due to unequal year_splits
+            max_hours=max_hours,
         ),
     ]
     model = Model(
@@ -606,11 +537,19 @@ def test_simple_storage_max_hours():
     )
     model.solve(solver_name="highs")
 
-    # capacity is set by the longer season (0.6) via the per-season max_hours cap: 0.9
-    assert model.solution.NewStorageCapacity.values[0][0][0] == pytest.approx(0.9)  # bat-storage
-    assert model.solution.NetCharge.values[0][0][0][0] == pytest.approx(0.15)  # 2020, S1T1
-    assert model.solution.NetCharge.values[0][0][0][2] == pytest.approx(-0.15)  # 2020, S1T3
-    assert np.round(model.objective) == 175.0
+    capacity = model.solution.NewStorageCapacity.values.flatten()[0]  # bat-storage
+    # NetCharge(T1) = YearSplit(T1) * charge_rate; charging is forced entirely into T1
+    net_charge = model.solution.NetCharge.isel(YEAR=0).values.flatten()
+    charge_rate = net_charge[0] / year_split["T1"]
+
+    # the power rating binds: capacity is driven by the forced fast charge, not by energy alone
+    assert capacity == pytest.approx(2.0)
+    assert charge_rate == pytest.approx(730.0)
+    # the binding identity: charge_rate == capacity * HOURS_IN_YEAR / max_hours
+    assert charge_rate == pytest.approx(capacity * 8760 / max_hours)
+    # storage charges its full energy in T1 and discharges it in T2
+    assert net_charge[0] == pytest.approx(1.0)  # 2020, T1 (charge)
+    assert net_charge[1] == pytest.approx(-1.0)  # 2020, T2 (discharge)
 
 
 def test_simple_trade():

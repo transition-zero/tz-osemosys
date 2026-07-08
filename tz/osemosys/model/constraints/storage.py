@@ -304,26 +304,21 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
 
-        # Fix the maximum rate of charge/discharge using the max_hours parameter
-        # max_hours is the number of hours it takes to fully charge or discharge
+        # Cap the charge/discharge rate using the max_hours.
+        # Formulation:
+        # Where P = Power rating / capacity, Rate = RateOfStorageCharge/Discharge
+        # P × bracket_hours × N_days = YearSplit[l] × Rate
+        # P × bracket_hours × N_days = (bracket_hours × N_days / HOURS_IN_YEAR) × Rate
+        # P = Rate / HOURS_IN_YEAR
+        # P_max = GrossStorageCapacity / StorageMaxHours
+        # P <= P_max
+        # Rate / HOURS_IN_YEAR <= GrossStorageCapacity / StorageMaxHours
+        # Rate <= GrossStorageCapacity / StorageMaxHours * HOURS_IN_YEAR
         if "StorageMaxHours" in ds.data_vars:
             mask = ds["StorageMaxHours"].notnull()
-            hours_per_day = 24
+            HOURS_IN_YEAR = 8760
 
-            # Sum YearSplit over each (season, daytype) block, then map that block total
-            # back onto every timeslice in the block.
-            block_indicator = ds["Conversionls"].fillna(0) * ds["Conversionld"].fillna(0)
-            block_year_share = (
-                (ds["YearSplit"] * block_indicator).sum("TIMESLICE") * block_indicator
-            ).sum(["SEASON", "DAYTYPE"])
-
-            # formula: rate <= GrossStorageCapacity * 24 / (max_hours * block_year_share)
-            # where block_year_share is the fraction of the year spanned by the (season, daytype)
-            max_rate = (
-                lex["GrossStorageCapacity"]
-                * hours_per_day
-                / (ds["StorageMaxHours"] * block_year_share)
-            )
+            max_rate = lex["GrossStorageCapacity"] * HOURS_IN_YEAR / ds["StorageMaxHours"]
             m.add_constraints(
                 lex["RateOfStorageCharge"] <= max_rate,
                 name="StorageMaxHoursConstraintCharge",
