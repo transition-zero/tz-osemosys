@@ -304,28 +304,31 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
             con = lex["RateOfStorageDischarge"] <= ds["StorageMaxDischargeRate"]
             m.add_constraints(con, name="SC6_MaxDischargeConstraint")
 
-        # Fix the maximum rate of charge/discharge using the max_hours parameter
-        # max_hours is the number of hours it takes to fully charge or discharge the storage
+        # Cap the charge/discharge rate using the max_hours.
+        # Formulation:
+        # Where P = Power rating / capacity, Rate = RateOfStorageCharge/Discharge
+        # P × bracket_hours × N_days = YearSplit[l] × Rate
+        # P × bracket_hours × N_days = (bracket_hours × N_days / HOURS_IN_YEAR) × Rate
+        # P = Rate / HOURS_IN_YEAR
+        # P_max = GrossStorageCapacity / StorageMaxHours
+        # P <= P_max
+        # Rate / HOURS_IN_YEAR <= GrossStorageCapacity / StorageMaxHours
+        # Rate <= GrossStorageCapacity / StorageMaxHours * HOURS_IN_YEAR
         if "StorageMaxHours" in ds.data_vars:
-            con = (
-                lex["RateOfStorageCharge"]
-                <= (lex["GrossStorageCapacity"] / (ds["StorageMaxHours"] * 365))
-                * 8760
-                * ds["SEASON"].size
-                * ds["DAYTYPE"].size
-            )
             mask = ds["StorageMaxHours"].notnull()
-            m.add_constraints(con, name="StorageMaxHoursConstraintCharge", mask=mask)
+            HOURS_IN_YEAR = 8760
 
-            con = (
-                lex["RateOfStorageDischarge"]
-                <= (lex["GrossStorageCapacity"] / (ds["StorageMaxHours"] * 365))
-                * 8760
-                * ds["SEASON"].size
-                * ds["DAYTYPE"].size
+            max_rate = lex["GrossStorageCapacity"] * HOURS_IN_YEAR / ds["StorageMaxHours"]
+            m.add_constraints(
+                lex["RateOfStorageCharge"] <= max_rate,
+                name="StorageMaxHoursConstraintCharge",
+                mask=mask,
             )
-            mask = ds["StorageMaxHours"].notnull()
-            m.add_constraints(con, name="StorageMaxHoursConstraintDischarge", mask=mask)
+            m.add_constraints(
+                lex["RateOfStorageDischarge"] <= max_rate,
+                name="StorageMaxHoursConstraintDischarge",
+                mask=mask,
+            )
 
         if "StorageBalanceDay" in ds.data_vars:
             # Require NetChargeWithinDay to be zero
