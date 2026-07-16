@@ -333,6 +333,10 @@ def test_simple_storage():
 
     sel = dict(YEAR=2020, REGION="single-region")
     assert model.solution.NewStorageCapacity.sel(STORAGE="bat-storage-daily", **sel).item() == 12.5
+    net_daily = model.solution.NetCharge.sel(STORAGE="bat-storage-daily", **sel)
+    # daily balance constraint forces the net charge to be zero for the day type
+    assert net_daily.sel(TIMESLICE=["D", "N"]).sum().item() == pytest.approx(0, rel=1e-4)
+    # free storage is not subject to any balance constraints
     net = model.solution.NetCharge.sel(STORAGE="bat-storage", **sel)
     assert net.sel(TIMESLICE="D").item() == 75
     assert net.sel(TIMESLICE="N").item() == 0
