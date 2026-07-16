@@ -107,7 +107,7 @@ def test_simple_storage():
         years=range(2020, 2030),
         seasons=[1],
         day_types=[1],
-        daily_time_steps=[1, 2],
+        daily_time_brackets=[1, 2],
         timeslices=["D", "N"],
         timeslice_in_season={"D": 1, "N": 1},
         timeslice_in_daytype={"D": 1, "N": 1},
@@ -537,16 +537,16 @@ def test_simple_storage_max_hours():
     )
     model.solve(solver_name="highs")
 
-    capacity = model.solution.NewStorageCapacity.values.flatten()[0]  # bat-storage
+    energy_capacity = model.solution.NewStorageCapacity.values.flatten()[0]  # bat-storage
     # NetCharge(T1) = YearSplit(T1) * charge_rate; charging is forced entirely into T1
     net_charge = model.solution.NetCharge.isel(YEAR=0).values.flatten()
     charge_rate = net_charge[0] / year_split["T1"]
 
     # the power rating binds: capacity is driven by the forced fast charge, not by energy alone
-    assert capacity == pytest.approx(2.0)
+    assert energy_capacity == pytest.approx(2.0)
     assert charge_rate == pytest.approx(730.0)
     # the binding identity: charge_rate == capacity * HOURS_IN_YEAR / max_hours
-    assert charge_rate == pytest.approx(capacity * 8760 / max_hours)
+    assert charge_rate == pytest.approx(energy_capacity * 8760 / max_hours)
     # storage charges its full energy in T1 and discharges it in T2
     assert net_charge[0] == pytest.approx(1.0)  # 2020, T1 (charge)
     assert net_charge[1] == pytest.approx(-1.0)  # 2020, T2 (discharge)
