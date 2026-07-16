@@ -127,7 +127,7 @@ def _daynight_model(
 
 
 def _annual_model(w_day, balance_year):
-    """Two-year day/night model with expensive year-2 generation; 
+    """Two-year day/night model with expensive year-2 generation;
     storage incentivised to carry energy forward but forbidden by the balance_year flag.
     """
     return _daynight_model(
