@@ -30,23 +30,18 @@ def add_capacity_adequacy_b_constraints(
         r in REGION, t in TECHNOLOGY, y in YEAR: AvailabilityFactor[r,t,y] < 1}:
         sum{l in TIMESLICE} RateOfTotalActivity[r,t,l,y] * YearSplit[l,y]
         <=
-        sum{l in TIMESLICE} (TotalCapacityAnnual[r,t,y] * CapacityFactor[r,t,l,y] *
-        YearSplit[l,y]) * AvailabilityFactor[r,t,y] * CapacityToActivityUnit[r,t];
+        (TotalCapacityAnnual[r,t,y] * AvailabilityFactor[r,t,y]
+        * CapacityToActivityUnit[r,t]);
     ```
     """
 
     mask = ds["AvailabilityFactor"] < 1
     con = (lex["RateOfTotalActivity"] * ds["YearSplit"]).sum(dims="TIMESLICE") - (
         (
-            lex["GrossCapacity"].assign_coords(
-                {"TIMESLICE": ds["CapacityFactor"].coords["TIMESLICE"]}
-            )
-            * ds["CapacityFactor"]
-            * ds["YearSplit"]
-        ).sum(dims="TIMESLICE")
+            lex["GrossCapacity"]
         * ds["AvailabilityFactor"]
         * ds["CapacityToActivityUnit"]
-    ) <= 0
+    )) <= 0
     m.add_constraints(con, name="CAb1_PlannedMaintenance", mask=mask)
 
     return m
