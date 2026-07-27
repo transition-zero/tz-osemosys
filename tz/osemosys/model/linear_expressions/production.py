@@ -11,21 +11,21 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     )
     RateOfProductionByTechnology = RateOfProductionByTechnologyByMode.where(
         ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProduction = RateOfProductionByTechnology.sum(dims="TECHNOLOGY")
+    ).sum(dim="MODE_OF_OPERATION")
+    RateOfProduction = RateOfProductionByTechnology.sum(dim="TECHNOLOGY")
     ProductionByTechnology = RateOfProductionByTechnology * ds["YearSplit"]
     Production = RateOfProduction * ds["YearSplit"]
-    ProductionAnnual = Production.sum(dims="TIMESLICE")
+    ProductionAnnual = Production.sum(dim="TIMESLICE")
 
     RateOfUseByTechnologyByMode = m["RateOfActivity"] * ds["InputActivityRatio"].where(
         ds["InputActivityRatio"].notnull(), drop=False
     )
     RateOfUseByTechnology = RateOfUseByTechnologyByMode.where(
         ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfUse = RateOfUseByTechnology.sum(dims="TECHNOLOGY")
+    ).sum(dim="MODE_OF_OPERATION")
+    RateOfUse = RateOfUseByTechnology.sum(dim="TECHNOLOGY")
     Use = RateOfUse * ds["YearSplit"]
-    UseAnnual = Use.sum(dims="TIMESLICE")
+    UseAnnual = Use.sum(dim="TIMESLICE")
 
     lex.update(
         {

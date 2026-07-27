@@ -33,7 +33,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
             & (ds["ReserveMarginTagFuel"] == 1)
             & (ds["ReserveMarginTagTechnology"] > 0),
             drop=False,
-        ).sum(dims="MODE_OF_OPERATION")
+        ).sum(dim="MODE_OF_OPERATION")
     )
 
     RateOfProductionWithReserveMargin = RateOfProductionByTechnologyWithReserveMargin.where(
@@ -42,7 +42,7 @@ def add_lex_reserve_margin(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpres
         & (ds["ReserveMarginTagFuel"] == 1)
         & (ds["ReserveMarginTagTechnology"] > 0),
         drop=False,
-    ).sum(dims="TECHNOLOGY")
+    ).sum(dim="TECHNOLOGY")
 
     DemandNeedingReserveMargin = (
         (lex["RateOfProduction"] * ds["ReserveMarginTagFuel"])

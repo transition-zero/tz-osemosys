@@ -345,7 +345,7 @@ def add_storage_constraints(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpre
         if "StorageBalanceYear" in ds.data_vars:
             con = (
                 (lex["RateOfStorageCharge"] - lex["RateOfStorageDischarge"]) * ds["YearSplit"]
-            ).sum(dims="TIMESLICE") == 0
+            ).sum(dim="TIMESLICE") == 0
             mask = ds["StorageBalanceYear"] == 1
             m.add_constraints(con, name="SC10_BalanceAnnualConstraint", mask=mask)
 

@@ -18,8 +18,8 @@ def add_capacity_variables(ds: xr.Dataset, m: Model) -> Model:
     linopy.Model
     """
     # Create the required index
-    RTeY = [ds.coords["REGION"], ds.coords["TECHNOLOGY"], ds.coords["YEAR"]]
-    RRFY = [ds.coords["REGION"], ds.coords["_REGION"], ds.coords["FUEL"], ds.coords["YEAR"]]
+    RTeY = [ds.indexes["REGION"], ds.indexes["TECHNOLOGY"], ds.indexes["YEAR"]]
+    RRFY = [ds.indexes["REGION"], ds.indexes["_REGION"], ds.indexes["FUEL"], ds.indexes["YEAR"]]
 
     # masks
     mask = ds["CapacityOfOneTechnologyUnit"].notnull()

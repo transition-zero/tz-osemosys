@@ -16,11 +16,11 @@ def add_lex_regiongroup(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
 
     AnnualTechnologyEmissionRegionGroup = AnnualTechnologyEmissionByModeRegionGroup.sum(
-        dims="MODE_OF_OPERATION"
+        dim="MODE_OF_OPERATION"
     ).where(ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False)
 
-    AnnualEmissionsRegionGroupTag = AnnualTechnologyEmissionRegionGroup.sum(dims="TECHNOLOGY")
-    AnnualEmissionsRegionGroup = AnnualEmissionsRegionGroupTag.sum(dims="REGION")
+    AnnualEmissionsRegionGroupTag = AnnualTechnologyEmissionRegionGroup.sum(dim="TECHNOLOGY")
+    AnnualEmissionsRegionGroup = AnnualEmissionsRegionGroupTag.sum(dim="REGION")
 
     # PRODUCTION
 
@@ -29,12 +29,12 @@ def add_lex_regiongroup(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
     RateOfProductionByTechnologyRegionGroup = RateOfProductionByTechnologyByModeRG.where(
         ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProductionRegionGroup = RateOfProductionByTechnologyRegionGroup.sum(dims="TECHNOLOGY")
+    ).sum(dim="MODE_OF_OPERATION")
+    RateOfProductionRegionGroup = RateOfProductionByTechnologyRegionGroup.sum(dim="TECHNOLOGY")
     ProductionByTechnologyRegionGroup = RateOfProductionByTechnologyRegionGroup * ds["YearSplit"]
     ProductionRegionGroup = RateOfProductionRegionGroup * ds["YearSplit"]
-    ProductionAnnualRegionGroup = ProductionRegionGroup.sum(dims="TIMESLICE")
-    ProductionAnnualRegionGroupAggregate = ProductionAnnualRegionGroup.sum(dims="REGION").where(
+    ProductionAnnualRegionGroup = ProductionRegionGroup.sum(dim="TIMESLICE")
+    ProductionAnnualRegionGroupAggregate = ProductionAnnualRegionGroup.sum(dim="REGION").where(
         ds["RegionGroupTagRegion"] == 1, drop=False
     )
 
@@ -47,14 +47,14 @@ def add_lex_regiongroup(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpressio
     )
     RateOfProductionByTechnologyRERegionGroup = RateOfProductionByTechnologyByModeRERG.where(
         ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProductionRERegionGroup = RateOfProductionByTechnologyRERegionGroup.sum(dims="TECHNOLOGY")
+    ).sum(dim="MODE_OF_OPERATION")
+    RateOfProductionRERegionGroup = RateOfProductionByTechnologyRERegionGroup.sum(dim="TECHNOLOGY")
     ProductionByTechnologyRERegionGroup = (
         RateOfProductionByTechnologyRERegionGroup * ds["YearSplit"]
     )
     ProductionRERegionGroup = RateOfProductionRERegionGroup * ds["YearSplit"]
-    ProductionAnnualRERegionGroup = ProductionRERegionGroup.sum(dims="TIMESLICE")
-    ProductionAnnualRERegionGroupAggregate = ProductionAnnualRERegionGroup.sum(dims="REGION").where(
+    ProductionAnnualRERegionGroup = ProductionRERegionGroup.sum(dim="TIMESLICE")
+    ProductionAnnualRERegionGroupAggregate = ProductionAnnualRERegionGroup.sum(dim="REGION").where(
         ds["RegionGroupTagRegion"] == 1, drop=False
     )
 

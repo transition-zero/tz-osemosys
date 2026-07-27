@@ -11,7 +11,7 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
         .where(ds["EmissionActivityRatio"].notnull(), drop=False)
     )
 
-    AnnualTechnologyEmission = AnnualTechnologyEmissionByMode.sum(dims="MODE_OF_OPERATION").where(
+    AnnualTechnologyEmission = AnnualTechnologyEmissionByMode.sum(dim="MODE_OF_OPERATION").where(
         ds["EmissionActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
     )
 
@@ -23,13 +23,11 @@ def add_lex_emissions(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
         drop=False,
     )
 
-    AnnualTechnologyEmissionsPenalty = AnnualTechnologyEmissionPenaltyByEmission.sum(
-        dims="EMISSION"
-    )
+    AnnualTechnologyEmissionsPenalty = AnnualTechnologyEmissionPenaltyByEmission.sum(dim="EMISSION")
 
-    AnnualEmissions = AnnualTechnologyEmission.sum(dims="TECHNOLOGY")
+    AnnualEmissions = AnnualTechnologyEmission.sum(dim="TECHNOLOGY")
 
-    ModelPeriodEmissions = AnnualEmissions.sum(dims="YEAR") + ds[
+    ModelPeriodEmissions = AnnualEmissions.sum(dim="YEAR") + ds[
         "ModelPeriodExogenousEmission"
     ].fillna(0)
 
