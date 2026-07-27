@@ -22,6 +22,11 @@ def add_storage_variables(ds: xr.Dataset, m: Model) -> Model:
     m.add_variables(lower=0, upper=inf, coords=RSY, name="NewStorageCapacity", integer=False)
 
     # New variable: Explicit storage level (state of charge) per timeslice
-    RSYTs = [ds.indexes["REGION"], ds.indexes["STORAGE"], ds.indexes["YEAR"], ds.indexes["TIMESLICE"]]
+    RSYTs = [
+        ds.indexes["REGION"],
+        ds.indexes["STORAGE"],
+        ds.indexes["YEAR"],
+        ds.indexes["TIMESLICE"],
+    ]
     m.add_variables(lower=0, upper=inf, coords=RSYTs, name="StorageLevel", integer=False)
     return m
