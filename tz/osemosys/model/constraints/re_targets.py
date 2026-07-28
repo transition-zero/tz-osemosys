@@ -64,7 +64,7 @@ def add_production_target_constraints(
     ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression]
 ) -> Model:
     if (mask := ds["TechnologyMinProductionTarget"].notnull()).any():
-        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dims="TIMESLICE")
+        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dim="TIMESLICE")
         rhs = lex["ProductionAnnual"].reindex(lhs.coords) * ds["TechnologyMinProductionTarget"].sel(
             lhs.coords
         )
@@ -75,7 +75,7 @@ def add_production_target_constraints(
         )
 
     if (mask := ds["TechnologyMaxProductionTarget"].notnull()).any():
-        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dims="TIMESLICE")
+        lhs = lex["ProductionByTechnology"].where(mask, drop=True).sum(dim="TIMESLICE")
         rhs = lex["ProductionAnnual"].reindex(lhs.coords) * ds["TechnologyMaxProductionTarget"].sel(
             lhs.coords
         )

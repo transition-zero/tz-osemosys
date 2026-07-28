@@ -247,7 +247,7 @@ def add_linopy_constraints(
     m = add_re_targets_constraints(ds, m)
     m = add_emissions_constraints(ds, m, discount_factor_mid)
 
-    objective = m["TotalDiscountedCost"].sum(dims=["REGION", "YEAR"])
+    objective = m["TotalDiscountedCost"].sum(dim=["REGION", "YEAR"])
     m.add_objective(expr=objective, overwrite=True)
     return m
 

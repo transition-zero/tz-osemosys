@@ -17,7 +17,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     # costs
     AnnualVariableOperatingCost = (
         (lex["TotalAnnualTechnologyActivityByMode"] * ds["VariableCost"].fillna(0))
-        .sum(dims="MODE_OF_OPERATION")
+        .sum(dim="MODE_OF_OPERATION")
         .where(
             (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
             & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
