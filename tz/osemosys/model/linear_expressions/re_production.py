@@ -10,11 +10,11 @@ def add_lex_re_production(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpress
     )
     RateOfProductionByTechnologyRE = RateOfProductionByTechnologyByModeRE.where(
         ds["OutputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
-    ).sum(dims="MODE_OF_OPERATION")
-    RateOfProductionRE = RateOfProductionByTechnologyRE.sum(dims="TECHNOLOGY")
+    ).sum(dim="MODE_OF_OPERATION")
+    RateOfProductionRE = RateOfProductionByTechnologyRE.sum(dim="TECHNOLOGY")
     ProductionByTechnologyRE = RateOfProductionByTechnologyRE * ds["YearSplit"]
     ProductionRE = RateOfProductionRE * ds["YearSplit"]
-    ProductionAnnualRE = ProductionRE.sum(dims="TIMESLICE")
+    ProductionAnnualRE = ProductionRE.sum(dim="TIMESLICE")
 
     lex.update(
         {

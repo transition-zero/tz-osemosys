@@ -2,7 +2,7 @@ from linopy import LinearExpression, Model
 
 
 def add_objective(m: Model, lex: dict[str, LinearExpression]) -> float:
-    objective = lex["TotalDiscountedCost"].sum(dims=["REGION", "YEAR"])
+    objective = lex["TotalDiscountedCost"].sum(dim=["REGION", "YEAR"])
 
     # constants not currently supported in objective functions:
     # https://github.com/PyPSA/linopy/issues/236

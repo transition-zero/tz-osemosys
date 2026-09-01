@@ -19,18 +19,18 @@ def add_activity_variables(ds: xr.Dataset, m: Model) -> Model:
     """
     # Add indices
     RRTiFY = [
-        ds.coords["REGION"],
-        ds.coords["_REGION"],
-        ds.coords["TIMESLICE"],
-        ds.coords["FUEL"],
-        ds.coords["YEAR"],
+        ds.indexes["REGION"],
+        ds.indexes["_REGION"],
+        ds.indexes["TIMESLICE"],
+        ds.indexes["FUEL"],
+        ds.indexes["YEAR"],
     ]
     RTeMYTi = [
-        ds.coords["REGION"],
-        ds.coords["TECHNOLOGY"],
-        ds.coords["MODE_OF_OPERATION"],
-        ds.coords["YEAR"],
-        ds.coords["TIMESLICE"],
+        ds.indexes["REGION"],
+        ds.indexes["TECHNOLOGY"],
+        ds.indexes["MODE_OF_OPERATION"],
+        ds.indexes["YEAR"],
+        ds.indexes["TIMESLICE"],
     ]
 
     mask = (
