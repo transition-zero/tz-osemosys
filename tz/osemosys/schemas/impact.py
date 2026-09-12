@@ -142,7 +142,7 @@ class Impact(OSeMOSYSBase, OtooleImpact):
 
     def compose(self, **sets):
         # compose root OSeMOSYSData
-        for field, _info in self.model_fields.items():
+        for field, _info in type(self).model_fields.items():
             field_val = getattr(self, field)
 
             if field_val is not None:
