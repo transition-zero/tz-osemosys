@@ -24,6 +24,7 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         ds["InputActivityRatio"].sum("MODE_OF_OPERATION") != 0, drop=False
     ).sum(dim="MODE_OF_OPERATION")
     RateOfUse = RateOfUseByTechnology.sum(dim="TECHNOLOGY")
+    UseByTechnology = RateOfUseByTechnology * ds["YearSplit"]
     Use = RateOfUse * ds["YearSplit"]
     UseAnnual = Use.sum(dim="TIMESLICE")
 
