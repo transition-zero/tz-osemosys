@@ -40,6 +40,7 @@ def add_lex_quantities(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "RateOfUseByTechnology": RateOfUseByTechnology,
             "RateOfUse": RateOfUse,
             "Use": Use,
+            "UseByTechnology": UseByTechnology,
             "UseAnnual": UseAnnual,
         }
     )
