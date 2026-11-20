@@ -40,6 +40,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
                 drop=False,
             )
         )
+        OperatingCostTS = AnnualTSVariableOperatingCost
 
     # salvage value
     SV1Cost = (
@@ -59,8 +60,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     # costs
     DiscountedFixedOperatingCost = AnnualFixedOperatingCost / lex["DiscountFactorMid"]
     DiscountedVariableOperatingCost = AnnualVariableOperatingCost / lex["DiscountFactorMid"]
+    DiscountedVariableOperatingCostTS = AnnualTSVariableOperatingCost / lex["DiscountFactorMid"]
     DiscountedOperatingCost = DiscountedVariableOperatingCost + DiscountedFixedOperatingCost
-
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     SalvageValue = (
@@ -72,7 +73,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     # Total discounted costs
     TotalDiscountedCostByTechnology = (
-        DiscountedCapitalInvestment + DiscountedOperatingCost - DiscountedSalvageValue
+        DiscountedCapitalInvestment + DiscountedOperatingCost + DiscountedVariableOperatingCostTS - DiscountedSalvageValue
     )
 
     if ds["EMISSION"].size > 0:
@@ -105,8 +106,10 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "AnnualTSVariableOperatingCost": AnnualTSVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
+            "OperatingCostTS": OperatingCostTS,
             "DiscountedFixedOperatingCost": DiscountedFixedOperatingCost,
             "DiscountedVariableOperatingCost": DiscountedVariableOperatingCost,
+            "DiscountedVariableOperatingCostTS": DiscountedVariableOperatingCostTS,
             "DiscountedOperatingCost": DiscountedOperatingCost,
             "DiscountedCapitalInvestment": DiscountedCapitalInvestment,
             "DiscountedSalvageValue": DiscountedSalvageValue,

@@ -85,12 +85,12 @@ technologies:
     residual_capacity: "{yr: 400 * max((1 - (yr - 2020) / (2040 - 2020), 0)) for yr in range(2020, 2051)}"
     operating_modes:
       - id: GEN
-        opex_variable: 20.
+        opex_variable: 0
         opex_variable_ts: 
-          SD: 0.
-          SN: 0.
-          WD: 0.
-          WN: 0.   # $/GW/yr
+          SD: 20
+          SN: 20
+          WD: 20
+          WN: 20   # $/GW/yr
         output_activity_ratio:
           ELC: 8760  # GWh/yr/GW
         emission_activity_ratio:
