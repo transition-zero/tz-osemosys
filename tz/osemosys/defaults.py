@@ -20,6 +20,7 @@ class Defaults(BaseSettings):
     technology_storage_initial_level: float = Field(0.0)
     technology_capex: float = Field(0.00001)
     technology_opex_variable_cost: float = Field(0.00001)
+    technology_opex_variable_cost_ts: float = Field(0.00001)
     technology_opex_fixed_cost: float = Field(0.0)
     technology_operating_life: int = Field(1)
     depreciation_method: str = "sinking-fund"

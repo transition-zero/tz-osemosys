@@ -70,6 +70,16 @@ class OtooleTechnology(BaseModel):
             "attribute": "opex_variable",
             "columns": ["MODE_OF_OPERATION", "REGION", "TECHNOLOGY", "YEAR", "VALUE"],
         },
+        "VariableCostTS": {
+            "attribute": "opex_variable_ts",
+                "columns": [
+                    "MODE_OF_OPERATION", 
+                    "REGION", 
+                    "TECHNOLOGY", 
+                    "YEAR", 
+                    "TIMESLICE", 
+                    "VALUE"],
+        },        
         "ResidualCapacity": {
             "attribute": "residual_capacity",
             "columns": ["REGION", "TECHNOLOGY", "YEAR", "VALUE"],
@@ -174,6 +184,7 @@ class OtooleTechnology(BaseModel):
     }
     operating_mode_stem_translation: ClassVar[dict[str, str]] = {
         "VariableCost": ("opex_variable", OSeMOSYSData.RY),
+        "VariableCostTS": ("opex_variable_ts", OSeMOSYSData.RYS),
         "EmissionActivityRatio": ("emission_activity_ratio", OSeMOSYSData.RIY),
         "InputActivityRatio": ("input_activity_ratio", OSeMOSYSData.RCY),
         "OutputActivityRatio": ("output_activity_ratio", OSeMOSYSData.RCY),

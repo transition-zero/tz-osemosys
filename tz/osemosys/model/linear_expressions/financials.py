@@ -15,17 +15,31 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
     DiscountedCapitalInvestment = CapitalInvestment / lex["DiscountFactor"]
 
     # costs
-    AnnualVariableOperatingCost = (
-        (lex["TotalAnnualTechnologyActivityByMode"] * ds["VariableCost"].fillna(0))
-        .sum(dim="MODE_OF_OPERATION")
-        .where(
-            (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
-            & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
-            drop=False,
+
+    if ds["VariableCost"].size > 0:
+        AnnualVariableOperatingCost = (
+            (lex["TotalAnnualTechnologyActivityByMode"] * ds["VariableCost"].fillna(0))
+            .sum(dim="MODE_OF_OPERATION")
+            .where(
+                (ds["VariableCost"].sum(dim="MODE_OF_OPERATION") != 0)
+                & (~ds["VariableCost"].sum(dim="MODE_OF_OPERATION").isnull()),
+                drop=False,
+            )
         )
-    )
-    AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
-    OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
+        AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
+        OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
+
+    if ds["VariableCostTS"].size > 0:
+        AnnualTSVariableOperatingCost = (
+            (((m["RateOfActivity"] * ds["VariableCostTS"].fillna(0))
+            .sum(dim="MODE_OF_OPERATION"))
+            * ds["YearSplit"]).sum(dim="TIMESLICE")
+            .where(
+                (ds["VariableCostTS"].sum(dim="TIMESLICE") != 0)
+                & (~ds["VariableCostTS"].sum(dim="TIMESLICE").isnull()),
+                drop=False,
+            )
+        )
 
     # salvage value
     SV1Cost = (
@@ -88,6 +102,7 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
         {
             "CapitalInvestment": CapitalInvestment,
             "AnnualVariableOperatingCost": AnnualVariableOperatingCost,
+            "AnnualTSVariableOperatingCost": AnnualTSVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
             "DiscountedFixedOperatingCost": DiscountedFixedOperatingCost,

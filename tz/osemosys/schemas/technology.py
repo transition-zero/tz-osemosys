@@ -23,6 +23,10 @@ class OperatingMode(OSeMOSYSBase):
     Cost of a technology for a given mode of operation (Variable O&M cost), per unit of activity.
     Optional, defaults to `None`.
 
+    `opex_variable_ts` `({region:{year:{timeslice:float}}})` - OSeMOSYS VariableCostTS.
+    Cost of a technology per timeslice for a given mode of operation (Variable O&M cost), per unit of activity.
+    Optional, defaults to `None`.
+    
     `emission_activity_ratio` `({region:{impact:{year:float}}})` - OSeMOSYS EmissionActivityRatio.
     Emission factor of a technology per unit of activity.
     Optional, defaults to `None`.
@@ -72,6 +76,9 @@ class OperatingMode(OSeMOSYSBase):
     opex_variable: OSeMOSYSData.RY | None = Field(
         OSeMOSYSData.RY(defaults.technology_opex_variable_cost)
     )
+    opex_variable_ts: OSeMOSYSData.RYS | None = Field(
+        OSeMOSYSData.RYS(defaults.technology_opex_variable_cost_ts)
+    )    
     emission_activity_ratio: OSeMOSYSData.RIY | None = Field(None)
 
     @field_serializer("emission_activity_ratio")
