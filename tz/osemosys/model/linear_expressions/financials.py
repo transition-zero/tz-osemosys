@@ -26,22 +26,22 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
                 drop=False,
             )
         )
-        AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
-        OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
+    
+    AnnualFixedOperatingCost = lex["GrossCapacity"] * ds["FixedCost"].fillna(0)
+    OperatingCost = AnnualVariableOperatingCost + AnnualFixedOperatingCost
 
     if ds["VariableCostTS"].size > 0:
         AnnualTSVariableOperatingCost = (
-            (((m["RateOfActivity"] * ds["VariableCostTS"].fillna(0))
-            .sum(dim="MODE_OF_OPERATION"))
-            * ds["YearSplit"]).sum(dim="TIMESLICE")
+            (((m["RateOfActivity"] * ds["YearSplit"] * ds["VariableCostTS"].fillna(0))
+            .sum(dims=["MODE_OF_OPERATION","TIMESLICE"]))
+            )
             .where(
                 (ds["VariableCostTS"].sum(dim="TIMESLICE") != 0)
                 & (~ds["VariableCostTS"].sum(dim="TIMESLICE").isnull()),
                 drop=False,
             )
         )
-        OperatingCostTS = AnnualTSVariableOperatingCost
-
+    
     # salvage value
     SV1Cost = (
         ds["CapitalCost"].fillna(0)
@@ -73,7 +73,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     # Total discounted costs
     TotalDiscountedCostByTechnology = (
-        DiscountedCapitalInvestment + DiscountedOperatingCost + DiscountedVariableOperatingCostTS - DiscountedSalvageValue
+        DiscountedCapitalInvestment + DiscountedFixedOperatingCost + DiscountedVariableOperatingCost
+        + DiscountedVariableOperatingCostTS - DiscountedSalvageValue
     )
 
     if ds["EMISSION"].size > 0:
@@ -106,7 +107,6 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
             "AnnualTSVariableOperatingCost": AnnualTSVariableOperatingCost,
             "AnnualFixedOperatingCost": AnnualFixedOperatingCost,
             "OperatingCost": OperatingCost,
-            "OperatingCostTS": OperatingCostTS,
             "DiscountedFixedOperatingCost": DiscountedFixedOperatingCost,
             "DiscountedVariableOperatingCost": DiscountedVariableOperatingCost,
             "DiscountedVariableOperatingCostTS": DiscountedVariableOperatingCostTS,

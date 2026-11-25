@@ -16,6 +16,7 @@ SOLUTION_KEYS = [
     "DiscountedOperatingCost",
     "DiscountedSalvageValue",
     "DiscountedVariableOperatingCost",
+    "DiscountedVariableOperatingCostTS",
     "GrossStorageCapacity",
     "GrossCapacity",
     "NetCharge",
