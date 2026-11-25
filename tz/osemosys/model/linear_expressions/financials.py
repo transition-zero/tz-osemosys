@@ -32,9 +32,8 @@ def add_lex_financials(ds: xr.Dataset, m: Model, lex: Dict[str, LinearExpression
 
     if ds["VariableCostTS"].size > 0:
         AnnualTSVariableOperatingCost = (
-            (((m["RateOfActivity"] * ds["YearSplit"] * ds["VariableCostTS"].fillna(0))
-            .sum(dims=["MODE_OF_OPERATION","TIMESLICE"]))
-            )
+            ((m["RateOfActivity"] * ds["YearSplit"] * ds["VariableCostTS"].fillna(0))
+            ).sum(dims=["MODE_OF_OPERATION","TIMESLICE"])
             .where(
                 (ds["VariableCostTS"].sum(dim="TIMESLICE") != 0)
                 & (~ds["VariableCostTS"].sum(dim="TIMESLICE").isnull()),
